@@ -1,0 +1,150 @@
+name = Pro UI
+description = custom admin theme.
+core = 7.x
+base theme = bootstrap
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Regions
+;;;;;;;;;;;;;;;;;;;;;
+
+regions[header_left]    = 'Header left'
+regions[header_right]   = 'Header right'
+regions[sidebar]        = 'Sidebar'
+regions[content_top]    = 'Content top'
+regions[content]        = 'Content'
+regions[footer]         = 'Footer'
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Stylesheets
+;;;;;;;;;;;;;;;;;;;;;
+
+stylesheets[all][] = css/bootstrap.min.css
+stylesheets[all][] = css/main.css
+stylesheets[all][] = css/plugins.css
+stylesheets[all][] = css/jquery.simplecolorpicker.css
+
+stylesheets[all][] = css/flags/flags32.css
+
+stylesheets[all][] = css/themes.css
+stylesheets[all][] = css/style.css
+
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Scripts
+;;;;;;;;;;;;;;;;;;;;;
+
+ scripts[] = 'bootstrap/js/affix.js'
+ scripts[] = 'bootstrap/js/alert.js'
+ scripts[] = 'bootstrap/js/button.js'
+ scripts[] = 'bootstrap/js/carousel.js'
+ scripts[] = 'bootstrap/js/collapse.js'
+ scripts[] = 'bootstrap/js/dropdown.js'
+ scripts[] = 'bootstrap/js/modal.js'
+ scripts[] = 'bootstrap/js/tooltip.js'
+ scripts[] = 'bootstrap/js/popover.js'
+ scripts[] = 'bootstrap/js/scrollspy.js'
+ scripts[] = 'bootstrap/js/tab.js'
+ scripts[] = 'bootstrap/js/transition.js'
+
+ scripts[] = 'js/jquery-ui.js' 
+ scripts[] = 'js/app.js' 
+ scripts[] = 'js/plugins.js'
+ scripts[] = 'js/jquery.confirm.min.js'
+ scripts[] = 'js/modernizr-respond.min.js'
+
+ scripts[] = 'js/jquery.ui.map.js'
+ scripts[] = 'js/markerclusterer.js'
+
+ scripts[] = 'js/jquery.simplecolorpicker.js'
+
+ scripts[] = 'js/jquery.countTo.js'
+
+ scripts[] = 'js/script.js'
+
+ settings[bootstrap_cdn] = ''
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Plug-ins
+;;;;;;;;;;;;;;;;;;;;;
+
+;jQuery UI Map
+ scripts[] = 'plugins/jquery.ui.map/jquery.ui.map.services.min.js' 
+
+;Datatables
+ scripts[] = 'plugins/datatables/js/datatables.min.js' 
+ scripts[] = 'plugins/datatables/js/jquery.dataTables.columnFilter.js'
+ scripts[] = 'plugins/datatables/js/dataTables.tableTools.js'
+ stylesheets[all][] = plugins/datatables/css/datatables.min.css
+
+
+;Highcharts and Highmaps
+ scripts[] = 'plugins/highcharts/highcharts.js'
+ scripts[] = 'plugins/highcharts/highcharts-more.js'
+ scripts[] = 'plugins/highcharts/highcharts-3d.js'
+ scripts[] = 'plugins/highcharts/exporting.js'
+ scripts[] = 'plugins/highcharts/solid-gauge.js'
+ scripts[] = 'plugins/highcharts/no-data-to-display.js'
+ scripts[] = 'plugins/highcharts/highcharts-drilldown.js'
+
+ scripts[] = 'plugins/highcharts/map.js'
+ scripts[] = 'plugins/highcharts/world-palestine-highres.js'
+ scripts[] = 'plugins/highcharts/jo-all.js'
+ scripts[] = 'plugins/highcharts/lb-all.js'
+
+;vertical-timeline
+ stylesheets[all][] = plugins/vertical-timeline/vt-style.css
+ scripts[] = 'plugins/vertical-timeline/vt-main.js' 
+ scripts[] = 'plugins/vertical-timeline/vt-modernizr.js' 
+
+;html5-videos
+ ;stylesheets[all][] = plugins/html5-video/css/vp2_html5_rightsideplaylist.css
+ ;scripts[] = 'plugins/html5-video/js/jquery.mousewheel.min.js'
+ ;scripts[] = 'plugins/html5-video/js/jquery.touchSwipe.min.js'
+ ;scripts[] = 'plugins/html5-video/js/screenfull.min.js' 
+ ;scripts[] = 'plugins/html5-video/js/vp2_html5_rightsideplaylist.js' 
+
+;CKeditor
+scripts[] = 'plugins/ckeditor/ckeditor.js' 
+
+;Masonry
+scripts[] = 'plugins/masonry/masonry.pkgd.min.js' 
+
+;imagesLoaded
+scripts[] = 'plugins/imagesLoaded/imagesloaded.pkgd.min.js'
+
+;OrgChart jquery.orgchart
+ scripts[] = 'plugins/jquery.orgchart/jquery.orgchart.js' 
+ scripts[] = 'plugins/jquery.orgchart/html2canvas.min.js' 
+ stylesheets[all][] = plugins/jquery.orgchart/jquery.orgchart.css
+
+;Timeline
+ scripts[] = 'plugins/timeline/timeline.js' 
+ stylesheets[all][] = plugins/timeline/timeline.css
+
+;Intro JS
+ scripts[] = 'plugins/introjs/intro.min.js' 
+ stylesheets[all][] = plugins/introjs/introjs.min.css
+
+;SlimeScoll
+ scripts[] = 'plugins/slimScroll/jquery.slimscroll.min.js' 
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Most weighted CSS
+;;;;;;;;;;;;;;;;;;;;;
+stylesheets[all][] = css/style2.css
+stylesheets[all][] = css/styles.css.less
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Theme Settings
+;;;;;;;;;;;;;;;;;;;;;
+
+; Breadcrumbs
+; --------------
+settings[pro_ui_breadcrumb] = 1
+settings[pro_ui_breadcrumb_home] = 0
+settings[pro_ui_breadcrumb_title] = 1
+

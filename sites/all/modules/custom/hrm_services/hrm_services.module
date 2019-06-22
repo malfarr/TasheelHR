@@ -1,0 +1,1018 @@
+<?php
+
+/**
+ * Implementation of hook_services_resources().
+ */
+function hrm_services_services_resources() {
+  return array(
+    'user' => array(
+      'actions' => array(
+        'change_password' => array(
+          'help' => 'user change passwotd service',
+          'callback' => 'hrm_services_resource_user_change_password',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('user change password'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'email' => array('name' => 'email', 'type' => 'string', 'source' => array('data' => 'email',), 'optional' => FALSE,),
+            'old_password' => array('name' => 'password', 'type' => 'string', 'source' => array('data' => 'old_password',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+       
+    'hrm_employee' => array(
+      'actions' => array(
+        'login' => array(
+          'help' => 'user login service',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_account',),
+          'callback' => 'hrm_services_employee_login',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('user login'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'email' => array('name' => 'email', 'type' => 'string', 'source' => array('data' => 'email',), 'optional' => FALSE,),
+            'password' => array('name' => 'password', 'type' => 'string', 'source' => array('data' => 'password',), 'optional' => FALSE),
+            'device_id' => array('name' => 'device_id', 'type' => 'string', 'source' => array('data' => 'device_id',), 'optional' => FALSE),
+            'device_type' => array('name' => 'device_type', 'type' => 'string', 'source' => array('data' => 'device_type',), 'optional' => FALSE),
+          ),
+        ),
+        'logout' => array(
+          'help' => 'user logout service',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_account',),
+          'callback' => 'hrm_services_employee_logout',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('user logout'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'change_password' => array(
+          'help' => 'user change password service',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_account',),
+          'callback' => 'hrm_services_employee_change_password',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('user change password'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'old_password' => array('name' => 'old_password', 'type' => 'string', 'source' => array('data' => 'old_password',), 'optional' => FALSE),
+            'new_password' => array('name' => 'new_password', 'type' => 'string', 'source' => array('data' => 'new_password',), 'optional' => FALSE),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'reset_password' => array(
+          'help' => 'user reset password service',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_account',),
+          'callback' => 'hrm_services_employee_reset_password',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('employee reset password'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'email' => array('name' => 'email', 'type' => 'string', 'source' => array('data' => 'email',), 'optional' => FALSE),
+          ),
+        ),
+        'info' => array(
+          'help' => 'user info  service',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_account',),
+          'callback' => 'hrm_services_employee_get_info',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('user info'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    'hrm_attendance' => array(
+      'actions' => array(
+        'punchin' => array(
+          'help' => 'attendance punch in service',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_attendance',),
+          'callback' => 'hrm_services_attendance_punchin',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('attendance punch in'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'lat' => array('name' => 'lat', 'type' => 'string', 'source' => array('data' => 'lat',), 'optional' => FALSE,),
+            'long' => array('name' => 'long', 'type' => 'string', 'source' => array('data' => 'long',), 'optional' => FALSE),
+            'note' => array('name' => 'note', 'type' => 'string', 'source' => array('data' => 'note',), 'optional' => FALSE),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'punchout' => array(
+          'help' => 'attendance punch out service',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_attendance',),
+          'callback' => 'hrm_services_attendance_punchout',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('attendance punch out'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'lat' => array('name' => 'lat', 'type' => 'string', 'source' => array('data' => 'lat',), 'optional' => FALSE,),
+            'long' => array('name' => 'long', 'type' => 'string', 'source' => array('data' => 'long',), 'optional' => FALSE),
+            'note' => array('name' => 'note', 'type' => 'string', 'source' => array('data' => 'note',), 'optional' => FALSE),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'staff_attendance' => array(
+          'help' => 'Staff attendance',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_attendance',),
+          'callback' => 'hrm_services_attendance_staff_attendance',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('view staff attendance'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'day' => array('name' => 'day', 'type' => 'string', 'source' => array('data' => 'day',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    'hrm_leave' => array(
+      'actions' => array(
+        'leave_form' => array(
+          'help' => 'Leave form',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_leave',),
+          'callback' => 'hrm_services_leave_form',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('leave form'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'apply_leave' => array(
+          'help' => 'apply Leave',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_leave',),
+          'callback' => 'hrm_services_leave_apply_leave',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('apply leave'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'leave_type' => array('name' => 'leave_type', 'type' => 'int', 'source' => array('data' => 'leave_type',), 'optional' => FALSE),
+            'from_date' => array('name' => 'from_date', 'type' => 'string', 'source' => array('data' => 'from_date',), 'optional' => FALSE),
+            'to_date' => array('name' => 'to_date', 'type' => 'string', 'source' => array('data' => 'to_date',), 'optional' => FALSE),
+            'duration_data' => array('name' => 'duration_data', 'type' => 'string', 'source' => array('data' => 'duration_data',), 'optional' => FALSE),
+            'comment' => array('name' => 'comment', 'type' => 'string', 'source' => array('data' => 'comment',), 'optional' => TRUE),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'my_leaves' => array(
+          'help' => 'Employee leaves',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_leave',),
+          'callback' => 'hrm_services_leave_my_leaves',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('view my leaves'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'staff_leaves' => array(
+          'help' => 'Employee staff leaves',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_leave',),
+          'callback' => 'hrm_services_leave_staff_leaves',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('view staff leaves'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'pending_leaves' => array(
+          'help' => 'Pending leaves',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_leave',),
+          'callback' => 'hrm_services_leave_pending_leaves',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('access pending leaves'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'leave_action' => array(
+          'help' => 'Leave action',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_leave',),
+          'callback' => 'hrm_services_leave_action',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('manage leave action'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'leave_id' => array('name' => 'leave_id', 'type' => 'int', 'source' => array('data' => 'leave_id',), 'optional' => FALSE,),
+            'action' => array('name' => 'action', 'type' => 'int', 'source' => array('data' => 'action',), 'optional' => FALSE,),
+            'comment' => array('name' => 'comment', 'type' => 'string', 'source' => array('data' => 'comment',), 'optional' => TRUE,),
+            'assign_to_other' => array('name' => 'assign_to_other', 'type' => 'int', 'source' => array('data' => 'assign_to_other',), 'optional' => TRUE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'leave_entitlements' => array(
+          'help' => 'Leave Entitlements',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_leave',),
+          'callback' => 'hrm_services_leave_entitlements',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('access leave entitlements'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    //Time Sheet
+    'hrm_timesheet' => array(
+      'actions' => array(
+        'timesheet_calendar' => array(
+          'help' => 'Return timesheets counter for an employee keyd with the day',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_timesheet',),
+          'callback' => 'hrm_services_timesheet_get_timesheet_calendar',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('access timesheet calendar'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'year' => array('name' => 'year', 'type' => 'int', 'source' => array('data' => 'year',), 'optional' => FALSE,),
+            'month' => array('name' => 'month', 'type' => 'int', 'source' => array('data' => 'month',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'timesheet_log' => array(
+          'help' => 'Return timesheets log for a specific day',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_timesheet',),
+          'callback' => 'hrm_services_timesheet_get_timesheet_log',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('access timesheet log'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'day' => array('name' => 'day', 'type' => 'string', 'source' => array('data' => 'day',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'timesheet_add_log' => array(
+          'help' => 'add item to timesheet',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_timesheet',),
+          'callback' => 'hrm_services_timesheet_add_timesheet_log',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('timesheet add log'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'day' => array('name' => 'day', 'type' => 'string', 'source' => array('data' => 'day',), 'optional' => FALSE,),
+            'from' => array('name' => 'from', 'type' => 'string', 'source' => array('data' => 'from',), 'optional' => FALSE,),
+            'to' => array('name' => 'to', 'type' => 'string', 'source' => array('data' => 'to',), 'optional' => FALSE,),
+            'description' => array('name' => 'description', 'type' => 'string', 'source' => array('data' => 'description',), 'optional' => FALSE,),
+            'project' => array('name' => 'project', 'type' => 'int', 'source' => array('data' => 'project',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'timesheet_edit_log' => array(
+          'help' => 'add item to timesheet',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_timesheet',),
+          'callback' => 'hrm_services_timesheet_edit_timesheet_log',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('timesheet edit log'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'log_id' => array('name' => 'log_id', 'type' => 'int', 'source' => array('data' => 'log_id',), 'optional' => FALSE,),
+            'day' => array('name' => 'day', 'type' => 'string', 'source' => array('data' => 'day',), 'optional' => FALSE,),
+            'from' => array('name' => 'from', 'type' => 'string', 'source' => array('data' => 'from',), 'optional' => FALSE,),
+            'to' => array('name' => 'to', 'type' => 'string', 'source' => array('data' => 'to',), 'optional' => FALSE,),
+            'description' => array('name' => 'description', 'type' => 'string', 'source' => array('data' => 'description',), 'optional' => FALSE,),
+            'project' => array('name' => 'project', 'type' => 'int', 'source' => array('data' => 'project',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'timesheet_delete_log' => array(
+          'help' => 'add item to timesheet',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_timesheet',),
+          'callback' => 'hrm_services_timesheet_delete_timesheet_log',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('timesheet delete log'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'log_id' => array('name' => 'log_id', 'type' => 'int', 'source' => array('data' => 'log_id',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    //Announcment
+    'hrm_announcement' => array(
+      'actions' => array(
+        'get_announcements' => array(
+          'help' => 'Get Announcements',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_announcement',),
+          'callback' => 'hrm_services_get_announcements',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('get announcement'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    'hrm_document' => array(
+      'actions' => array(
+        'get_documents' => array(
+          'help' => 'Get Documents',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_document',),
+          'callback' => 'hrm_services_document_get_documents',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('get documents'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'email_document' => array(
+          'help' => 'Email Document',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_document',),
+          'callback' => 'hrm_services_document_email_document',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('email document'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'document_id' => array('name' => 'document_id', 'type' => 'int', 'source' => array('data' => 'document_id',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    'hrm_app' => array(
+      'actions' => array(
+        'check_version' => array(
+          'help' => 'Check App version',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_app',),
+          'callback' => 'hrm_services_app_check_version',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('app check version'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'version' => array('name' => 'version', 'type' => 'string', 'source' => array('data' => 'version',), 'optional' => FALSE,),
+          ),
+        ),
+        'check_device' => array(
+          'help' => 'Check App device ID',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_app',),
+          'callback' => 'hrm_services_app_check_device',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('app check device id'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'device_id' => array('name' => 'device_id', 'type' => 'string', 'source' => array('data' => 'device_id',), 'optional' => FALSE),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    'hrm_account' => array(
+      'actions' => array(
+        'get_perms' => array(
+          'help' => 'return account permissions',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_account',),
+          'callback' => 'hrm_services_account_get_permissions',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('get permission'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    'hrm_asset' => array(
+      'actions' => array(
+        'get_assets' => array(
+          'help' => 'get org Assets',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/AC/services_asset',),
+          'callback' => 'hrm_services_asset_get_assets',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('asset get assets'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'uid' => array('name' => 'uid', 'type' => 'int', 'source' => array('data' => 'uid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'barcode_data' => array(
+          'help' => 'get Asset Barcode data',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/AC/services_asset',),
+          'callback' => 'hrm_services_asset_get_barcode_data',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('asset get barcode'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'uid' => array('name' => 'uid', 'type' => 'int', 'source' => array('data' => 'uid',), 'optional' => FALSE,),
+            'barcode_data' => array('name' => 'barcode_data', 'type' => 'string', 'source' => array('data' => 'barcode_data',), 'optional' => FALSE),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'send_tracking_data' => array(
+          'help' => 'send Asset Barcode Tracking data',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/AC/services_asset',),
+          'callback' => 'hrm_services_asset_send_tracking_data',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('send asset tracking data'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'uid' => array('name' => 'uid', 'type' => 'int', 'source' => array('data' => 'uid',), 'optional' => FALSE,),
+            'aid' => array('name' => 'aid', 'type' => 'int', 'source' => array('data' => 'aid',), 'optional' => FALSE,),
+            'coordinates' => array('name' => 'coordinates', 'type' => 'string', 'source' => array('data' => 'coordinates',), 'optional' => FALSE,),
+            'note ' => array('name' => 'note', 'type' => 'string', 'source' => array('data' => 'note',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+    'hrm_appraisal' => array(
+      'actions' => array(
+        'get_appraisals' => array(
+          'help' => 'get Performance Appraisals data',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_appraisal',),
+          'callback' => 'hrm_service_appraisals_get_appraisal',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('appraisals get appraisal'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+        'send_review' => array(
+          'help' => 'send Appraisals review',
+          'file' => array('file' => 'inc', 'module' => 'hrm_services', 'name' => 'includes/ESS/services_appraisal',),
+          'callback' => 'hrm_service_appraisals_send_review',
+          'access callback' => 'hrm_services_access',
+          'access arguments' => array('appraisals send review'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            'empid' => array('name' => 'empid', 'type' => 'int', 'source' => array('data' => 'empid',), 'optional' => FALSE,),
+            'review_data' => array('name' => 'review_data', 'type' => 'string', 'source' => array('data' => 'review_data',), 'optional' => FALSE),
+            'token' => array('name' => 'token', 'type' => 'string', 'source' => array('data' => 'token',), 'optional' => FALSE),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+// check service accessibility 
+function hrm_services_access($op, $args = array()) {
+  return TRUE;
+  $access = FALSE;
+  if ($op == 'app check version') {
+    $access = TRUE;
+  }
+  elseif ($op == 'user login') {
+    $access = TRUE;
+  }
+  elseif ($op == 'employee reset password') {
+    $access = TRUE;
+  }
+  // Asset
+  elseif ($op == 'send asset tracking data') {
+    $access = TRUE;
+  }
+  elseif ($op == 'asset get barcode') {
+    $access = TRUE;
+  }
+  elseif ($op == 'asset get assets') {
+    $access = TRUE;
+  }
+  else {
+    if (isset($args['empid']) && isset($args['token'])) {
+      $employee_token = hrm_basic_employee_account_get_token($args['empid']);
+      if ($args['token'] == $employee_token) {
+        switch ($op) {
+          //Users permissions
+          case 'user logout':
+            $access = TRUE;
+            break;
+          case 'user change password':
+            $access = TRUE;
+            break;
+          case 'user info':
+            $access = TRUE;
+            break;
+
+          //Attendance permissions
+          case 'attendance punch in':
+            $access = TRUE;
+            break;
+          case 'attendance punch out':
+            $access = TRUE;
+            break;
+          case 'view staff attendance':
+            $access = TRUE;
+            break;
+
+          //Leave permissions
+          case 'view my leaves':
+            $access = TRUE;
+            break;
+          case 'view staff leaves':
+            $access = TRUE;
+            break;
+          case 'leave form':
+            $access = TRUE;
+            break;
+          case 'apply leave':
+            $access = TRUE;
+            break;
+          case 'access pending leaves':
+            $access = TRUE;
+            break;
+          case 'manage leave action':
+            $access = TRUE;
+            break;
+          case 'access leave entitlements':
+            $access = TRUE;
+            break;
+          //Timesheet
+          case 'access timesheet calendar':
+            $access = TRUE;
+            break;
+          case 'access timesheet log':
+            $access = TRUE;
+            break;
+          case 'timesheet add log':
+            $access = TRUE;
+            break;
+          case 'timesheet edit log':
+            $access = TRUE;
+            break;
+          case 'timesheet delete log':
+            $access = TRUE;
+            break;
+
+          //Announcements
+          case 'get announcement':
+            $access = TRUE;
+            break;
+
+          //Documents
+          case 'get documents':
+            $access = TRUE;
+            break;
+          case 'email document':
+            $access = TRUE;
+            break;
+
+          //App
+          case 'app check device id':
+            $access = TRUE;
+            break;
+
+          // Account
+          case 'get permission':
+            $access = TRUE;
+            break;
+
+          // Appraisals
+          case 'appraisals get appraisal':
+            $access = TRUE;
+            break;
+          case 'appraisals send review':
+            $access = TRUE;
+            break;
+        }
+      }
+    }
+  }
+  return $access;
+}
+
+/*
+ * Helper functions
+ */
+
+function hrm_services_employee_get_data($filters = array(), $first_item = FALSE) {
+
+  $employees = hrm_basic_employee_get_data($filters, FALSE, TRUE);
+  if (!empty($employees)) {
+    foreach ($employees as $empid => $employee) {
+      $employees[$empid]['job'] = db_select('hrm_emp_job', 'employee_job')
+          ->fields('employee_job', array('id', 'empid', 'job_title',))
+          ->condition('empid', $employee['empid'], '=')
+          ->execute()->fetch(PDO::FETCH_ASSOC);
+
+      $employees[$empid]['organization'] = db_select('hrm_org')
+          ->fields('hrm_org', array('name'))->condition('oid', $employee['oid'], '=')->execute()->fetchField(0);
+
+      $employees[$empid]['job_title_name'] = (db_select('hrm_config_job_title')
+          ->fields('hrm_config_job_title', array('name'))->condition('id', $employees[$empid]['job']['job_title'], '=')->execute()->fetchField(0) ? db_select('hrm_config_job_title')
+          ->fields('hrm_config_job_title', array('name'))->condition('id', $employees[$empid]['job']['job_title'], '=')->execute()->fetchField(0) : "") ;
+
+      $employees[$empid]['location_name'] = db_select('hrm_location')
+          ->fields('hrm_location', array('name'))->condition('lid', $employee['location'], '=')->execute()->fetchField(0);
+
+      if (!empty($employees[$empid]['job'])) {
+        $projects = db_select('hrm_emp_job_project', 'employee_job_projects')
+            ->fields('employee_job_projects', array('project'))
+            ->condition('empid', $employee['empid'], '=')
+            ->execute()->fetchCol(0);
+
+        $org_filters = array(array('field' => 'oid', 'value' => $employee['oid']));
+        $projects_name = hrm_basic_project_names($org_filters);
+
+        $employees[$empid]['projects'] = array();
+        foreach ($projects as $key => $value) {
+          $employees[$empid]['projects'][] = array('id' => $value, 'name' => $projects_name[$value]);
+        }
+      }
+
+      $employees[$empid]['punch_status'] = 'out';
+      $employees[$empid]['punch_time'] = '00:00';
+
+      $last_attanedance_record = db_select('hrm_attendance_details')
+          ->fields('hrm_attendance_details', array('id', 'in_time', 'in_date', 'out_time', 'out_date', 'status'))
+          ->condition('empid', $employee['empid'], '=')
+          ->orderBy('id', 'DESC')
+          ->range(0, 1)
+          ->execute()->fetch(PDO::FETCH_ASSOC);
+
+      if (!empty($last_attanedance_record)) {
+        if ($last_attanedance_record['status'] == HRM_ATTENDANCE_LOG_COMPLETED) {
+          $employees[$empid]['punch_status'] = 'out';
+          $employees[$empid]['punch_time'] = $last_attanedance_record['out_time'] . ' on ' . $last_attanedance_record['out_date'];
+        }
+        else {
+          $employees[$empid]['punch_status'] = 'in';
+          $employees[$empid]['punch_time'] = $last_attanedance_record['in_time'] . ' on ' . $last_attanedance_record['in_date'];
+        }
+      }
+    }
+  }
+
+  if ($first_item) {
+    return reset($employees);
+  }
+
+  return $employees;
+}
+
+function hrm_services_employee_generate_employee_object($employee) {
+  $data = new stdClass();
+  $data->empid = $employee['empid'];
+  $data->oid = $employee['oid'];
+  $data->bid = $employee['bid'];
+  $data->email = $employee['email'];
+  $data->name = $employee['name'];
+  $data->token = $employee['token'];
+  $data->photo = $employee['photo_url'];
+  $data->title = $employee['job_title_name'];
+  $data->organization = $employee['organization'];
+  $data->location = $employee['location_name'];
+  $data->projects = $employee['projects'];
+  $data->punch_status = $employee['punch_status'];
+  $data->punch_time = $employee['punch_time'];
+
+  return $data;
+}
+
+/**
+ * implements hook_services_resources_alter()
+ */
+function hrm_services_services_resources_alter(&$resources, &$endpoint) {
+  $resources['user']['actions']['login']['callback'] = 'hrm_services_resource_user_login';
+  $resources['user']['actions']['login']['args'][0]['name'] = 'email';
+  $resources['user']['actions']['login']['args'][0]['description'] = 'A valid email address registered as an account';
+  $resources['user']['actions']['login']['args'][0]['source']['data'] = 'email';
+  $resources['user']['actions']['login']['args'][1]['name'] = 'password';
+  $resources['user']['actions']['login']['args'][1]['source']['data'] = 'password';
+
+  $resources['user']['actions']['login']['args'][] = array(
+    'name' => 'device_id',
+    'type' => 'string',
+    'source' => array('data' => 'device_id'),
+    'optional' => FALSE,
+  );
+
+  $resources['user']['actions']['logout']['callback'] = 'hrm_services_resource_user_logout';
+  $resources['user']['actions']['logout']['args'][0]['name'] = 'uid';
+  $resources['user']['actions']['logout']['args'][0]['description'] = 'user id';
+  $resources['user']['actions']['logout']['args'][0]['source']['data'] = 'uid';
+
+  $resources['user']['actions']['request_new_password']['callback'] = 'hrm_services_resource_user_request_new_password';
+  $resources['user']['actions']['request_new_password']['args'][0]['name'] = 'email';
+  $resources['user']['actions']['request_new_password']['args'][0]['description'] = 'user email';
+  $resources['user']['actions']['request_new_password']['args'][0]['source']['data'] = 'email';
+
+  watchdog('ff', serialize($resources['user']['actions']['change_password']));
+}
+
+function hrm_services_resource_user_login($email, $password, $device_id) {
+  $json = new stdClass;
+
+  global $user;
+  $username = null;
+  if ($name = db_query('SELECT username FROM {hrm_users} WHERE LOWER(email) = LOWER(:email)', array(':email' => $email))->fetchField()) {
+    $username = $name;
+  }
+
+  if ($user->uid) {
+    // user is already logged in
+    return services_error(strip_tags(t('Already logged in as @user.', array('@user' => $user->mail)), 406));
+  }
+
+  // Check if account is active.
+  if (!$username) {
+    return services_error(strip_tags(t('The account for %email does not exist.', array('%email' => $email)), 404));
+  }
+
+  if (user_is_blocked($username)) {
+    return services_error(strip_tags(t('The account for %email has not been activated or is blocked.', array('%email' => $email)), 403));
+  }
+
+  $uid = user_authenticate($username, $password);
+
+  if ($uid) {
+    $user = user_load($uid);
+    if ($user->uid) {
+      user_login_finalize();
+
+      $return = new stdClass();
+      $return->login_status = 200;
+      $return->sessid = session_id();
+      $return->session_name = session_name();
+
+      services_remove_user_data($user);
+
+      $account = hrm_basic_account_get_info($uid);
+
+      $return->uid = $uid;
+      $return->token = hrm_services_user_generate_user_token($uid, $user, $device_id);
+      $return->mail = $user->mail;
+      $return->login = $user->login;
+      $return->status = $user->status;
+      $return->device_id = $device_id;
+      $return->name = $account['name'];
+      $return->bid = $account['bid'];
+      //Employee Photo
+      $avatar_url = file_create_url(HRM_DEFAULT_IMAGES_USER);
+      $avater_uri = hrm_basic_file_get_managed_file_uri($account['photo'], HRM_DEFAULT_IMAGES_EMPLOYEE_PHOTO);
+      if ($account['photo']) {
+        if (file_exists($avater_uri)) {
+          $avatar_url = file_create_url($avater_uri);
+        }
+      }
+      $return->avatar = $avatar_url;
+
+      //Employee Position
+      $position = hrm_basic_role_names($account['role']);
+      $return->position = $position;
+
+      // user organization name
+      $branch_name = hrm_basic_branch_get_name($account['bid']);
+
+      if ($account['bid']) {
+        $return->branch_name = $branch_name;
+      }
+      $org_name = hrm_basic_organization_get_name($account['oid']);
+      $return->org_name = $org_name;
+
+      return $return;
+    }
+  }
+  else {
+    $return = new stdClass();
+    $return->login_status = 404;
+    $return->message = 'Invalid password';
+    return $return;
+  }
+
+  watchdog('user', 'Invalid login attempt for %email.', array('%email' => $email));
+  return services_error(t('Invalid email or password.'), 401);
+}
+
+function hrm_services_resource_user_logout($uid) {
+  $json = new stdClass();
+
+  $user = user_load($uid);
+  if ($user->login == 0) {
+    $json->status = 404;
+    $json->message = t('user is not logged in');
+    $json->message_en = 'user is not logged in';
+
+    return $json;
+  }
+  else {
+    module_invoke_all('user_logout', $user);
+    session_destroy();
+    db_update('hrm_users')
+      ->fields(array(
+        'device_id' => '',
+        'token' => '',
+      ))
+      ->condition('uid', $uid, '=')
+      ->execute();
+
+    $return = new stdClass();
+    $return->login_status = 404;
+    $return->message = 'Logout successfully***';
+    return $return;
+  }
+}
+
+function hrm_services_resource_user_request_new_password($email) {
+  global $user;
+  $username = null;
+  if ($name = db_query('SELECT username FROM {hrm_users} WHERE LOWER(email) = LOWER(:email)', array(':email' => $email))->fetchField()) {
+    $username = $name;
+  }
+
+  // Check if account is active.
+  if (!$username) {
+    return services_error(strip_tags(t('The account for %email does not exist.', array('%email' => $email)), 404));
+  }
+
+  if (user_is_blocked($username)) {
+    return services_error(strip_tags(t('The account for %email has not been activated or is blocked.', array('%email' => $email)), 403));
+  }
+
+  require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+  $password = hrm_basic_text_generate_random_text(6);
+  $encrypted_password = _password_crypt('sha512', $password, HRM_KEY_SHA512_SALT);
+
+  db_update('hrm_users')
+    ->fields(array(
+      'password' => $encrypted_password,
+    ))
+    ->condition('email', $email, '=')
+    ->execute();
+
+  $user = user_load_by_mail($email);
+  $user->pass = $encrypted_password;
+  user_save($user);
+
+//  hrm_emails_send_email($key, $arg);
+  watchdog("backend-user", '$password <pre> pass <pre>', array('pass' => $password), WATCHDOG_INFO);
+
+  $return = new stdClass();
+  $return->login_status = 404;
+  $return->message = 'New password has been sent to your email***';
+
+  return $return;
+}
+
+function hrm_services_resource_user_change_password($uid, $password) {
+  $json = new stdClass();
+
+  global $user;
+  $username = null;
+  if ($name = db_query('SELECT username FROM {hrm_users} WHERE LOWER(email) = LOWER(:email)', array(':email' => $email))->fetchField()) {
+    $username = $name;
+  }
+
+  // Check if account is active.
+  if (!$username) {
+    return services_error(strip_tags(t('The account for %email does not exist.', array('%email' => $email)), 404));
+  }
+
+  if (user_is_blocked($username)) {
+    return services_error(strip_tags(t('The account for %email has not been activated or is blocked.', array('%email' => $email)), 403));
+  }
+
+  $uid = user_authenticate($username, $password);
+
+  if ($uid) {
+    require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+
+    $password = hrm_basic_text_generate_random_text(6);
+    $encrypted_password = _password_crypt('sha512', $password, HRM_KEY_SHA512_SALT);
+
+    db_update('hrm_users')
+      ->fields(array(
+        'password' => $encrypted_password,
+      ))
+      ->condition('email', $email, '=')
+      ->execute();
+
+    $user = user_load_by_mail($email);
+    $user->pass = $encrypted_password;
+    user_save($user);
+
+//  hrm_emails_send_email($key, $arg);
+    watchdog("backend-user", '$password <pre> pass <pre>', array('pass' => $password), WATCHDOG_INFO);
+
+    $return = new stdClass();
+    $return->login_status = 404;
+    $return->message = 'New password has been sent to your email***';
+
+    return $return;
+  }
+  else {
+    $return = new stdClass();
+    $return->login_status = 404;
+    $return->message = 'Invalid password';
+    return $return;
+  }
+
+  watchdog('user', 'Invalid login attempt for %email.', array('%email' => $email));
+  return services_error(t('Invalid email or password.'), 401);
+}
+
+function hrm_services_user_generate_user_token($uid, $user = NULL, $device_id = NULL) {
+  if (!$user) {
+    $user = user_load($uid);
+  }
+  $hash_string = $user->uid . '-' . $user->mail . '-' . time() . '-' . hrm_basic_text_generate_random_text(10);
+  $user_token = drupal_hash_base64($hash_string);
+
+  db_update('hrm_users')
+    ->fields(array(
+      'token' => $user_token,
+      'device_id' => $device_id,
+    ))
+    ->condition('uid', $uid, '=')
+    ->execute();
+
+  return $user_token;
+}
+
+function object_to_array($object) {
+  if (is_array($object) OR is_object($object)) {
+    $result = array();
+    foreach ($object as $key => $value) {
+      $result[$key] = object_to_array($value);
+    }
+    return $result;
+  }
+  return $object;
+}
+
+function hrm_services_sendGoogleCloudMessage($data, $devices) {
+  $android_api_key = 'AIzaSyDQAY1YcJdkW_62QOfBbLvT7NyrqqVST_w';
+  $url = 'https://fcm.googleapis.com/fcm/send';
+
+  // Set GCM post variables (device IDs and push payload)     
+  $post = array(
+    'registration_ids' => $devices,
+    'data' => $data,
+  );
+
+  // Set CURL request headers (authentication and type)       
+  $headers = array(
+    'Authorization: key=' . $android_api_key,
+    'Sender: id=620569382869',
+    'Content-Type:application/json'
+  );
+
+  // Initialize curl handle       
+  $ch = curl_init();
+
+  // Set URL to GCM endpoint      
+  curl_setopt($ch, CURLOPT_URL, $url);
+
+  // Set request method to POST       
+  curl_setopt($ch, CURLOPT_POST, true);
+
+  // Set our custom headers       
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+  // Get the response back as string instead of printing it       
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+  // Set JSON post data
+  curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post));
+
+  // Actually send the push   
+  $result = curl_exec($ch);
+
+  // Error handling
+  if (curl_errno($ch)) {
+    watchdog('hr_services', 'GCM error: @error', array('@error' => curl_error($ch)), WATCHDOG_ERROR);
+  }
+  // Close curl handle
+  curl_close($ch);
+
+  watchdog('hrm_services', 'FCM result: @result', array('@result' => $result), WATCHDOG_INFO);
+
+//  return TRUE;
+  return $result;
+}

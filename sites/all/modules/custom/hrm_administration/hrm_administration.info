@@ -1,0 +1,5 @@
+name = ResponseHRM Administration
+description = custom module that manages the administration of the responseHRM
+core = 7.x
+
+package = responseHRM

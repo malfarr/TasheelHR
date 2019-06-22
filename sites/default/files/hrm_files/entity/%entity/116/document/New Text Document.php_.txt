@@ -1,0 +1,305 @@
+<? php 
+
+function hr_backend_leave_assign_leave_form_submit(&$form, &$form_state) {
+  $account = $form_state['build_info']['args'][0];
+  $org_id = $account['organization'];
+
+  $emp_id = $form_state['values']['employee'];
+  $leave_type = $form_state['values']['leave_type'];
+
+  $employee = hr_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+  $location = $employee['job']['location'];
+
+  $from_date = str_replace('/', '-', $form_state['values']['from']);
+  $to_date = str_replace('/', '-', $form_state['values']['to']);
+  $work_shift = hr_basic_work_shift_get_employee_work_shift($emp_id, $employee);
+
+  $duration = $form_state['values']['duration'];
+  $hours = 0;
+  $days = 0;
+  if ($from_date == $to_date) {
+    switch ($duration) {
+      case HR_OPTION_LEAVE_DURATION_FULL_DAY:
+        $from_date = $from_date . ' ' . $work_shift['from_time'];
+        $to_date = $to_date . ' ' . $work_shift['to_time'];
+        $hours = $work_shift['duration'];
+        $days = 1.00;
+        break;
+      case HR_OPTION_LEAVE_DURATION_HALF_DAY:
+        $work_shift_start_timestamp = strtotime($from_date . ' ' . $work_shift['from_time']);
+        $work_shift_end_timestamp = strtotime($from_date . ' ' . $work_shift['to_time']);
+
+        $work_shift_duration_timestamp = $work_shift_end_timestamp - $work_shift_start_timestamp;
+        $work_shift_duration_half_day_timestamp = $work_shift_duration_timestamp / 2;
+
+        $half_day_start_timestamp = 0;
+        $half_day_end_timestamp = 0;
+
+        if ($form_state['values']['duration_half_day'] == HR_OPTION_LEAVE_HALF_DAY_MORNING) {
+          $half_day_start_timestamp = $work_shift_start_timestamp;
+          $half_day_end_timestamp = $work_shift_start_timestamp + $work_shift_duration_half_day_timestamp;
+        }
+        elseif ($form_state['values']['duration_half_day'] == HR_OPTION_LEAVE_HALF_DAY_AFTERNOON) {
+          $half_day_start_timestamp = $work_shift_start_timestamp + $work_shift_duration_half_day_timestamp;
+          $half_day_end_timestamp = $work_shift_end_timestamp;
+        }
+
+
+        $from_date = date(HR_DATETIME_FORMAT_LONG_DASH, $half_day_start_timestamp);
+        $to_date = date(HR_DATETIME_FORMAT_LONG_DASH, $half_day_end_timestamp);
+
+        $hours = hr_basic_time_format_time($work_shift_duration_half_day_timestamp);
+        $days = 0.50;
+        break;
+      case HR_OPTION_LEAVE_DURATION_TIME:
+        $leave_start_timestamp = strtotime($from_date . ' ' . $form_state['values']['duration_time_from']);
+        $leave_end_timestamp = strtotime($from_date . ' ' . $form_state['values']['duration_time_to']);
+        $leave_duration_timestamp = $leave_end_timestamp - $leave_start_timestamp;
+
+        $work_shift_start_timestamp = strtotime($from_date . ' ' . $work_shift['from_time']);
+        $work_shift_end_timestamp = strtotime($from_date . ' ' . $work_shift['to_time']);
+        $work_shift_duration_timestamp = $work_shift_end_timestamp - $work_shift_start_timestamp;
+
+        $from_date = $from_date . ' ' . $form_state['values']['duration_time_from'];
+        $to_date = $to_date . ' ' . $form_state['values']['duration_time_to'];
+
+        $hours = hr_basic_time_format_time($leave_duration_timestamp);
+        $days = $leave_duration_timestamp / $work_shift_duration_timestamp;
+
+        break;
+    }
+
+    if (hr_basic_is_working_day($org_id, $location, $from_date)) {
+      $hours_array = explode(':', $hours);
+      $hours_minutes = $hours_array[1];
+      $minutes = $hours_minutes / 60;
+      $hours_float = $hours_array[0] + $minutes;
+
+      $from_timestamp = strtotime($from_date);
+      $to_timestamp = strtotime($to_date);
+
+      $leave_id = db_insert('hr_employee_leave')
+          ->fields(array(
+            'emp_id' => $emp_id,
+            'org_id' => $employee['org_id'],
+            'leave_type' => $leave_type,
+            'assigned_to' => 0,
+            'source' => HR_LEAVE_SOURCE_HR,
+            'from_date' => $from_timestamp,
+            'to_date' => $to_timestamp,
+            'hours' => $hours_float,
+            'days' => $days,
+            'comment' => $form_state['values']['comment'],
+            'status' => HR_LEAVE_STATUS_SCHEDULED,
+            'uid' => $account['uid'],
+            'created' => time(),
+            'changed' => time(),
+          ))
+          ->execute();
+
+      db_insert('hr_employee_leave_timing')
+          ->fields(array(
+            'leave_id' => $leave_id,
+            'from_time' => $from_timestamp,
+            'to_time' => $to_timestamp,
+            'hours' => $hours_float,
+            'days' => $days
+          ))
+          ->execute();
+
+      db_insert('hr_employee_leave_actions')
+          ->fields(array(
+            'leave_id' => $leave_id,
+            'action' => HR_LEAVE_ACTION_ASSIGN,
+            'content' => 'Leave assigned',
+            'created_by' => $account['uid'],
+            'created' => time(),
+          ))
+          ->execute();
+
+      $leave_period = date(HR_DATETIME_FORMAT_YEAR_4_DIGITS, $from_timestamp);
+      hr_basic_leave_entitlement_register_pending_leave($emp_id, $org_id, $leave_type, $leave_period, $days);
+
+      drupal_set_message('Successfully saved');
+    }
+    else {
+      drupal_set_message('Selected date is not working day', 'error');
+    }
+  }
+  else {
+    $start_date = $from_date;
+    $end_date = $to_date;
+
+    $leave_timings = array();
+    $total_hours = 0;
+    $total_days = 0;
+
+    $work_shift_start_timestamp = strtotime($from_date . ' ' . $work_shift['from_time']);
+    $work_shift_end_timestamp = strtotime($from_date . ' ' . $work_shift['to_time']);
+    $work_shift_duration_timestamp = $work_shift_end_timestamp - $work_shift_start_timestamp;
+    $work_shift_duration_half_day_timestamp = $work_shift_duration_timestamp / 2;
+
+    $work_shift_hours_array = explode(':', $work_shift['duration']);
+    $work_shift_hours_minutes = $work_shift_hours_array[1];
+    $work_shift_minutes = $work_shift_hours_minutes / 60;
+    $work_shift_hours_float = $work_shift_hours_array[0] + $work_shift_minutes;
+
+
+
+    $temp_from_time = $work_shift['from_time'];
+    $temp_to_time = $work_shift['to_time'];
+    $temp_duration = $work_shift['duration'];
+    $temp_hours = $work_shift_hours_float;
+    $temp_days = 1.00;
+
+    if ($duration == HR_OPTION_LEAVE_DURATION_HALF_DAY) {
+      $half_day_start_timestamp = 0;
+      $half_day_end_timestamp = 0;
+
+      if ($form_state['values']['duration_half_day'] == HR_OPTION_LEAVE_HALF_DAY_MORNING) {
+        $half_day_start_timestamp = $work_shift_start_timestamp;
+        $half_day_end_timestamp = $work_shift_start_timestamp + $work_shift_duration_half_day_timestamp;
+      }
+      elseif ($form_state['values']['duration_half_day'] == HR_OPTION_LEAVE_HALF_DAY_AFTERNOON) {
+        $half_day_start_timestamp = $work_shift_start_timestamp + $work_shift_duration_half_day_timestamp;
+        $half_day_end_timestamp = $work_shift_end_timestamp;
+      }
+      $from_date = date(HR_DATETIME_FORMAT_LONG_DASH, $half_day_start_timestamp);
+      $to_date = date(HR_DATETIME_FORMAT_LONG_DASH, $half_day_end_timestamp);
+
+      $hours = 0.50;
+
+      $temp_from_time = date(HR_DATETIME_FORMAT_HOUR_12, $half_day_start_timestamp);
+      $temp_to_time = date(HR_DATETIME_FORMAT_HOUR_12, $half_day_end_timestamp);
+      $temp_duration = hr_basic_time_format_time($work_shift_duration_half_day_timestamp);
+
+      $temp_hours_array = explode(':', $temp_duration);
+      $temp_hours_minutes = $temp_hours_array[1];
+      $temp_minutes = $temp_hours_minutes / 60;
+      $temp_hours_float = $temp_hours_array[0] + $temp_minutes;
+
+      $temp_hours = $temp_hours_float;
+      $temp_days = 0.50;
+    }
+    elseif ($duration == HR_OPTION_LEAVE_DURATION_TIME) {
+
+      $temp_leave_start_timestamp = strtotime($from_date . ' ' . $form_state['values']['duration_time_from']);
+      $temp_leave_end_timestamp = strtotime($from_date . ' ' . $form_state['values']['duration_time_to']);
+      $temp_leave_duration_timestamp = $temp_leave_end_timestamp - $temp_leave_start_timestamp;
+
+      $temp_work_shift_start_timestamp = strtotime($from_date . ' ' . $work_shift['from_time']);
+      $temp_work_shift_end_timestamp = strtotime($from_date . ' ' . $work_shift['to_time']);
+      $temp_work_shift_duration_timestamp = $temp_work_shift_end_timestamp - $temp_work_shift_start_timestamp;
+
+      $to_date = $from_date . ' ' . $form_state['values']['duration_time_to'];
+      $from_date = $from_date . ' ' . $form_state['values']['duration_time_from'];
+
+      $hours = hr_basic_time_format_time($temp_leave_duration_timestamp);
+      $days = $temp_leave_duration_timestamp / $work_shift_duration_timestamp;
+
+      $temp_from_time = $form_state['values']['duration_time_from'];
+      $temp_to_time = $form_state['values']['duration_time_to'];
+      $temp_duration = hr_basic_time_format_time($temp_leave_duration_timestamp);
+
+      $temp_hours_array = explode(':', $temp_duration);
+      $temp_hours_minutes = $temp_hours_array[1];
+      $temp_minutes = $temp_hours_minutes / 60;
+      $temp_hours_float = $temp_hours_array[0] + $temp_minutes;
+
+      $temp_hours = $temp_hours_float;
+      $temp_days = $temp_leave_duration_timestamp / $temp_work_shift_duration_timestamp;
+    }
+
+    $flag = TRUE;
+
+    $date = $start_date;
+    while ($flag) {
+      if ($date == $end_date) {
+        $flag = FALSE;
+      }
+      if (hr_basic_is_working_day($org_id, $location, $date)) {
+        $temp_from_timestamp = strtotime($date . ' ' . $temp_from_time);
+        $temp_to_timestamp = strtotime($date . ' ' . $temp_to_time);
+
+        $leave_timings[] = array(
+          'from_time' => $temp_from_timestamp,
+          'to_time' => $temp_to_timestamp,
+          'hours' => $temp_hours,
+          'days' => $temp_days
+        );
+        $total_days += $temp_days;
+        $total_hours += $temp_hours;
+      }
+
+      $next_day_timestamp = strtotime($date . "+1 days");
+      $date = date(HR_DATETIME_FORMAT_SHORT_DASH, $next_day_timestamp);
+    }
+
+    if (!empty($leave_timings)) {
+      $leave_id = db_insert('hr_employee_leave')
+          ->fields(array(
+            'emp_id' => $emp_id,
+            'org_id' => $employee['org_id'],
+            'leave_type' => $leave_type,
+            'assigned_to' => 0,
+            'source' => HR_LEAVE_SOURCE_HR,
+            'from_date' => 0,
+            'to_date' => 0,
+            'hours' => $total_hours,
+            'days' => $total_days,
+            'comment' => $form_state['values']['comment'],
+            'status' => HR_LEAVE_STATUS_SCHEDULED,
+            'uid' => $account['uid'],
+            'created' => time(),
+            'changed' => time(),
+          ))
+          ->execute();
+
+      $first_from_date = 0;
+      $last_to_date = 0;
+      foreach ($leave_timings as $leave_timing) {
+        if ($first_from_date == 0) {
+          $first_from_date = $leave_timing['from_time'];
+        }
+        if ($last_to_date == 0) {
+          $last_to_date = $leave_timing['to_time'];
+        }
+        $first_from_date = (($leave_timing['from_time'] < $first_from_date) ? $leave_timing['from_time'] : $first_from_date);
+        $last_to_date = (($leave_timing['to_time'] > $last_to_date) ? $leave_timing['to_time'] : $last_to_date);
+
+        db_insert('hr_employee_leave_timing')
+            ->fields(array(
+              'leave_id' => $leave_id,
+              'from_time' => $leave_timing['from_time'],
+              'to_time' => $leave_timing['to_time'],
+              'hours' => $leave_timing['hours'],
+              'days' => $leave_timing['days'],
+            ))
+            ->execute();
+      }
+
+      db_update('hr_employee_leave')
+          ->fields(array('from_date' => $first_from_date, 'to_date' => $last_to_date))
+          ->condition('leave_id', $leave_id, '=')
+          ->execute();
+
+      db_insert('hr_employee_leave_actions')
+          ->fields(array(
+            'leave_id' => $leave_id,
+            'action' => HR_LEAVE_ACTION_ASSIGN,
+            'content' => 'Leave assigned',
+            'created_by' => $account['uid'],
+            'created' => time(),
+          ))
+          ->execute();
+
+      $leave_period = date(HR_DATETIME_FORMAT_YEAR_4_DIGITS, $first_from_date);
+      hr_basic_leave_entitlement_register_pending_leave($emp_id, $org_id, $leave_type, $leave_period, $total_days);
+
+      drupal_set_message('Successfully saved');
+    }
+    else {
+      drupal_set_message('Invalid leave data', 'error');
+    }
+  }
+}

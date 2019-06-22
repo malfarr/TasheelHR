@@ -1,0 +1,5 @@
+name = ResponseHRM Basic
+description = custom module that contains helper functions.
+core = 7.x
+
+package = responseHRM

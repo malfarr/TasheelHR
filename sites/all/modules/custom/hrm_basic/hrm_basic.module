@@ -1,0 +1,4912 @@
+<?php
+
+/**
+ * Implementation of hook_cron.
+ */
+function hrm_basic_cron() {
+  $now = time();
+  $today_date = date(HRM_DATE_SIMPLE, $now);
+  $hour = date('H', $now);
+  $week_day = date('w', $now);
+  $month_day = date('d', $now);
+  $month_last_day = date('t', $now);
+  $year_last_day_date = '31-12-' . date('Y');
+
+  hrm_basic_leave_scheduled_leaves_manage();
+
+  if (time() >= variable_get(HRM_VAR_ADMIN_CRON_INTERVAL_24_HOURS, 0)) {
+    watchdog(HRM_MODULE_BASIC, HRM_VAR_ADMIN_CRON_INTERVAL_24_HOURS . ' RAN');
+    variable_set(HRM_VAR_ADMIN_CRON_INTERVAL_24_HOURS, time() + (60 * 60 * 24));
+
+    hrm_basic_job_notifications();
+    hrm_basic_asset_assignment_not_completed_notification();
+    hrm_basic_asset_return_not_completed_notification();
+    if ($month_day == $month_last_day) {
+      hrm_basic_leave_entitlements_adjust_monthly_entitlement();
+      hrm_basic_client_generate_montly_employees_data();
+    }
+
+    if ($today_date == $year_last_day_date) {
+      hrm_basic_leave_entitlements_transfer_next_year_entitlement();
+    }
+
+    if ($month_day == 1) {
+      hrm_basic_organization_global_generate_contacts_list_pdf();
+      hr_emails_reports_pim_montly_contact_list();
+    }
+  }
+}
+
+function hrm_basic_leave_scheduled_leaves_manage() {
+  module_load_include('inc', 'hrm_backend', 'includes/leave/backend_leave');
+  $now = date(HRM_DATE_SYSTEM_DATE_TIME, time());
+  $scheduled_leaves_filters = array(
+    array('field' => 'status', 'value' => HRM_STATUS_SCHEDULED, 'operator' => '='),
+  );
+  $scheduled_leaves = hrm_basic_leave_get_data($scheduled_leaves_filters);
+  $used_leaves = array();
+  if (!empty($scheduled_leaves)) {
+    foreach ($scheduled_leaves as $leave) {
+      $start_date = $leave['start_date'];
+      if (!empty($leave['timing'])) {
+        $timing = array_shift($leave['timing']);
+        $start_time = $start_date . ' ' . $timing['start_time'];
+        if (strtotime($start_time) <= strtotime($now)) {
+          $used_leaves[] = hrm_basic_leave_get_data(array(array('field' => 'lid', 'value' => $leave['lid'])), TRUE);
+        }
+      }
+    }
+  }
+
+
+
+  if (!empty($used_leaves)) {
+    foreach ($used_leaves as $leave) {
+
+      db_update('hrm_leave')
+        ->fields(array(
+          'status' => HRM_STATUS_USED,
+          'changed' => time(),
+        ))
+        ->condition('lid', $leave['lid'], '=')
+        ->execute();
+      db_update('hrm_leave_timing')
+        ->fields(array(
+          'status' => HRM_STATUS_USED,
+        ))
+        ->condition('lid', $leave['lid'], '=')
+        ->execute();
+
+      hrm_basic_leave_entitlement_register_used_leave($leave);
+    }
+  }
+}
+
+function hrm_basic_leave_get_list($filters = array()) {
+  $account = hrm_basic_account_get_info();
+  $role_permissions = hrm_basic_role_permissions($account['role']);
+
+  $leaves = hrm_basic_leave_get_data($filters);
+  $leave_types = hrm_basic_leave_type_get_data();
+
+  $staff = hrm_basic_employee_names();
+  $status_icons = hrm_basic_status_icons();
+  $status_names = hrm_basic_status_names();
+
+  $rows = array();
+  $permission_data = array(
+    'permissions' => $role_permissions,
+  );
+
+  foreach ($leaves as $leave) {
+    $icon = ($leave['uid'] == $account['uid'] ? $status_icons[HRM_ICON_OWNER] . ' ' : '') . $status_icons[$leave['status']];
+    $start_date = hrm_basic_datetime_convert($leave['start_date'], $date_format, HRM_DATE_SYSTEM_DATE);
+    $end_date = hrm_basic_datetime_convert($leave['end_date'], $date_format, HRM_DATE_SYSTEM_DATE);
+    $days = number_format($leave['days'], 4);
+    $hours = $leave['hours'];
+    $permission_data['leave'] = $leave;
+    $access_details_permission = hrm_backend_leave_permissions(HRM_PERM_LEAVE_ACCESS_DETAILS, $account, $permission_data);
+    $link = ($access_details_permission ? l($staff[$leave['empid']],'leave/details/' . $leave['lid'], array('attributes' => array('target' => '_blank'), 'html' => TRUE)) : $staff[$leave['empid']]);
+
+    $rows[]['data'] = array(
+      'index' => array('data' => '', 'class' => array('row-number-cell')),
+      'icon' => array('data' => $icon, 'class' => array('text-center', 'white-space-nowrap')),
+      'employee' => array('data' => $link, 'class' => array()),
+      'type' => array('data' => $leave_types[$leave['leave_type']]['name'], 'class' => array()),
+      'start' => array('data' => $start_date, 'class' => array(), 'data-sort' => strtotime($leave['start_date'])),
+      'end' => array('data' => $end_date, 'class' => array(), 'data-sort' => strtotime($leave['end_date'])),
+      'days' => array('data' => $days, 'class' => array(), 'data-sort' => $leave['days']),
+      'hours' => array('data' => $hours, 'class' => array(), 'data-sort' => $leave['hours']),
+      'status' => array('data' => isset($status_names[$leave['status']]) ? $status_names[$leave['status']] : '', 'class' => array()),
+      'link' => array('data' => $link, 'class' => array('hidden')),
+    );
+  }
+  $header = array(
+    array('data' => '', 'class' => array('nosort', 'nosearch')),
+    array('data' => '', 'class' => array('nosort', 'nosearch')),
+    array('data' => 'Employee'),
+    array('data' => 'Leave type'),
+    array('data' => 'From'),
+    array('data' => 'To'),
+    array('data' => 'Days'),
+    array('data' => 'Hours'),
+    array('data' => 'Status'),
+    array('data' => 'Link', 'class' => array('hidden')),
+  );
+
+  $list = array(
+    'attributes' => array('class' => array('table-hover', 'table-condensed', 'table-bordered')),
+    'header' => $header,
+    'rows' => $rows,
+    'responsive' => TRUE,
+    'sticky' => FALSE,
+  );
+  if (!empty($rows)) {
+    $list['attributes']['class'][] = 'datatable-all-index';
+  }
+
+  return $list;
+}
+
+function hrm_basic_job_notifications() {
+  $next_7_days = date(HR_DATETIME_FORMAT_SHORT_DASH, strtotime('+7 days', time()));
+  $next_7_days_start = strtotime($next_7_days . '00:00:01') - 1;
+  $next_7_days_end = strtotime($next_7_days . '23:59:59') + 1;
+
+  $next_15_days = date(HR_DATETIME_FORMAT_SHORT_DASH, strtotime('+15 days', time()));
+  $next_15_days_start = strtotime($next_15_days . '00:00:01') - 1;
+  $next_15_days_end = strtotime($next_15_days . '23:59:59') + 1;
+
+  $next_30_days = date(HR_DATETIME_FORMAT_SHORT_DASH, strtotime('+30 days', time()));
+  $next_30_days_start = strtotime($next_30_days . '00:00:01') - 1;
+  $next_30_days_end = strtotime($next_30_days . '23:59:59') + 1;
+
+  $active_emp_ids = db_select('hrm_emp')
+      ->fields('hrm_emp', array('empid'))
+      ->condition('status', HRM_STATUS_ACTIVE, '=')
+      ->execute()->fetchCol(0);
+
+  $employees = array();
+  $job_titles = hrm_basic_job_title_get_job_titles();
+
+  //probation notifications
+  $probations_7_emp_ids = db_select('hr_employee_job')
+      ->fields('hr_employee_job', array('emp_id', 'job_title', 'permanency_date', 'contract_start_date'))
+      ->condition('emp_id', $active_emp_ids, 'IN')
+      ->condition('permanency_date', array($next_7_days_start, $next_7_days_end), 'BETWEEN')
+      ->execute()->fetchAllAssoc('emp_id', PDO::FETCH_ASSOC);
+  foreach ($probations_7_emp_ids as $emp_id => $row) {
+    if (!isset($employees[$emp_id])) {
+      $employees[$emp_id] = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+    }
+    hr_emails_notification_pim_job_end_probation_period($employees[$emp_id], 7);
+  }
+
+  watchdog('job notification', '15 days: ' . $next_15_days);
+  $probations_15_emp_ids = db_select('hr_employee_job')
+      ->fields('hr_employee_job', array('emp_id', 'job_title', 'permanency_date', 'contract_start_date'))
+      ->condition('emp_id', $active_emp_ids, 'IN')
+      ->condition('permanency_date', array($next_15_days_start, $next_15_days_end), 'BETWEEN')
+      ->execute()->fetchAllAssoc('emp_id', PDO::FETCH_ASSOC);
+  foreach ($probations_15_emp_ids as $emp_id => $row) {
+    if (!isset($employees[$emp_id])) {
+      $employees[$emp_id] = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+    }
+    hr_emails_notification_pim_job_end_probation_period($employees[$emp_id], 15);
+  }
+
+  watchdog('job notification', '30 days: ' . $next_30_days);
+  $probations_30_emp_ids = db_select('hr_employee_job')
+      ->fields('hr_employee_job', array('emp_id', 'job_title', 'permanency_date', 'contract_start_date'))
+      ->condition('emp_id', $active_emp_ids, 'IN')
+      ->condition('permanency_date', array($next_30_days_start, $next_30_days_end), 'BETWEEN')
+      ->execute()->fetchAllAssoc('emp_id', PDO::FETCH_ASSOC);
+  foreach ($probations_30_emp_ids as $emp_id => $row) {
+    if (!isset($employees[$emp_id])) {
+      $employees[$emp_id] = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+    }
+    hr_emails_notification_pim_job_end_probation_period($employees[$emp_id], 30);
+  }
+
+  //Conract End date
+  $contracts_7_emp_ids = db_select('hr_employee_job')
+      ->fields('hr_employee_job', array('emp_id', 'job_title', 'contract_end_date', 'contract_start_date'))
+      ->condition('emp_id', $active_emp_ids, 'IN')
+      ->condition('contract_end_date', array($next_7_days_start, $next_7_days_end), 'BETWEEN')
+      ->execute()->fetchAllAssoc('emp_id', PDO::FETCH_ASSOC);
+  foreach ($contracts_7_emp_ids as $emp_id => $row) {
+    if (!isset($employees[$emp_id])) {
+      $employees[$emp_id] = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+    }
+
+    hr_emails_notification_pim_job_end_contract($employees[$emp_id], 7);
+  }
+
+  $contracts_15_emp_ids = db_select('hr_employee_job')
+      ->fields('hr_employee_job', array('emp_id', 'job_title', 'contract_end_date', 'contract_start_date'))
+      ->condition('emp_id', $active_emp_ids, 'IN')
+      ->condition('contract_end_date', array($next_15_days_start, $next_15_days_end), 'BETWEEN')
+      ->execute()->fetchAllAssoc('emp_id', PDO::FETCH_ASSOC);
+  foreach ($contracts_15_emp_ids as $emp_id => $row) {
+    if (!isset($employees[$emp_id])) {
+      $employees[$emp_id] = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+    }
+    hr_emails_notification_pim_job_end_contract($employees[$emp_id], 15);
+  }
+
+  $contracts_30_emp_ids = db_select('hr_employee_job')
+      ->fields('hr_employee_job', array('emp_id', 'job_title', 'contract_end_date', 'contract_start_date'))
+      ->condition('emp_id', $active_emp_ids, 'IN')
+      ->condition('contract_end_date', array($next_30_days_start, $next_30_days_end), 'BETWEEN')
+      ->execute()->fetchAllAssoc('emp_id', PDO::FETCH_ASSOC);
+  foreach ($contracts_30_emp_ids as $emp_id => $row) {
+    if (!isset($employees[$emp_id])) {
+      $employees[$emp_id] = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+    }
+    hr_emails_notification_pim_job_end_contract($employees[$emp_id], 30);
+  }
+}
+
+function hrm_basic_organization_global_generate_contacts_list_pdf() {
+  module_load_include('inc', 'hr_backend', 'includes/backend_organization');
+
+  $orgs = hrm_basic_organization_get_data(array(array('field' => 'status', 'value' => HR_ORGANIZATION_STATUS_ACTIVE, 'operator' => '=')));
+
+  if (!empty($orgs)) {
+    $year = date(HR_DATETIME_FORMAT_YEAR_4_DIGITS, time());
+    $month = strtolower(date(HR_DATETIME_FORMAT_MONTH_FULL_NAME, time()));
+
+    foreach ($orgs as $org_id => $org) {
+      $org_filters = array(array('field' => 'oid', 'value' => $org_id));
+      $job_titles = hrm_basic_job_title_get_job_titles($org_id);
+      $locations = hrm_basic_location_names($org_filters);
+      $employees = $org['employees'];
+
+      $emp_ids = array_keys($employees);
+      $contacts = array();
+      $employee_jobs = array();
+      if (!empty($emp_ids)) {
+        $contacts = db_select('hr_employee_contact', 'employee_contact')
+            ->fields('employee_contact', array('emp_id', 'work_mobile', 'other_mobile', 'home_phone',
+              'work_phone', 'work_email', 'other_email'))
+            ->condition('emp_id', $emp_ids, 'IN')
+            ->execute()->fetchAllAssoc('emp_id', PDO::FETCH_ASSOC);
+
+        $employee_jobs = db_select('hr_employee_job', 'employee_job')
+            ->fields('employee_job', array('id', 'emp_id', 'org_id', 'join_date', 'permanency_date', 'job_title',
+              'job_no', 'employment_status', 'location', 'work_shift', 'contract_start_date', 'contract_end_date',
+              'contract_attachement', 'uid', 'created', 'changed'))
+            ->condition('emp_id', $emp_ids, 'IN')
+            ->execute()->fetchAllAssoc('emp_id', PDO::FETCH_ASSOC);
+      }
+
+      $rows = array();
+      foreach ($employees as $emp_id => $employee) {
+        $job_title = (isset($employee_jobs[$emp_id]['job_title']) ? $job_titles[$employee_jobs[$emp_id]['job_title']] : '');
+        $location = (isset($employee_jobs[$emp_id]['location']) ? $locations[$employee_jobs[$emp_id]['location']] : '');
+        $work_phone = (isset($contacts[$emp_id]['work_mobile']) ? $contacts[$emp_id]['work_phone'] : '');
+        $default_picture_uri = HR_DEFAULT_IMAGES_EMPLOYEE_MALE_PICTURE;
+        if ($employee['gender'] == HR_TERM_GENDER_FEMALE) {
+          $default_picture_uri = HR_DEFAULT_IMAGES_EMPLOYEE_FEMALE_PICTURE;
+        }
+        $picture_uri = hrm_basic_file_get_managed_file_uri($employee['picture'], $default_picture_uri);
+        $picture_url = image_style_url(HR_IMAGE_STYLE_CIRCLE_IMAGE, $picture_uri);
+        $picture = '<img src="' . $picture_url . '"  height="64" width="64"/>';
+
+        $rows[$emp_id] = array(
+          'data' => array(
+            'emp_no' => array('data' => $employee['emp_no']),
+            'picture' => array('data' => $picture, 'class' => array('text-center')),
+            'name' => array('data' => $employee['fname'] . ' ' . $employee['lname'], 'class' => array('nowrap')),
+            'title' => array('data' => $job_title, 'class' => array()),
+            'location' => array('data' => $location, 'class' => array('nowrap')),
+            'work_phone' => array('data' => $work_phone, 'class' => array('nowrap')),
+            'work_email' => array('data' => $employee['email'], 'class' => array('nowrap')),
+          ),
+        );
+      }
+
+      $header = array(
+        'emp_no' => array('data' => 'ID'),
+        'picture' => array('data' => 'Picture', 'class' => array('text-center')),
+        'name' => array('data' => 'Name'),
+        'title' => array('data' => 'Job Title', 'class' => array('nowrap')),
+        'location' => array('data' => 'Location'),
+        'work_phone' => array('data' => 'Phone'),
+        'work_email' => array('data' => 'Email'),
+      );
+
+      $list = array(
+        'attributes' => array('class' => array('table-hover', 'table-vcenter')),
+        'rows' => $rows,
+        'header' => $header,
+      );
+      $list['attributes']['class'][] = (!empty($rows) ? 'datatable-sort-export' : 'empty-datatable');
+
+      $org_logo_uri = hrm_basic_file_get_managed_file_uri($org['logo'], HR_DEFAULT_IMAGES_ORGANIZATION_LOGO);
+      $org_logo_url = file_create_url($org_logo_uri);
+      $org_logo = '<img src="' . $org_logo_url . '" style="max-height: 70px;"/>';
+
+      $header_variables = array(
+        'first_col' => $org_logo,
+        'second_col' => '<b>Contacts List</b>',
+        'last_col' => '<b>' . ucwords($month) . ', ' . $year . '</b>',
+      );
+      $pdf_header = theme('section_entity_pdf_header', $header_variables);
+
+      $pdf_data = array();
+      $pdf_data[] = array('type' => 'table', 'class' => array('col-12'),
+        'value' => $list, 'value_class' => array()
+      );
+
+      $html = theme('pdf_entity_pdf', array('data' => $pdf_data));
+//      print $html;
+//      exit();
+
+      $dest = strtr(HR_DIRECTORY_ORGANIZATION_CONTACTS_LIST_PDF_DIR, array('%org_id' => $org_id, '%year' => $year));
+      $name = 'contacts-list-' . $month;
+      hr_backend_entity_pdf_generate_landscape_pdf($html, $name, $dest, $pdf_header);
+    }
+  }
+}
+
+function hrm_basic_asset_assignment_not_completed_notification() {
+  $prev_2_days = strtotime('-2 days', time());
+  $not_completed_assignments = db_select('hr_asset_assignment', 'asset_assignment')
+      ->fields('asset_assignment', array('asset_id'))
+      ->condition('photo_fid', 0, '=')
+      ->condition('receipt_fid', 0, '=')
+      ->condition('created', $prev_2_days, '<')
+      ->execute()->fetchCol(0);
+  if (!empty($not_completed_assignments)) {
+    module_load_include('inc', 'hr_backend', 'includes/backend_asset');
+    $filters = array(array('field' => 'asset_id', 'value' => $not_completed_assignments, 'operator' => 'IN'));
+    $assets = hr_backend_asset_get_asset_data($filters);
+    foreach ($assets as $asset) {
+      hr_emails_notification_asset_notifications($asset, HR_EMAIL_NOTIF_ASSET_ASSIGNMENT_NOT_COMPLETED);
+    }
+  }
+}
+
+function hrm_basic_asset_return_not_completed_notification() {
+  $prev_2_days = strtotime('-2 days', time());
+  $not_completed_returns = db_select('hr_asset_return', 'asset_return')
+      ->fields('asset_return', array('asset_id'))
+      ->condition('created', $prev_2_days, '<')
+      ->execute()->fetchCol(0);
+  if (!empty($not_completed_returns)) {
+    module_load_include('inc', 'hr_backend', 'includes/backend_asset');
+    $filters = array(array('field' => 'asset_id', 'value' => $not_completed_returns, 'operator' => 'IN'));
+    $assets = hr_backend_asset_get_asset_data($filters);
+    foreach ($assets as $asset) {
+      hr_emails_notification_asset_notifications($asset, HR_EMAIL_NOTIF_ASSET_RETURN_NOT_COMPLETED);
+    }
+  }
+}
+
+/*
+ * Accounts functions
+ */
+
+function hrm_basic_account_get_info($uid = NULL) {
+
+  if (!$uid) {
+    global $user;
+    $uid = $user->uid;
+  }
+
+
+  $account = db_select('hrm_emp', 'users')
+      ->fields('users', array('user_id', 'oid', 'fname', 'lname', 'username', 'password', 'email', 'photo', 'role',
+        'status', 'created', 'changed'))
+      ->condition('user_id', $uid, '=')
+      ->execute()->fetch(PDO::FETCH_ASSOC);
+//  print("<pre>");
+//  print_r($user);
+//  exit();
+
+  $account['uid'] = $account['user_id'];
+  $account['name'] = $account['fname'] . ' ' . $account['lname'];
+  if (empty($account) && $uid == 1) {
+    $account_user = user_load($uid);
+    $account = array(
+      'uid' => $account_user->uid,
+      'oid' => 0,
+      'username' => $account_user->name,
+      'password' => $account_user->pass,
+      'email' => $account_user->mail,
+      'name' => 'Administrator',
+      'photo' => 0,
+      'role' => HRM_ROLE_ADMIN,
+      'status' => $account_user->status,
+      'created' => $account_user->created,
+      'changed' => $account_user->created
+    );
+  }
+  if (!isset($account['name']) || empty($account['name'])) {
+    $account['name'] = $account['fname'] . ' ' . $account['lname'];
+  }
+  $photo_uri = hrm_basic_file_get_managed_file_uri($account['photo'], HRM_DEFAULT_IMAGES_USER);
+  $account['photo_image'] = theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $photo_uri, 'alt' => $account['name'], 'title' => $account['name'], 'attributes' => array('class' => array('img-circle', 'img-48'))));
+  $account['photo_image_medium'] = theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $photo_uri, 'alt' => $account['name'], 'title' => $account['name'], 'attributes' => array('class' => array('img-circle'))));
+
+  return $account;
+}
+
+function hrm_basic_account_get_name($uid) {
+  $name = db_select('hrm_users', 'users')
+      ->fields('users', array('name'))
+      ->condition('uid', $uid, '=')
+      ->execute()->fetchField(0);
+  if (!$name) {
+    $name = '';
+    if ($uid == 1) {
+      $name = 'Administrator';
+    }
+  }
+
+  return $name;
+}
+
+function hrm_basic_account_get_email($uid) {
+  $email = db_select('users')
+      ->fields('users', array('mail'))
+      ->condition('uid', $uid, '=')
+      ->execute()->fetchField(PDO::FETCH_ASSOC);
+  return $email;
+}
+
+function hrm_basic_account_get_role($uid) {
+  $role = db_select('hrm_users', 'users')
+      ->fields('users', array('role'))
+      ->condition('uid', $uid, '=')
+      ->execute()->fetchField(0);
+  if (!$role) {
+    $role = HRM_ROLE_AUTHENTICATED;
+  }
+
+  return $role;
+}
+
+function hrm_basic_account_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_users', 'users')
+    ->fields('users', array('uid', 'oid', 'username', 'type', 'password', 'email', 'name', 'photo', 'role',
+    'status', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $accounts = $query->execute()->fetchAllAssoc('uid', PDO::FETCH_ASSOC);
+
+  foreach ($accounts as $uid => $account) {
+    $photo_uri = hrm_basic_file_get_managed_file_uri($account['photo'], HRM_DEFAULT_IMAGES_USER);
+    $accounts[$uid]['photo_image'] = theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $photo_uri, 'alt' => $account['name'], 'title' => $account['name'], 'attributes' => array('class' => array('img-circle', 'img-48'))));
+    $accounts[$uid]['photo_image_medium'] = theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $photo_uri, 'alt' => $account['name'], 'title' => $account['name'], 'attributes' => array('class' => array('img-circle'))));
+  }
+
+  if ($first_item) {
+    return reset($accounts);
+  }
+
+  return $accounts;
+}
+
+/*
+ * Role helper functions
+ */
+
+function hrm_basic_role_names($rid = NULL, $system_name = FALSE, $exclude_system_roles = TRUE) {
+  $roles = user_roles();
+  if ($rid) {
+    $role_name = ($system_name ? $roles[$rid] : variable_get(HRM_VAR_ADMIN_USERS_ROLE_NAME . $rid, $roles[$rid]));
+    return $role_name;
+  }
+
+  foreach ($roles as $key => $value) {
+    $roles[$key] = ($system_name ? $roles[$key] : variable_get(HRM_VAR_ADMIN_USERS_ROLE_NAME . $key, $value));
+  }
+
+  if ($exclude_system_roles) {
+    unset($roles[HRM_ROLE_ANONYMOUS]);
+    unset($roles[HRM_ROLE_AUTHENTICATED]);
+  }
+  return $roles;
+}
+
+function hrm_basic_role_permissions($rid) {
+  global $user;
+  if ($user->uid == 1) {
+    $rid = HRM_ROLE_ADMIN;
+  }
+  elseif (!$user->uid) {
+    return array();
+  }
+
+
+  $role = user_role_load($rid);
+
+  $permissions = user_role_permissions(array($rid => $role->name));
+  $role_permission = array();
+  foreach ($permissions[$rid] as $key => $value) {
+    if ($value) {
+      $role_permission[$key] = 1;
+    }
+  }
+
+  return $role_permission;
+}
+
+/*
+ * Organization helper functions
+ */
+
+function hrm_basic_organization_get_data($filters = array(), $first_item = FALSE, $basic_info = FALSE) {
+  $query = db_select('hrm_org', 'organization')
+    ->fields('organization', array('oid', 'name', 'logo', 'status', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $organizations = $query->execute()->fetchAllAssoc('oid', PDO::FETCH_ASSOC);
+
+  if (!$basic_info) {
+    foreach ($organizations as $oid => $organization) {
+      $organizations[$oid]['address'] = db_select('hrm_entity_address', 'entity_address')
+          ->fields('entity_address', array('id', 'oid', 'entity', 'entity_id', 'phone', 'mobile', 'fax', 'email',
+            'street_1', 'street_2', 'city', 'region', 'postal_code', 'country', 'time_zone', 'coordinates',
+            'note', 'uid', 'created', 'changed'))
+          ->condition('oid', $oid, '=')
+          ->condition('entity', HRM_ENTITY_ORGANIZATION, '=')
+          ->condition('entity_id', $oid, '=')
+          ->execute()->fetch(pdo::FETCH_ASSOC);
+
+      $organizations[$oid]['locations'] = db_select('hrm_location', 'location')
+          ->fields('location', array('lid', 'oid', 'name', 'timezone', 'uid', 'created', 'changed'))
+          ->condition('oid', $oid, '=')
+          ->execute()->fetchAllAssoc('lid', PDO::FETCH_ASSOC);
+
+      $organizations[$oid]['users'] = db_select('hrm_users', 'users')
+          ->fields('users', array('uid', 'oid', 'username', 'password', 'email', 'name', 'photo', 'role',
+            'status', 'created', 'changed'))
+          ->condition('oid', $oid, '=')
+          ->execute()->fetchAllAssoc('uid', PDO::FETCH_ASSOC);
+
+      $organizations[$oid]['employees'] = db_select('hrm_emp', 'emp')
+          ->fields('emp', array('empid', 'oid', 'emp_no', 'fname', 'mname',
+            'lname', 'email', 'photo', 'gender',
+            'marital_status', 'nationality', 'birthday',
+            'join_date',
+            'email', 'username', 'password', 'token', 'logged_in',
+            'note', 'status', 'uid', 'created', 'changed'))
+          ->condition('oid', $oid, '=')
+          ->condition('status', HRM_STATUS_ACTIVE, '=')
+          ->execute()->fetchAllAssoc('empid', PDO::FETCH_ASSOC);
+
+      $organizations[$oid]['deactivated_employees'] = db_select('hrm_emp', 'emp')
+          ->fields('emp', array('empid', 'oid', 'emp_no', 'fname',
+            'mname', 'lname', 'email', 'photo', 'gender',
+            'marital_status', 'nationality', 'birthday',
+            'join_date', 'employment_status',
+            'email', 'username', 'password', 'token', 'logged_in',
+            'note', 'status', 'uid', 'created', 'changed'))
+          ->condition('oid', $oid, '=')
+          ->condition('status', HRM_STATUS_DEACTIVETED, '=')
+          ->execute()->fetchAllAssoc('empid', PDO::FETCH_ASSOC);
+
+      // branches update
+      $organizations[$oid]['branches'] = db_select('hrm_branch', 'branch')
+          ->fields('branch', array('oid', 'uid', 'created', 'changed'))
+          ->condition('oid', $oid, '=')
+          ->execute()->fetchAllAssoc(PDO::FETCH_ASSOC);
+    }
+  }
+
+  if ($first_item) {
+    return reset($organizations);
+  }
+
+  return $organizations;
+}
+
+function hrm_basic_organization_get_name($oid) {
+  $name = db_select('hrm_org', 'organization')
+      ->fields('organization', array('name'))
+      ->condition('oid', $oid, '=')
+      ->execute()->fetchField(0);
+
+  //othmanssss
+  if (!$name) {
+    $name = 'not found';
+  }
+
+  return $name;
+}
+
+function hrm_basic_organization_get_logo_url($oid) {
+  $logo_fid = db_select('hrm_org', 'organization')
+      ->fields('organization', array('logo'))
+      ->condition('oid', $oid, '=')
+      ->execute()->fetchField(0);
+
+  $logo_url = hrm_basic_file_get_managed_file_url($logo_fid, HRM_DEFAULT_IMAGES_ORGANIZATION_LOGO);
+  return $logo_url;
+}
+
+function hrm_basic_organization_get_coordinates($oid) {
+  $coordinates = db_select('hrm_entity_address')
+      ->fields('hrm_entity_address', array('coordinates'))
+      ->condition('entity_id', $oid, '=')
+      ->condition('entity', HRM_ENTITY_ORGANIZATION, '=')
+      ->execute()->fetchField(0);
+
+  if (!$coordinates) {
+    $coordinates = '0,0';
+  }
+
+  return $coordinates;
+}
+
+// country update
+function hrm_basic_organization_get_countries($filters = array()) {
+
+  $query = db_select('hrm_location', 'location')
+    ->fields('location');
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $locations = $query->execute()->fetchCol();
+  $countries = array();
+  if (!empty($locations)) {
+    $country_ids = db_select('hrm_entity_address')
+        ->distinct()
+        ->fields('hrm_entity_address', array('country'))
+        ->condition('entity', HRM_ENTITY_LOCATION, '=')
+        ->condition('entity_id', $locations, 'IN')
+        ->execute()->fetchCol();
+
+    if (!empty($country_ids)) {
+      foreach ($country_ids as $country_id) {
+        $countries[$country_id] = hrm_basic_lov_get_term_field_data(HRM_LOV_COUNTRY, $country_id);
+      }
+    }
+  }
+
+  return $org_countries;
+}
+
+function hrm_basic_organization_get_country_locations($oid, $country) {
+  $locations_query = db_select('hrm_location', 'location')
+    ->fields('location', array('lid', 'name'));
+  $locations_query->join('hrm_entity_address', 'address', 'location.lid = address.entity_id');
+  $locations_query->condition('location.oid', $oid, '=');
+  $locations_query->condition('address.oid', $oid, '=');
+  $locations_query->condition('address.country', $country, '=');
+  $locations = $locations_query->execute()->fetchAllKeyed(0, 1);
+
+  return $locations;
+}
+
+function hrm_basic_organization_get_accounts($oid, $roles = array(), $status = array(HRM_STATUS_ACTIVE)) {
+  $accounts_filters = array(
+    array('field' => 'oid', 'value' => $oid),
+  );
+  if (!empty($roles)) {
+    $accounts_filters[] = array('field' => 'role', 'value' => $roles, 'operator' => 'IN');
+  }
+  if (!empty($status)) {
+    $accounts_filters[] = array('field' => 'status', 'value' => $status, 'operator' => 'IN');
+  }
+
+  $accounts = hrm_basic_account_get_data($accounts_filters);
+
+  return $accounts;
+}
+
+function hrm_basic_organization_get_department_name($oid, $role = NULL) {
+  $departments = variable_get(HRM_VAR_ORG_DEPARTMENTS_NAME . $oid, array());
+  if ($role) {
+    return (isset($departments[$role]) ? $departments[$role] : '');
+  }
+  return $departments;
+}
+
+/* ------------------------ Branches ------------------------ */
+
+function hrm_basic_branch_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_branch')
+    ->fields('hrm_branch', array('oid', 'cid', 'name', 'description', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+  $branches = $query->execute()->fetchAllAssoc(PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($branches);
+  }
+
+  return $branches;
+}
+
+function hrm_basic_branch_get_name($bid) {
+  $branch_name = db_select('hrm_branch')
+      ->fields('hrm_branch', array('name'))
+      ->condition($bid, '=')
+      ->execute()->fetchField();
+  return $branch_name;
+}
+
+function hrm_basic_branch_get_locations($bid) {
+  $locations = db_select('hrm_location')
+      ->fields('hrm_location', array('lid', 'name'))
+      ->condition($bid, '=')
+      ->execute()->fetchAllAssoc('lid', PDO::FETCH_ASSOC);
+  $branch_locations = array();
+  if (!empty($locations)) {
+    foreach ($locations as $location) {
+      $branch_locations[$location['lid']] = $location['name'];
+    }
+  }
+  return $branch_locations;
+}
+
+function hrm_basic_branches_get_locations($bids) {
+
+  $locations = db_select('hrm_location')
+      ->fields('hrm_location', array('lid', 'name'))
+      ->condition($bids, 'IN')
+      ->execute()->fetchAllAssoc('lid', PDO::FETCH_ASSOC);
+  $branch_locations = array();
+  if (!empty($locations)) {
+    foreach ($locations as $location) {
+      $branch_locations[$location['lid']] = $location['name'];
+    }
+  }
+  return $branch_locations;
+}
+
+function hrm_basic_branch_is_location_in_branch($bid, $lid) {
+  $lid = db_select('hrm_location')
+      ->fields('hrm_location', array('lid'))
+      ->condition($bid, '=')
+      ->condition('lid', $lid, '=')
+      ->execute()->fetchField();
+
+  if ($lid) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+// Check weather first variable is statrts with second variable
+function hrm_basic_string_starts_with($whole, $text) {
+  return strncmp($whole, $text, strlen($text)) == 0;
+}
+
+/*
+ * Administration
+ */
+
+/* ---------- Locations ---------- */
+
+function hrm_basic_location_get_data($filters = array(), $first_item = FALSE, $basic_info = FALSE) {
+  $query = db_select('hrm_location', 'location')
+    ->fields('location', array('lid', 'oid', 'name', 'timezone', 'coordinates', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $locations = $query->execute()->fetchAllAssoc('lid', PDO::FETCH_ASSOC);
+
+  if (!$basic_info) {
+    foreach ($locations as $lid => $location) {
+      $address = db_select('hrm_entity_address', 'hrm_entity_address')
+          ->fields('hrm_entity_address', array('id', 'oid', 'entity', 'entity_id', 'country', 'time_zone', 'coordinates', 'street_1', 'street_2',
+            'region', 'city', 'postal_code', 'phone', 'mobile', 'fax', 'email', 'note', 'uid', 'created', 'changed'))
+          ->condition('entity', 'location', '=')
+          ->condition('entity_id', $lid, '=')
+          ->execute()->fetch(pdo::FETCH_ASSOC);
+      $locations[$lid]['address'] = $address;
+
+      $active_emp_ids = db_select('hrm_emp')
+          ->fields('hrm_emp', array('empid'))
+          ->condition('oid', $location['oid'], '=')
+          ->condition('status', HRM_STATUS_ACTIVE, '=')
+          ->execute()->fetchCol();
+      $active_emp_ids[] = 0;
+
+      $employees = db_select('hrm_emp', 'employee_job')
+          ->fields('employee_job', array('empid', 'oid', 'location'))
+          ->condition('location', $lid, '=')
+          ->condition('empid', $active_emp_ids, 'IN')
+          ->execute()->fetchAllAssoc('empid', PDO::FETCH_ASSOC);
+      $locations[$lid]['employees'] = $employees;
+
+      $all_employees = db_select('hrm_emp', 'employee_job')
+          ->fields('employee_job', array('empid', 'oid', 'location'))
+          ->condition('location', $lid, '=')
+          ->execute()->fetchAllAssoc('empid', PDO::FETCH_ASSOC);
+      $locations[$lid]['all_employees'] = $all_employees;
+    }
+  }
+
+
+  if ($first_item) {
+    $location = reset($locations);
+
+    return $location;
+  }
+  return $locations;
+}
+
+function hrm_basic_location_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_location')
+    ->fields('hrm_location', array('lid', 'name'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+  $locations = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($locations);
+  }
+
+  return $locations;
+}
+
+function hrm_basic_location_get_name($lid) {
+  $name = db_select('hrm_location')
+      ->fields('hrm_location', array('name'))
+      ->condition('lid', $lid, '=')
+      ->execute()->fetchField(0);
+
+  if (!$name) {
+    $name = '';
+  }
+
+  return $name;
+}
+
+function hrm_basic_location_get_country($lid) {
+  $country = db_select('hrm_entity_address')
+      ->fields('hrm_entity_address', array('country'))
+      ->condition('entity', HRM_ENTITY_LOCATION, '=')
+      ->condition('entity_id', $lid, '=')
+      ->execute()->fetchField(0);
+
+  if (!$country) {
+    $country = 0;
+  }
+  return $country;
+}
+
+/* Center Multiple Coordinates */
+
+function hrm_basic_coordinates_get_center($coordinates) {
+  if (!is_array($coordinates))
+    return FALSE;
+
+  $num_coords = count($coordinates);
+
+  $X = 0.0;
+  $Y = 0.0;
+  $Z = 0.0;
+
+  foreach ($coordinates as $coordinate) {
+    $lat = $coordinate[0] * pi() / 180;
+    $lon = $coordinate[1] * pi() / 180;
+
+    $a = cos($lat) * cos($lon);
+    $b = cos($lat) * sin($lon);
+    $c = sin($lat);
+
+    $X += $a;
+    $Y += $b;
+    $Z += $c;
+  }
+
+  $X /= $num_coords;
+  $Y /= $num_coords;
+  $Z /= $num_coords;
+
+  $lon = atan2($Y, $X);
+  $hyp = sqrt($X * $X + $Y * $Y);
+  $lat = atan2($Z, $hyp);
+
+  return array($lat * 180 / pi(), $lon * 180 / pi());
+}
+
+/* ---------- Holidays ---------- */
+
+function hrm_basic_holiday_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_holiday', 'holiday')
+    ->fields('holiday', array('hid', 'oid', 'name', 'start', 'end', 'annually', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+  $holidays = $query->execute()->fetchAllAssoc('hid', PDO::FETCH_ASSOC);
+
+  foreach ($holidays as $hid => $holiday) {
+    $holidays[$hid]['locations'] = db_select('hrm_holiday_location', 'holiday_location')
+        ->fields('holiday_location', array('lid'))
+        ->condition('hid', $hid, '=')
+        ->execute()->fetchAllKeyed(0, 0);
+
+    $holidays[$hid]['days'] = db_select('hrm_holiday_day', 'holiday_day')
+        ->fields('holiday_day', array('id', 'hid', 'day', 'month', 'year', 'day_date', 'day_timestamp'))
+        ->condition('hid', $hid, '=')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+  }
+
+  if ($first_item) {
+    return reset($holidays);
+  }
+
+  return $holidays;
+}
+
+/* ---------- Announcement ---------- */
+
+function hrm_basic_announcement_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_announcement', 'announcement')
+    ->fields('announcement', array('aid', 'oid', 'title', 'description', 'publish_to', 'publish_date',
+    'status', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $announcements = $query->execute()->fetchAllAssoc('aid', PDO::FETCH_ASSOC);
+
+  foreach ($announcements as $aid => $announcement) {
+    $announcements[$aid]['restricted_to'] = db_select('hrm_announcement_employee', 'announcement_restricted_to')
+        ->fields('announcement_restricted_to', array('aid', 'empid'))
+        ->condition('aid', $aid, '=')
+        ->execute()->fetchAll(PDO::FETCH_ASSOC);
+  }
+  if ($first_item) {
+    $announcement = reset($announcements);
+
+    return $announcement;
+  }
+  return $announcements;
+}
+
+function hrm_basic_announcement_publish_to_options() {
+  $publish_to = array(
+    HRM_ANNOUNCEMENT_PUBLISH_TO_ALL_EMPLOYEE => 'All Employees',
+    HRM_ANNOUNCEMENT_PUBLISH_TO_RESTRICTED => 'Limited to',
+  );
+
+  return $publish_to;
+}
+
+function hrm_basic_announcement_get_employee_announcements($empid, $employee = array()) {
+  if (empty($employee)) {
+    $employee_filters = array(array('field' => 'empid', 'value' => $empid, 'operator' => '='));
+    $employee = hrm_basic_employee_get_data($employee_filters, TRUE, TRUE);
+  }
+  $oid = $employee['oid'];
+
+  $published_to_all_ids = db_select('hrm_announcement', 'hrm_announcement')
+      ->fields('hrm_announcement', array('aid'))
+      ->condition('oid', $oid, '=')
+      ->condition('status', HRM_STATUS_PUBLISHED, '=')
+      ->condition('publish_to', HRM_ANNOUNCEMENT_PUBLISH_TO_ALL_EMPLOYEE, '=')
+      ->execute()->fetchCol();
+  $restricted_ids = db_select('hrm_announcement_employee', 'hrm_announcement_employee')
+      ->fields('hrm_announcement_employee', array('aid'))
+      ->condition('empid', $empid, '=')
+      ->execute()->fetchCol();
+
+  $ids = array_unique(array_merge($published_to_all_ids, $restricted_ids));
+
+  $announcements = array();
+  if (!empty($ids)) {
+    $announcements = db_select('hrm_announcement', 'hrm_announcement')
+        ->fields('hrm_announcement', array('aid', 'oid', 'title', 'description', 'publish_to',
+          'publish_date', 'status', 'uid', 'created', 'changed'))
+        ->condition('aid', $ids, 'IN')
+        ->condition('status', HRM_STATUS_PUBLISHED, '=')
+        ->orderBy('publish_date', 'DESC')
+        ->execute()->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  return $announcements;
+}
+
+/*
+ * PIM
+ */
+
+function hrm_basic_employee_get_data($filters = array(), $first_item = FALSE, $basic_info = FALSE) {
+//  print("<pre>");
+//  print_r($filters);
+//  exit();
+//  unset($filters[3]);
+  $query = db_select('hrm_emp', 'employee')
+    ->fields('employee', array('empid', 'oid', 'emp_no', 'fname', 'mname', 'lname', 'job_title', 'supervisor_id', 'photo', 'gender',
+    'marital_status', 'nationality', 'birthday', 'join_date', 'email', 'username', 'password', 'token',
+    'logged_in', 'note', 'status', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : "=");
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $employees = $query->execute()->fetchAllAssoc('empid', PDO::FETCH_ASSOC);
+
+  foreach ($employees as $emp_id => $employee) {
+    $employees[$emp_id]['name'] = trim($employee['fname']) . ' ' . trim($employee['lname']);
+    $employees[$emp_id]['photo_uri'] = hrm_basic_file_get_managed_file_uri($employee['photo'], HRM_DEFAULT_IMAGES_EMPLOYEE_PHOTO);
+    $employees[$emp_id]['photo_url'] = file_create_url($employees[$emp_id]['photo_uri']);
+    $employees[$emp_id]['photo_image'] = theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $employees[$emp_id]['photo_uri']));
+  }
+
+
+  if ($first_item) {
+    return reset($employees);
+  }
+
+  return $employees;
+}
+
+function hrm_basic_employee_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp')
+    ->fields('hrm_emp', array('empid'));
+  $query->addExpression("CONCAT(fname, ' ', lname)", 'name');
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $names = $query->execute()->fetchAllKeyed(0, 1);
+
+  foreach ($names as $key => $value) {
+    $names[$key] = ucwords($value);
+  }
+
+  if ($first_item) {
+    return reset($names);
+  }
+
+  return $names;
+}
+
+function hrm_basic_employee_get_name($empid, $full_name = FALSE) {
+  $result = db_select('hrm_emp')
+      ->fields('hrm_emp', array('fname', 'mname', 'lname'))
+      ->condition('empid', $empid, '=')
+      ->execute()->fetch(PDO::FETCH_ASSOC);
+
+  $employee_name = 'NOT EXIST';
+  if (!empty($result)) {
+    $employee_name = ucwords($result['fname'] . ' ' . $result['lname']);
+    if ($full_name) {
+      $employee_name = ucwords($result['fname'] . ' ' . (!empty($result['mname']) ? $result['mname'] . ' ' : '') . $result['lname']);
+    }
+  }
+
+  return $employee_name;
+}
+
+function hrm_basic_employee_get_email($empid) {
+  $email = db_select('hrm_emp')
+      ->fields('hrm_emp', array('email'))
+      ->condition('empid', $empid, '=')
+      ->execute()->fetchField();
+  return $email;
+}
+
+function hrm_basic_employee_get_job_title($empid) {
+  $job_title = db_select('hrm_emp_job')
+      ->fields('hrm_emp_job', array('job_title'))
+      ->condition('empid', $empid, '=')
+      ->execute()->fetchField();
+  return $job_title;
+}
+
+function hrm_basic_employee_get_supervisors($empid) {
+  $supervisors_query = db_select('hrm_emp_reporting', 'emp_reporting');
+  $supervisors_query->join('hrm_emp', 'employee', 'emp_reporting.supervisor_empid = employee.empid');
+  $supervisors_query->distinct();
+  $supervisors_query->fields('emp_reporting', array('supervisor_empid'));
+  $supervisors_query->condition('emp_reporting.empid', $empid, '=');
+  $supervisors_query->condition('employee.status', HRM_STATUS_ACTIVE, '=');
+  $supervisors = $supervisors_query->execute()->fetchCol();
+
+  return $supervisors;
+}
+
+function hrm_basic_employee_get_subordinates($empid) {
+  $staff_uids_query = db_select('hrm_emp_reporting', 'employee_reporting');
+  $staff_uids_query->join('hrm_emp', 'employee', 'employee_reporting.empid = employee.empid');
+  $staff_uids_query->distinct();
+  $staff_uids_query->fields('employee_reporting', array('empid'));
+  $staff_uids_query->condition('employee_reporting.supervisor_empid', $empid, '=');
+  $staff_uids_query->condition('employee.status', HRM_STATUS_ACTIVE, '=');
+
+  $staff_uids = $staff_uids_query->execute()->fetchCol();
+
+  return $staff_uids;
+}
+
+function hrm_basic_employee_get_job_projects($empid) {
+  $projects = db_select('hrm_emp_job_project', 'employee_job_projects')
+      ->fields('employee_job_projects', array('project'))
+      ->condition('empid', $empid, '=')
+      ->execute()->fetchCol(0);
+
+  return $projects;
+}
+
+function hrm_basic_employee_get_assigned_assets($empid) {
+  $assigned_assets = db_select('hrm_asset_assignment', 'asset_assignment')
+      ->fields('asset_assignment', array('aid'))
+      ->condition('empid', $empid, '=')
+      ->execute()->fetchCol(0);
+
+  return $assigned_assets;
+}
+
+function hrm_basic_employee_get_staff_uids($supervisor_id) {
+  $query = db_select('hrm_emp', 'emp')
+    ->fields('emp', array('empid'))
+    ->condition('supervisor_id', $supervisor_id, '=')
+    ->condition('status', HRM_STATUS_ACTIVE, '=');
+
+  $staff_uids = $query->execute()->fetchAllAssoc('empid', PDO::FETCH_ASSOC);
+
+  if (!empty($staff_uids)) {
+    $staff_uids = array_keys($staff_uids);
+  }
+  return $staff_uids;
+//  return array();
+}
+
+function hrm_basic_employee_is_supervisor($empid) {
+  $query = db_select('hrm_emp', 'emp')
+    ->fields('emp', array('supervisor_id'))
+    ->condition('supervisor_id', $empid, '=');
+
+  $staff_uids = $query->execute()->fetchAll(PDO::FETCH_ASSOC);
+  if (!empty($staff_uids)) {
+    return TRUE;
+  }
+
+  return FALSE;
+//  return FALSE;
+}
+
+function hrm_basic_employee_get_prev_assigned_assets($empid) {
+  $prev_assigned_assets = db_select('hrm_asset_assignment_history', 'asset_assignment_history')
+      ->fields('asset_assignment_history', array('aid'))
+      ->condition('empid', $empid, '=')
+      ->execute()->fetchCol(0);
+
+  return $prev_assigned_assets;
+}
+
+function hrm_basic_employee_salary_get_country_regulation_items($employee, $basic, $earnings, $deductions, $payable, $cost) {
+  $items = array();
+
+  $country = 0;
+  if (isset($employee['location']) && $employee['location']) {
+    $country = hrm_basic_location_get_country($employee['location']);
+  }
+
+  if (!$country) {
+    return $items;
+  }
+
+  if ($country == HRM_TERM_COUNTRY_JORDAN) {
+    if ($employee['marital_status']) {
+      $income_tax = 0;
+      $income_tax_exemption = 1000;
+      if ($employee['marital_status'] == HRM_TERM_MARITAL_STATUS_MARRIED) {
+        $income_tax_exemption = 2000;
+      }
+
+      $yearly_basic = $basic * 12;
+      $yearly_income_tax_exemption = $income_tax_exemption * 12;
+
+      $taxable_basic_salary = $yearly_basic - $yearly_income_tax_exemption;
+      if ($taxable_basic_salary > 0) {
+        if ($taxable_basic_salary <= 10000) {
+          $income_tax = ($taxable_basic_salary * .07) / 12;
+        }
+        elseif ($taxable_basic_salary <= 20000) {
+          $first_income_tax = (10000 * .07) / 12;
+          $second_income_tax = (($taxable_basic_salary - 10000) * .14) / 12;
+          $income_tax = $first_income_tax + $second_income_tax;
+        }
+        else {
+          $first_income_tax = (10000 * .07) / 12;
+          $second_income_tax = (10000 * .14) / 12;
+          $third_income_tax = (($taxable_basic_salary - 20000) * .20) / 12;
+          $income_tax = $first_income_tax + $second_income_tax + $third_income_tax;
+        }
+      }
+
+      $social_by_employee = $basic * .075;
+      $social_by_organization = $basic * .1425;
+
+      $items[] = array(
+        'name' => 'Income Tax',
+        'type' => HRM_SALARY_COMPONENT_DEDUCTION,
+        'payable' => HRM_FLAG_NO,
+        'cost' => HRM_FLAG_NO,
+        'value' => $income_tax,
+      );
+      $items[] = array(
+        'name' => 'Social Security - Employee %7.5',
+        'type' => HRM_SALARY_COMPONENT_DEDUCTION,
+        'payable' => HRM_FLAG_NO,
+        'cost' => HRM_FLAG_NO,
+        'value' => $social_by_employee
+      );
+      $items[] = array(
+        'name' => 'Social Security - Organization %14.25',
+        'type' => HRM_SALARY_COMPONENT_EARNING,
+        'payable' => HRM_FLAG_NO,
+        'cost' => HRM_FLAG_YES,
+        'value' => $social_by_organization
+      );
+    }
+  }
+
+  return $items;
+}
+
+function hrm_basic_employee_get_emergency_contacts($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp_emergency_contact', 'employee_emergency_contact')
+    ->fields('employee_emergency_contact', array('id', 'empid', 'name', 'relationship', 'mobile', 'other_mobile',
+    'phone', 'other_phone'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $emergency_contacts = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($emergency_contacts);
+  }
+
+  return $emergency_contacts;
+}
+
+//Qualifications
+function hrm_basic_employee_get_experiences($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp_experience', 'employee_experience')
+    ->fields('employee_experience', array('id', 'empid', 'company', 'job_title',
+    'from_date', 'to_date', 'attachment', 'comment'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $experiences = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($experiences);
+  }
+}
+
+function hrm_basic_employee_get_educations($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp_education', 'employee_education')
+    ->fields('employee_education', array('id', 'empid', 'degree', 'institute',
+    'major', 'year', 'score', 'start_date', 'end_date', 'attachment'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $educations = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($educations);
+  }
+}
+
+function hrm_basic_employee_get_skills($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp_skill', 'employee_skills')
+    ->fields('employee_skills', array('id', 'empid', 'skill', 'years', 'comment'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $skills = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($skills);
+  }
+}
+
+function hrm_basic_employee_get_languages($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp_language', 'employee_language')
+    ->fields('employee_language', array('id', 'empid', 'language', 'reading', 'writing', 'speaking', 'comment'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $languages = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($languages);
+  }
+}
+
+function hrm_basic_employee_get_license($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp_license', 'employee_license')
+    ->fields('employee_license', array('id', 'empid', 'license', 'license_no',
+    'issue_date', 'expiry_date', 'attachment'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $licenses = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($licenses);
+  }
+}
+
+//Employee account
+function hrm_basic_employee_is_user($empid, $email = NULL, $role = NULL) {
+  $is_user = FALSE;
+
+  if (!$email) {
+    $email = hrm_basic_employee_get_email($empid);
+  }
+  $uid = db_select('users')->fields('users', array('uid'))->condition('mail', $email, '=')->execute()->fetchField(0);
+  if ($uid) {
+    $is_user = TRUE;
+  }
+
+  if ($role && $uid) {
+    $is_user = FALSE;
+
+    $user_role = db_select('users_roles')->fields('users_roles', array('rid'))
+        ->condition('uid', $uid, '=')
+        ->condition('rid', $role, '=')
+        ->execute()->fetchField(0);
+    if ($user_role) {
+      $is_user = TRUE;
+    }
+  }
+
+  return $is_user;
+}
+
+function hrm_basic_employee_account_generate_token($emp_id, $email) {
+  $hash_string = $emp_id . '-' . $email . '-' . time() . '-' . hrm_basic_text_generate_random_text(10);
+  $user_token = drupal_hash_base64($hash_string);
+
+  return $user_token;
+}
+
+function hrm_basic_employee_account_get_token($empid) {
+  $employee_token = db_select('hrm_emp')
+      ->fields('hrm_emp', array('token'))
+      ->condition('empid', $empid, '=')
+      ->execute()->fetchField(0);
+
+  return $employee_token;
+}
+
+/*
+ * Time
+ */
+/* ---------- Attendance ---------- */
+
+function hrm_basic_attendance_is_punched_in_before($empid, $date) {
+  $punched_in_before = db_select('hrm_attendance')
+      ->fields('hrm_attendance')
+      ->condition('empid', $empid, '=')
+      ->condition('date', $date, '=')
+      ->orderBy('aid', 'DESC')
+      ->range(0, 1)
+      ->execute()->fetch(PDO::FETCH_ASSOC);
+
+  return $punched_in_before;
+}
+
+function hrm_basic_attendance_is_apply_leave($empid, $date, $punch_in) {
+
+  $query = db_select('hrm_leave');
+  $query->join('hrm_leave_timing', 'hrm_leave_timing', 'hrm_leave.lid = hrm_leave_timing.lid');
+  $query->fields('hrm_leave', array('lid'));
+  $query->fields('hrm_leave_timing', array('start_time', 'end_time', 'duration_type'));
+  $query->condition('hrm_leave_timing.empid', $empid, '=');
+  $query->condition('hrm_leave_timing.day_date', $date, '=');
+  $query->condition('hrm_leave.status', array(HRM_STATUS_SCHEDULED, HRM_STATUS_USED), 'IN');
+
+  $leave = $query->execute()->fetchAssoc(PDO::FETCH_ASSOC);
+  if (!empty($leave)) {
+    if ($leave['duration_type'] == HRM_LEAVE_DURATION_FULL_DAY) {
+      return TRUE;
+    }
+    else {
+      if ($punch_in >= $leave['start_time'] && $punch_in <= $leave['end_time']) {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+function hrm_basic_attendance_get_data($filters = array(), $first_item = FALSE, $basic_info = FALSE) {
+  $query = db_select('hrm_attendance', 'attendance')
+    ->fields('attendance', array('aid', 'oid', 'empid', 'date',
+    'in_time', 'in_date', 'in_coordinates', 'in_near_loc', 'in_comment', 'in_status',
+    'out_time', 'out_date', 'out_coordinates', 'out_near_loc', 'out_comment', 'out_status',
+    'timezone', 'duration', 'shift_duration', 'source', 'status'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $attendance = $query->execute()->fetchAllAssoc('aid', PDO::FETCH_ASSOC);
+  if (!$basic_info && !empty($attendance)) {
+    $aids = array_keys($attendance);
+
+    $details = db_select('hrm_attendance_details', 'attendance_details')
+        ->fields('attendance_details', array('id', 'aid',
+          'in_time', 'in_date', 'in_coordinates', 'in_near_loc', 'in_comment',
+          'out_time', 'out_date', 'out_coordinates', 'out_near_loc', 'out_comment',
+          'duration', 'status'))
+        ->condition('aid', $aids, 'IN')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+    foreach ($details as $id => $detail) {
+      if (!isset($attendance[$detail['aid']]['details'])) {
+        $attendance[$detail['aid']]['details'] = array();
+      }
+      $attendance[$detail['aid']]['details'][$id] = $detail;
+    }
+
+
+    $adjustments = db_select('hrm_attendance_adjustment', 'attendance_adjustment')
+        ->fields('attendance_adjustment', array('id', 'aid', 'data', 'uid', 'created', 'changed'))
+        ->condition('aid', $aids, 'IN')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+    foreach ($adjustments as $id => $adjustment) {
+      if (!isset($attendance[$adjustment['aid']]['adjustment'])) {
+        $attendance[$adjustment['aid']]['adjustment'] = array();
+      }
+      $attendance[$adjustment['aid']]['adjustment'][$id] = $adjustment;
+    }
+  }
+
+  if ($first_item) {
+    return reset($attendance);
+  }
+
+  return $attendance;
+}
+
+function hrm_basic_attendance_status_names($status = NULL) {
+  $names = array(
+    HRM_STATUS_EARLY_IN => 'Early In',
+    HRM_STATUS_LATE_IN => 'Late In',
+    HRM_STATUS_EARLY_OUT => 'Early Out',
+    HRM_STATUS_LATE_OUT => 'Late Out',
+    HRM_STATUS_ABSENT => 'Absent',
+    HRM_STATUS_LEAVE => 'Leave',
+    HRM_STATUS_WEEK_END => 'Weekend',
+    HRM_STATUS_HOLIDAY => 'Holiday',
+    HRM_STATUS_PRESENT => 'Present',
+  );
+
+  if ($status) {
+    return $names[$status];
+  }
+
+  return $names;
+}
+
+function hrm_basic_attendance_status_classes($status = NULL) {
+  $classes = array(
+    HRM_STATUS_EARLY_IN => 'text-success',
+    HRM_STATUS_LATE_IN => 'text-danger',
+    HRM_STATUS_EARLY_OUT => 'text-danger',
+    HRM_STATUS_LATE_OUT => 'text-success',
+    HRM_STATUS_ABSENT => 'text-info',
+    HRM_STATUS_LEAVE => 'text-warning',
+    HRM_STATUS_WEEK_END => 'text-warning',
+    HRM_STATUS_HOLIDAY => 'text-warning',
+    HRM_STATUS_PRESENT => 'text-warning',
+  );
+
+  if ($status) {
+    return $classes[$status];
+  }
+
+  return $classes;
+}
+
+/*
+ * Leave
+ */
+
+/* ---------- Entitlements ---------- */
+
+function hrm_basic_leave_entitlement_get_data($filters = array(), $first_item = FALSE, $basic_info = FALSE) {
+  $query = db_select('hrm_leave_entitlement', 'leave_entitlement')
+    ->fields('leave_entitlement', array('eid', 'oid', 'empid', 'leave_type', 'leave_period', 'days',
+    'transfered', 'pending', 'used', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $query->orderBy('empid');
+  $query->orderBy('leave_type');
+  $entitlements = $query->execute()->fetchAllAssoc('eid', PDO::FETCH_ASSOC);
+
+  if (!$basic_info && !empty($entitlements)) {
+    foreach ($entitlements as $eid => $entitlement) {
+      $entitlements[$eid]['adjustment'] = db_select('hrm_leave_entitlement_adjustment', 'leave_entitlement_adjustment')
+          ->fields('leave_entitlement_adjustment', array('id', 'eid', 'justification', 'fid', 'data', 'uid', 'created'))
+          ->condition('eid', $eid, '=')
+          ->execute()->fetchAllAssoc('id');
+
+      $entitlement_leave_ids = db_select('hrm_leave_entitlement_leaves', 'leave_entitlement_leaves')
+          ->fields('leave_entitlement_leaves', array('lid'))
+          ->condition('eid', $eid, '=')
+          ->execute()->fetchCol(0);
+      $entitlement_leave_ids[] = 0;
+
+      $entitlements[$eid]['leaves'] = hrm_basic_leave_get_data(array(array('field' => 'lid', 'value' => $entitlement_leave_ids, 'operator' => 'IN')), FALSE, TRUE);
+    }
+  }
+
+  if ($first_item) {
+    return reset($entitlements);
+  }
+
+  return $entitlements;
+}
+
+function hrm_basic_leave_entitlements_generate_employee_entitlemnts($emp_id, $employee = array()) {
+  if (empty($employee)) {
+    $employee = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+  }
+
+  if (!empty($employee) && isset($employee['status']) && $employee['status'] == HR_EMPLOYEE_STATUS_ACTIVE) {
+    $org_id = $employee['org_id'];
+    $leave_type_filters = array(
+      array('field' => 'org_id', 'value' => $org_id, 'operator' => '='),
+      array('field' => 'country', 'value' => $employee['country'], 'operator' => '='),
+      array('field' => 'employee_apply', 'value' => HR_OPTION_ANSWER_YES, 'operator' => '='),
+      array('field' => 'accrue', 'value' => HR_OPTION_ANSWER_YES, 'operator' => '='),
+    );
+    $leave_types = hrm_basic_config_leave_type_get_basic_info($leave_type_filters);
+
+    $current_year = date(HR_DATETIME_FORMAT_YEAR_4_DIGITS, time());
+    foreach ($leave_types as $leave_type) {
+      db_insert('hr_employee_leave_entitlement')
+        ->fields(array(
+          'emp_id' => $emp_id,
+          'org_id' => $org_id,
+          'leave_type' => $leave_type['leave_id'],
+          'leave_period' => $current_year,
+          'transfered' => 0,
+          'pending' => 0,
+          'taken' => 0,
+          'balance' => 0,
+          'comment' => '',
+          'uid' => 0,
+          'created' => time(),
+          'changed' => time(),
+        ))
+        ->execute();
+    }
+  }
+}
+
+function hrm_basic_leave_entitlements_adjust_monthly_entitlement() {
+  $entitlments = hrm_basic_leave_get_leave_entitlements();
+
+  foreach ($entitlments as $entitlment) {
+    $entitlment_id = $entitlment['id'];
+    db_update('hr_employee_leave_entitlement')
+      ->fields(
+        array(
+          'balance' => ($entitlment['balance'] + $entitlment['monthly_balance'])
+      ))
+      ->condition('id', $entitlment_id, '=')
+      ->execute();
+  }
+}
+
+function hrm_basic_leave_entitlements_transfer_next_year_entitlement() {
+  $active_emp_ids = db_select('hr_employee')
+      ->fields('hr_employee', array('emp_id'))
+      ->condition('status', HR_EMPLOYEE_STATUS_ACTIVE, '=')
+      ->execute()->fetchCol(0);
+  $active_emp_ids[] = 0;
+
+  $entitlements_filters = array(
+    array('field' => 'emp_id', 'value' => $active_emp_ids, 'operator' => 'IN')
+  );
+  $entitlments = hrm_basic_leave_get_leave_entitlements($entitlements_filters);
+  $leave_types = hrm_basic_config_leave_type_get_basic_info();
+
+  $next_year = (date(HR_DATETIME_FORMAT_YEAR_4_DIGITS, time()) + 1);
+
+  foreach ($entitlments as $entitlment) {
+    $entitlment_id = $entitlment['id'];
+    $leave_type_id = $entitlment['leave_type'];
+    $accrue = $leave_types[$leave_type_id]['accrue'];
+    if ($accrue == HR_OPTION_ANSWER_YES) {
+      $balance = $entitlment['balance'];
+      $carried_percentage = ($balance * ($leave_types[$leave_type_id]['carried_percentage'] / 100));
+      $carried_max = $leave_types[$leave_type_id]['carried_max'];
+
+      $carried_days = $carried_percentage;
+      if ($carried_days > $carried_max) {
+        $carried_days = $carried_max;
+      }
+
+      db_insert('hr_employee_leave_entitlement')
+        ->fields(array(
+          'emp_id' => $entitlment['emp_id'],
+          'org_id' => $entitlment['org_id'],
+          'leave_type' => $leave_type_id,
+          'leave_period' => $next_year,
+          'transfered' => $carried_days,
+          'pending' => 0,
+          'taken' => 0,
+          'balance' => $carried_days,
+          'comment' => '',
+          'uid' => 0,
+          'created' => time(),
+          'changed' => time(),
+        ))
+        ->execute();
+    }
+  }
+}
+
+function hrm_basic_leave_get_data($filters = array(), $first_item = FALSE, $basic_info = FALSE) {
+  $query = db_select('hrm_leave', 'hrm_leave')
+    ->fields('hrm_leave', array('lid', 'oid', 'empid', 'leave_type', 'hours', 'days', 'start_date', 'end_date', 'leave_entitlement', 'leave_period', 'assigned_to', 'source',
+    'comment', 'status', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $query->orderBy('start_date', 'DESC');
+
+  $leaves = $query->execute()->fetchAllAssoc('lid', PDO::FETCH_ASSOC);
+
+  foreach ($leaves as $lid => $leave) {
+    $leaves[$lid]['weight_timestamp'] = 0;
+
+    $leaves[$lid]['timing'] = db_select('hrm_leave_timing', 'employee_leave_timing')
+        ->fields('employee_leave_timing', array('id', 'lid', 'oid', 'empid', 'leave_type', 'day_date',
+          'start_time', 'end_time', 'hours', 'days', 'duration_type', 'status'))
+        ->condition('lid', $lid, '=')
+        ->execute()->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($leaves[$lid]['timing'] as $timing) {
+      $weight_timestamp = strtotime($timing['day_date'] . ' ' . $timing['start_time']);
+      if (!$leaves[$lid]['weight_timestamp'] || $weight_timestamp < $leaves[$lid]['weight_timestamp']) {
+        $leaves[$lid]['weight_timestamp'] = $weight_timestamp;
+      }
+    }
+    $leaves[$lid]['actions'] = db_select('hrm_leave_action', 'employee_leave_actions')
+        ->fields('employee_leave_actions', array('id', 'lid', 'action', 'comment', 'created_entity', 'created_entity_id', 'created'))
+        ->condition('lid', $lid, '=')
+        ->orderBy('created')
+        ->execute()->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  if ($first_item) {
+    return reset($leaves);
+  }
+
+  return $leaves;
+}
+
+function hrm_basic_leave_get_leave_list($filters = array(), $account = array()) {
+  if (empty($account)) {
+    $account = hrm_basic_account_get_info();
+  }
+  $oid = $account['oid'];
+  $org_filters = array(array('field' => 'org_id', 'value' => $oid));
+
+  $leaves = hrm_basic_leave_get_data($filters);
+  hrm_basic_aasort($leaves, 'weight_timestamp');
+
+  if (isset($data['employee'])) {
+    $leave_filters[] = array('field' => 'emp_id', 'value' => $data['employee'], 'operator' => '=');
+  }
+  if (isset($data['type'])) {
+    $leave_filters[] = array('field' => 'leave_type', 'value' => $data['type'], 'operator' => '=');
+  }
+  if (isset($data['status']) && !empty($data['status'])) {
+    $leave_filters[] = array('field' => 'status', 'value' => $data['status'], 'operator' => 'IN');
+  }
+  if (isset($data['from'])) {
+    $from_timestamp = strtotime(str_replace('/', '-', $data['from']) . ' 00:00:01');
+    $leave_filters[] = array('field' => 'from_date', 'value' => $from_timestamp, 'operator' => '>=');
+  }
+  if (isset($data['to'])) {
+    $to_timestamp = strtotime(str_replace('/', '-', $data['to']) . ' 23:59:59');
+    $leave_filters[] = array('field' => 'to_date', 'value' => $to_timestamp, 'operator' => '<=');
+  }
+
+  $leaves_sort = array(array('field' => 'from_date', 'direction' => 'DESC'));
+  $leaves = hrm_backend_leave_get_data($leave_filters, $leaves_sort);
+  $leave_ids = array_keys($leaves);
+  $leave_ids[] = 0;
+
+  $leaves_attachments_query = db_select('hr_attachment', 'hr_attachment')
+    ->fields('hr_attachment', array('entity_id'));
+  $leaves_attachments_query->addExpression('COUNT(*)', 'counter');
+  $leaves_attachments_query->condition('entity', HRM_ENTITY_LEAVE, '=');
+  $leaves_attachments_query->condition('entity_id', $leave_ids, 'IN');
+  $leaves_attachments_query->groupBy('entity_id');
+  $leaves_attachments = $leaves_attachments_query->execute()->fetchAllKeyed(0, 1);
+
+
+  $leave_types = hr_basic_config_leave_type_get_basic_info($organization_filters);
+  $leave_status = hr_basic_leave_status_get_options();
+
+  $emp_ids = db_select('hr_employee_leave', 'employee_leave')
+      ->distinct()
+      ->fields('employee_leave', array('emp_id'))
+      ->condition('leave_id', $leave_ids, 'IN')
+      ->condition('org_id', $org_id, '=')
+      ->execute()->fetchCol();
+  $emp_ids[] = 0;
+  $employee_filters = array(
+    array('field' => 'status', 'value' => HR_EMPLOYEE_STATUS_ACTIVE, 'operator' => '='),
+    array('field' => 'emp_id', 'value' => $emp_ids, 'operator' => 'IN')
+  );
+  $employees = hr_basic_employee_get_employees_info($employee_filters);
+
+  $access_leave_details_permission = user_access(HR_PERM_LEAVE_ACCESS_LEAVE_DETAILS);
+  $rows = array();
+  foreach ($leaves as $leave_id => $leave) {
+    $from_date = date(HR_DATETIME_FORMAT_SHORT_SPACE_MONTH_SHORT_NAME, $leave['from_date']);
+    $to_date = date(HR_DATETIME_FORMAT_SHORT_SPACE_MONTH_SHORT_NAME, $leave['to_date']);
+    if ($from_date == $to_date) {
+      $from_date = date(HR_DATETIME_FORMAT_LONG_SPACE_MONTH_SHORT_NAME, $leave['from_date']);
+      $to_date = date(HR_DATETIME_FORMAT_LONG_SPACE_MONTH_SHORT_NAME, $leave['to_date']);
+    }
+
+    $warning_content = '';
+    $row_class = '';
+    if ($leave['status'] == HR_LEAVE_STATUS_TAKEN &&
+      $leave_types[$leave['leave_type']]['attachments'] == HR_OPTION_ANSWER_YES &&
+      !isset($leaves_attachments[$leave_id])) {
+      $warning_content = '<i class="fa fa-warning text-danger" title="Attachments is required"></i>';
+      $row_class = 'danger';
+    }
+    elseif ($leave['status'] == HR_LEAVE_STATUS_TAKEN || $leave['status'] == HR_LEAVE_STATUS_SCHEDULED) {
+      $row_class = 'success';
+    }
+    elseif ($leave['status'] == HR_LEAVE_STATUS_REJECTED) {
+      $row_class = 'warning';
+    }
+    elseif ($leave['status'] == HR_LEAVE_STATUS_PENDING) {
+      $row_class = 'info';
+    }
+
+    $leave_details = '';
+    if ($access_leave_details_permission) {
+      $leave_details = l('<i class="fa fa-search"></i>', 'hrm-modal', array('query' => array('action' => HR_MODAL_LEAVE_DETAILS, 'leave_id' => $leave['leave_id']),
+        'attributes' => array('class' => array('btn', 'btn-xs', 'btn-primary')), 'html' => TRUE));
+    }
+
+    $rows[] = array(
+      'data' => array(
+        'link' => array('data' => $leave_details, 'class' => array('text-center')),
+        'picture' => array('data' => $employees[$leave['emp_id']]['picture_image'], 'class' => array('text-center')),
+        'name' => array('data' => $employees[$leave['emp_id']]['name'], 'class' => array()),
+        'from' => array('data' => $from_date, 'class' => array()),
+        'to' => array('data' => $to_date, 'class' => array()),
+        'type' => array('data' => $leave_types[$leave['leave_type']]['name'], 'class' => array()),
+        'status' => array('data' => $leave_status[$leave['status']] . ' ' . $warning_content, 'class' => array()),
+        'days' => array('data' => number_format($leave['days'], 2), 'class' => array()),
+        'hours' => array('data' => $leave['hours_formatted'], 'class' => array()),
+      ),
+      'class' => array($row_class),
+    );
+  }
+
+  $header = array(
+    array('data' => '<i class="fa fa-link"></i>', 'class' => array('nosort', 'nosearch', 'text-center', 'remove-padding-r', 'remove-padding-l')),
+    array('data' => '<i class="fa fa-user-circle-o"></i>', 'class' => array('nosort', 'nosearch', 'text-center', 'remove-padding-r', 'remove-padding-l')),
+    array('data' => 'Employee'),
+    array('data' => 'From'),
+    array('data' => 'To'),
+    array('data' => 'Leave type'),
+    array('data' => 'Status'),
+    array('data' => 'Days'),
+    array('data' => 'Hours'),
+  );
+
+  $list = array(
+    'attributes' => array('class' => array('table', 'table-bordered', 'table-hover', 'table-condensed')),
+    'rows' => $rows,
+    'header' => $header
+  );
+
+  if (!empty($rows)) {
+    $list['attributes']['class'][] = 'datatable-custom-export-search-sort';
+  }
+
+  $content = theme('table', $list);
+
+  return $content;
+}
+
+function hrm_basic_leave_get_leave_basic_information($filters = array(), $sort = array(), $first_item = FALSE) {
+  $query = db_select('hr_employee_leave', 'employee_leave')
+    ->fields('employee_leave', array('leave_id', 'emp_id', 'org_id', 'leave_type', 'assigned_to', 'source',
+    'from_date', 'to_date', 'hours', 'days', 'comment', 'status', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], $filter['operator']);
+    }
+  }
+  if (!empty($sort)) {
+    foreach ($sort as $sort_field) {
+      $query->orderBy($sort_field['field'], $sort_field['direction']);
+    }
+  }
+
+  $leaves = $query->execute()->fetchAllAssoc('leave_id', PDO::FETCH_ASSOC);
+
+  foreach ($leaves as $leave_id => $leave) {
+    $leaves[$leave_id]['timing'] = db_select('hr_employee_leave_timing', 'employee_leave_timing')
+        ->fields('employee_leave_timing', array('id', 'leave_id', 'from_time', 'to_time', 'hours', 'days'))
+        ->condition('leave_id', $leave_id, '=')
+        ->execute()->fetchAll(PDO::FETCH_ASSOC);
+
+    $leaves[$leave_id]['start'] = $leave['from_date'];
+    $leaves[$leave_id]['end'] = $leave['to_date'];
+
+    $leaves[$leave_id]['hours_formatted'] = hrm_basic_time_format_time(($leave['hours'] * 60 * 60));
+
+    $leaves[$leave_id]['actions'] = db_select('hr_employee_leave_actions', 'employee_leave_actions')
+        ->fields('employee_leave_actions', array('id', 'leave_id', 'action', 'content', 'created_by', 'created'))
+        ->condition('leave_id', $leave_id, '=')
+        ->orderBy('created')
+        ->execute()->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  if ($first_item) {
+    $leave = reset($leaves);
+
+    return $leave;
+  }
+
+  return $leaves;
+}
+
+function hrm_basic_leave_get_leave_warning_content($leave, $leave_type) {
+  $warning_content = '';
+
+  if ($leave['status'] == HR_LEAVE_STATUS_TAKEN) {
+    if ($leave_type['attachments']) {
+      $uploaded_documents = db_query('SELECT COUNT(*) FROM {hr_attachment} WHERE entity = :entity AND entity_id = :entity_id', array(':entity' => HRM_ENTITY_LEAVE, ':entity_id' => $leave['leave_id']))->fetchField(0);
+      if (!$uploaded_documents) {
+        $warning_content .= '<i class="fa fa-warning text-danger" title="Attachments is required"></i>';
+      }
+    }
+  }
+  return $warning_content;
+}
+
+function hrm_basic_leave_status_get_options() {
+
+  $status = array(
+    HRM_STATUS_PENDING => 'Pending',
+    HRM_STATUS_REJECTED => 'Rejected',
+    HRM_STATUS_SCHEDULED => 'Scheduled',
+    HRM_STATUS_USED => 'Used'
+  );
+
+  return $status;
+}
+
+function hrm_basic_leave_status_get_options_abbrevaition() {
+  $status = array(
+    HRM_STATUS_PENDING => 'P',
+    HRM_STATUS_REJECTED => 'R',
+    HRM_STATUS_SCHEDULED => 'S',
+    HRM_STATUS_USED => 'U'
+  );
+
+  return $status;
+}
+
+function hrm_basic_leave_status_get_options_bold_abbrev() {
+  $status = array(
+    HR_LEAVE_STATUS_PENDING => '<b class="font-size-150">P</b>ending',
+    HR_LEAVE_STATUS_REJECTED => '<b class="font-size-150">R</b>ejected',
+    HR_LEAVE_STATUS_SCHEDULED => '<b class="font-size-150">S</b>cheduled',
+    HR_LEAVE_STATUS_TAKEN => '<b class="font-size-150">T</b>aken'
+  );
+
+  return $status;
+}
+
+/*
+ * Timesheet
+ */
+
+function hrm_basic_timesheet_get_data($filters = array(), $sort = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp_timesheet', 'employee_timesheet')
+    ->fields('employee_timesheet', array('id', 'oid', 'empid', 'project', 'day_date', 'day_timestamp', 'from_time',
+    'to_time', 'description', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+  if (!empty($sort)) {
+    foreach ($sort as $sort_field) {
+      $query->orderBy($sort_field['field'], $sort_field['direction']);
+    }
+  }
+
+  $timesheets = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($timesheets);
+  }
+
+  return $timesheets;
+}
+
+/*
+ * Discipline
+ */
+
+
+/*
+ * Configuration
+ */
+
+/* ---------- Job Titles ---------- */
+
+function hrm_basic_job_title_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_job_title')
+    ->fields('hrm_config_job_title', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $job_titles = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($job_titles);
+  }
+
+  return $job_titles;
+}
+
+function hrm_basic_job_title_name($id) {
+  $name = db_select('hrm_config_job_title')
+      ->fields('hrm_config_job_title', array('name'))
+      ->condition('id', $id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$name) {
+    $name = '';
+  }
+
+  return $name;
+}
+
+/* ---------- Employment Status ---------- */
+
+function hrm_basic_employment_statuse_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_job_employment_status')
+    ->fields('hrm_config_job_employment_status', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $result = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($result);
+  }
+
+  return $result;
+}
+
+function hrm_basic_employment_statuse_name($id) {
+  $name = db_select('hrm_config_job_employment_status')
+      ->fields('hrm_config_job_employment_status', array('name'))
+      ->condition('id', $id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$name) {
+    $name = '';
+  }
+
+  return $name;
+}
+
+/* ---------- Recruitment Source ---------- */
+
+function hrm_basic_recruitment_source_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_job_recruitment_source')
+    ->fields('hrm_config_job_recruitment_source', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+  $result = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($result);
+  }
+
+  return $result;
+}
+
+function hrm_basic_recruitment_source_name($id) {
+  $name = db_select('hrm_config_job_recruitment_source')
+      ->fields('hrm_config_job_recruitment_source', array('name'))
+      ->condition('id', $id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$name) {
+    $name = '';
+  }
+
+  return $name;
+}
+
+/* ---------- Reporting Methods ---------- */
+
+function hrm_basic_reporting_method_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_job_reporting_method', 'reporting_method')
+    ->fields('reporting_method', array('id', 'name'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+  $reporting_methods = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($reporting_methods);
+  }
+  return $reporting_methods;
+}
+
+/* ---------- Termination Reasons ---------- */
+
+function hrm_basic_termination_reason_name($id) {
+  $name = db_select('hr_termination_reason')
+      ->fields('hr_termination_reason', array('name'))
+      ->condition('id', $id, '=')
+      ->execute()->fetchField();
+
+  if (!$name) {
+    $name = '';
+  }
+
+  return $name;
+}
+
+/* ---------- Projects ---------- */
+
+function hrm_basic_project_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_job_project')
+    ->fields('hrm_config_job_project', array('id', 'oid', 'name', 'abbrev', 'description', 'color_code',
+    'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $projects = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    $project = reset($projects);
+    return $project;
+  }
+
+  return $projects;
+}
+
+function hrm_basic_project_names($filters = array(), $first_item = FALSE, $full_name = TRUE) {
+  $query = db_select('hrm_config_job_project')
+    ->fields('hrm_config_job_project', array('id', 'name', 'abbrev'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], isset($filter['operator']) ? $filter['operator'] : "=");
+    }
+  }
+
+  $result = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  $projects = array();
+  foreach ($result as $id => $row) {
+    $projects[$id] = ($full_name ? $row['name'] : $row['abbrev']);
+  }
+  if ($first_item) {
+    return reset($projects);
+  }
+
+  return $projects;
+}
+
+function hrm_basic_project_names_formatted($filters = array(), $first_item = FALSE, $full_name = TRUE) {
+  $query = db_select('hrm_config_job_project')
+    ->fields('hrm_config_job_project', array('id', 'name', 'abbrev', 'color_code'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], isset($filter['operator']) ? $filter['operator'] : "=");
+    }
+  }
+
+  $result = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  $projects = array();
+  foreach ($result as $id => $row) {
+    $projects[$id] = '<span class="label" style="background-color:' . $row['color_code'] . '">' . ($full_name ? $row['name'] : $row['abbrev']) . '</span>';
+  }
+  if ($first_item) {
+    return reset($projects);
+  }
+
+  return $projects;
+}
+
+function hrm_basic_project_get_projects_abbreviation($filters = array(), $sort = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_job_project')
+    ->fields('hrm_config_job_project', array('id', 'abbrev',));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], $filter['operator']);
+    }
+  }
+  if (!empty($sort)) {
+    foreach ($sort as $sort_field) {
+      $query->orderBy($sort_field['field'], $sort_field['direction']);
+    }
+  }
+
+  $projects = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    $project = reset($project);
+    return $project;
+  }
+
+  return $projects;
+}
+
+/* ---------- Work shifts ---------- */
+
+function hrm_basic_workshift_get_data($filters = array(), $first_item = FALSE) {
+  $today = date(HRM_DATE_SIMPLE, time());
+
+  $query = db_select('hrm_config_time_work_shift')
+    ->fields('hrm_config_time_work_shift', array('id', 'oid', 'name', 'from_time', 'to_time', 'duration'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operation = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operation);
+    }
+  }
+
+
+  $work_shifts = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+  foreach ($work_shifts as $key => $row) {
+    $work_shifts[$key]['today_from_time'] = strtotime($today . ' ' . $row['from_time']);
+    $work_shifts[$key]['today_to_time'] = strtotime($today . ' ' . $row['to_time']);
+
+    $work_shifts[$key]['duration_timestamp'] = $work_shifts[$key]['today_to_time'] - $work_shifts[$key]['today_from_time'];
+  }
+
+  if ($first_item) {
+    return reset($work_shifts);
+  }
+
+  return $work_shifts;
+}
+
+function hrm_basic_workshift_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_time_work_shift')
+    ->fields('hrm_config_time_work_shift', array('id', 'name', 'from_time', 'to_time'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+  $result = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  $work_shifts = array();
+  foreach ($result as $key => $row) {
+    $work_shifts[$key] = $row['name'] . ' (' . $row['from_time'] . ' - ' . $row['to_time'] . ')';
+  }
+
+  if ($first_item) {
+    return reset($work_shifts);
+  }
+
+  return $work_shifts;
+}
+
+function hrm_basic_workshift_name($id, $time = TRUE) {
+  $work_shift = db_select('hrm_config_time_work_shift')
+      ->fields('hrm_config_time_work_shift', array('id', 'name', 'from_time', 'to_time'))
+      ->condition('id', $id, '=')
+      ->execute()->fetch(PDO::FETCH_ASSOC);
+
+  $name = '';
+  if (!empty($work_shift)) {
+    $name = $work_shift['name'];
+    $name .= ($time ? ' (' . $work_shift['from_time'] . ' - ' . $work_shift['to_time'] . ')' : '');
+  }
+
+  return $name;
+}
+
+function hrm_basic_workshift_get_employee_workshift_old($empid, $employee = array()) {
+  if (empty($employee)) {
+    $employee_filters = array(array('field' => 'empid', 'value' => 117, 'operator' => '='));
+    $employee = hrm_basic_employee_get_data($employee_filters, TRUE);
+  }
+
+  print("<pre>");
+  print_r($employee['work_shift']);
+  exit();
+  $work_shift = array();
+
+  if (isset($employee['work_shift'])) {
+    $assigned_work_shift = db_select('hrm_config_time_work_shift')
+        ->fields('hrm_config_time_work_shift', array('id', 'oid', 'name', 'from_time', 'to_time', 'duration'))
+        ->condition('id', $employee['work_shift'], '=')
+        ->execute()->fetch(PDO::FETCH_ASSOC);
+    if (!empty($assigned_work_shift)) {
+      $work_shift['from_time'] = $assigned_work_shift['from_time'];
+      $work_shift['to_time'] = $assigned_work_shift['to_time'];
+      $work_shift['duration'] = $assigned_work_shift['duration'];
+    }
+  }
+  if (empty($work_shift)) {
+    if (isset($employee['oid'])) {
+      $organization_work_shift = db_select('hrm_config_time_work_shift')
+          ->fields('hrm_config_time_work_shift', array('id', 'oid', 'name', 'from_time', 'to_time', 'duration'))
+          ->condition('oid', $employee['oid'], '=')
+          ->execute()->fetch(PDO::FETCH_ASSOC);
+      if (!empty($organization_work_shift)) {
+        $work_shift['from_time'] = $organization_active_work_shift['from_time'];
+        $work_shift['to_time'] = $organization_active_work_shift['to_time'];
+        $work_shift['duration'] = $organization_active_work_shift['duration'];
+      }
+    }
+  }
+  if (empty($work_shift)) {
+    $work_shift['from_time'] = '09:00 AM';
+    $work_shift['to_time'] = '05:00 PM';
+    $work_shift['duration'] = '08:00';
+  }
+
+  return $work_shift;
+}
+
+function hrm_basic_workshift_get_employee_workshift($id) {
+
+  $work_shift = array();
+
+  $assigned_work_shift = db_select('hrm_config_time_work_shift')
+      ->fields('hrm_config_time_work_shift', array('id', 'oid', 'name', 'from_time', 'to_time', 'duration'))
+      ->condition('id', $id, '=')
+      ->execute()->fetch(PDO::FETCH_ASSOC);
+  if (!empty($assigned_work_shift)) {
+    $work_shift['from_time'] = $assigned_work_shift['from_time'];
+    $work_shift['to_time'] = $assigned_work_shift['to_time'];
+    $work_shift['duration'] = $assigned_work_shift['duration'];
+  }
+
+  if (empty($work_shift)) {
+    $work_shift['from_time'] = '09:00 AM';
+    $work_shift['to_time'] = '05:00 PM';
+    $work_shift['duration'] = '08:00';
+  }
+
+  return $work_shift;
+}
+
+function hrm_basic_workshift_get_organization_default_workshift($oid) {
+  $default_workshift = db_select('hrm_config_time_work_shift')
+      ->fields('hrm_config_time_work_shift', array('id'))
+      ->condition('oid', $oid, '=')
+      ->condition('override', HRM_FLAG_YES, '=')
+      ->execute()->fetchField(0);
+  if (!$default_workshift) {
+    $default_workshift = db_select('hrm_config_time_work_shift')
+        ->fields('hrm_config_time_work_shift', array('id'))
+        ->condition('oid', $oid, '=')
+        ->condition('default_shift', HRM_FLAG_YES, '=')
+        ->execute()->fetchField(0);
+  }
+
+  if (!$default_workshift) {
+    $default_workshift = 0;
+  }
+
+  return $default_workshift;
+}
+
+/* ---------- Pay Grade ---------- */
+
+function hrm_basic_pay_grade_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_payroll_grade', 'hrm_config_payroll_grade')
+    ->fields('hrm_config_payroll_grade', array('id', 'oid', 'name', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $pay_grades = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  foreach ($pay_grades as $key => $pay_grade) {
+    $pay_grades[$key]['currency'] = db_select('hrm_config_payroll_grade_currency', 'hrm_config_payroll_grade_currency')
+        ->fields('hrm_config_payroll_grade_currency', array('id', 'grade', 'currency', 'max_salary', 'min_salary'))
+        ->condition('grade', $key, '=')
+        ->execute()->fetchAll(PDO::FETCH_ASSOC);
+  }
+  if ($first_item) {
+    $pay_grade = reset($pay_grades);
+    return $pay_grade;
+  }
+
+  return $pay_grades;
+}
+
+function hrm_basic_pay_grade_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_payroll_grade', 'hrm_config_payroll_grade')
+    ->fields('hrm_config_payroll_grade', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], $filter['operator']);
+    }
+  }
+
+  $pay_grades = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($pay_grades);
+  }
+
+  return $pay_grades;
+}
+
+/* ---------- Salary Component ---------- */
+
+function hrm_basic_salary_component_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_payroll_salary_component', 'hrm_config_payroll_salary_component')
+    ->fields('hrm_config_payroll_salary_component', array('id', 'oid', 'name', 'type', 'payable', 'cost', 'value_amount',
+    'value_percentage', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $salary_components = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    $salary_component = reset($salary_components);
+    return $salary_component;
+  }
+
+  return $salary_components;
+}
+
+/* ---------- Leave types ---------- */
+
+function hrm_basic_leave_type_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_leave_type', 'leave_type')
+    ->fields('leave_type', array('id', 'oid', 'name', 'days', 'due_date', 'gender', 'beyond_balance',
+    'entitlement_auto',
+    'attachment', 'attachment_required', 'dur_full_day', 'dur_time', 'holidays_bd', 'weekend_bd',
+    'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $leave_types = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($leave_types);
+  }
+
+  return $leave_types;
+}
+
+function hrm_basic_leave_type_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_leave_type')
+    ->fields('hrm_config_leave_type', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operation = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operation);
+    }
+  }
+
+  $leave_types = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+
+    return reset($leave_types);
+  }
+
+  return $leave_types;
+}
+
+function hrm_basic_leave_type_get_name($leave_type_id) {
+  $name = db_select('hrm_config_leave_type')
+      ->fields('hrm_config_leave_type', array('name'))
+      ->condition('id', $leave_type_id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$name) {
+    $name = '';
+  }
+  return $name;
+}
+
+function hrm_basic_leave_type_get_colors($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_leave_type')
+    ->fields('hrm_config_leave_type', array('id', 'color_code'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operation = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operation);
+    }
+  }
+
+  $colors = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($colors);
+  }
+
+  return $colors;
+}
+
+/* ---------- Qualfications ---------- */
+
+function hrm_basic_qualification_names($filters = array()) {
+  $query = db_select('hrm_config_pim_qualification')
+    ->fields('hrm_config_pim_qualification', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $qualifications = $query->execute()->fetchAllKeyed(0, 1);
+
+  return $qualifications;
+}
+
+function hrm_basic_qualification_get_name($qualification_id) {
+  $name = db_select('hr_qualification')
+      ->fields('hr_qualification', array('name'))
+      ->condition('id', $qualification_id, '=')
+      ->execute()->fetchField(0);
+  if (!$name) {
+    $name = '';
+  }
+  return $name;
+}
+
+/*
+ * ========================================
+ * Assets
+ * ========================================
+ */
+
+function hrm_basic_asset_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_asset', 'asset')
+    ->fields('asset', array('aid', 'oid', 'location', 'asset_no', 'serial_no', 'model', 'brand', 'category', 'vendor',
+    'picture_fid', 'qr_code_fid', 'cost', 'current_value', 'acquired', 'warranty_start', 'warranty_end', 'description', 'status',
+    'assign_template', 'return_template', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $assets = $query->execute()->fetchAllAssoc('aid', PDO::FETCH_ASSOC);
+
+  foreach ($assets as $aid => $asset) {
+    $assets[$aid]['assignment'] = db_select('hrm_asset_assignment', 'asset_assignment')
+        ->fields('asset_assignment', array('id', 'aid', 'oid', 'empid', 'current_value', 'assign_date', 'assign_condition',
+          'photo_fid', 'receipt_fid', 'comment', 'uid', 'created', 'changed'))
+        ->condition('aid', $aid, '=')
+        ->execute()->fetch(PDO::FETCH_ASSOC);
+    if (empty($assets[$aid]['assignment']) || $assets[$aid]['assignment'] == '') {
+      $assets[$aid]['assignment'] = array();
+    }
+
+    $assets[$aid]['assignment_history'] = db_select('hrm_asset_assignment_history', 'asset_assignment_history')
+        ->fields('asset_assignment_history', array('id', 'oid', 'aid', 'empid', 'current_value', 'assign_date',
+          'assign_condition', 'assign_photo_fid', 'assign_receipt_fid', 'assign_comment', 'assign_uid', 'assign_created', 'assign_changed',
+          'return_date', 'return_condition', 'return_photo_fid', 'return_receipt_fid', 'return_uid', 'return_changed', 'return_created', 'return_comment'))
+        ->condition('aid', $aid, '=')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+    $assets[$aid]['last-row'] = db_select('hrm_asset_assignment_history', 'asset_assignment_history')
+        ->fields('asset_assignment_history', array('id', 'oid', 'aid', 'empid', 'current_value', 'assign_date',
+          'assign_condition', 'assign_photo_fid', 'assign_receipt_fid', 'assign_comment', 'assign_uid', 'assign_created', 'assign_changed',
+          'return_date', 'return_condition', 'return_photo_fid', 'return_receipt_fid', 'return_uid', 'return_changed', 'return_created', 'return_comment'))
+        ->condition('aid', $aid, '=')
+        ->orderBy('id', 'DESC')
+        ->range(0, 1)
+        ->execute()->fetch(PDO::FETCH_ASSOC);
+
+    $assets[$aid]['tracking'] = db_select('hrm_asset_tracking', 'asset_tracking')
+        ->fields('asset_tracking', array('id', 'aid', 'coordinates', 'note', 'picture_fid', 'uid', 'created'))
+        ->condition('aid', $aid, '=')
+        ->orderBy('created', 'DESC')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+    $assets[$aid]['picture_uri'] = hrm_basic_file_get_managed_file_uri($asset['picture_fid'], HRM_DEFAULT_IMAGES_ASSET);
+    $assets[$aid]['picture_url'] = file_create_url($assets[$aid]['picture_uri']);
+    $assets[$aid]['picture'] = theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $assets[$aid]['picture_uri'], 'alt' => $asset['aid'], 'title' => $asset['aid'], 'attributes' => array('class' => array('img-circle'))));
+
+    foreach ($assets[$aid]['tracking'] as $key => $tracking) {
+      $assets[$aid]['tracking'][$key]['img_uri'] = hrm_basic_file_get_managed_file_uri($tracking['picture_fid'], HRM_DEFAULT_IMAGES_ASSET);
+      $assets[$aid]['tracking'][$key]['img_url'] = file_create_url($assets[$aid]['tracking'][$key]['img_uri']);
+      $assets[$aid]['tracking'][$key]['img'] = theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $assets[$aid]['tracking'][$key]['img_uri'], 'alt' => $tracking['id'], 'title' => $asset['aid'], 'attributes' => array('class' => array('img-circle'))));
+    }
+
+    $assets[$aid]['assign_date'] = 0;
+    if (isset($assets[$aid]['assignment']['assign_date']) && $assets[$aid]['assignment']['assign_date']) {
+      $assets[$aid]['assign_date'] = $assets[$aid]['assignment']['assign_date'];
+    }
+  }
+  if ($first_item) {
+    return reset($assets);
+  }
+
+  return $assets;
+}
+
+function hrm_basic_asset_get_asset_list($filters = array(), $sort = array(), $links = TRUE, $modal = FALSE, $check_status = TRUE) {
+  $assets = hrm_basic_asset_get_asset_basic_information($filters, $sort);
+
+  $status = hrm_basic_lov_get_terms(HRM_LOV_STATUS);
+  $categories = array();
+  $brands = array();
+  $employees = array();
+
+  $rows = array();
+  foreach ($assets as $aid => $asset) {
+    $assign_to = '';
+
+
+    $warning_content = '';
+    if ($asset['status'] == HR_TERM_ASSET_STATUS_ASSIGNED) {
+      $assignment = $asset['assignment'];
+      $return = $asset['return'];
+
+      $assigned_to_emp_id = $assignment['emp_id'];
+
+      if (!isset($employees[$assigned_to_emp_id])) {
+        $employees[$assigned_to_emp_id] = hrm_basic_employee_get_name($assigned_to_emp_id);
+      }
+      $assign_to = $employees[$assigned_to_emp_id];
+      if (!$assignment['receipt_fid'] || !$assignment['photo_fid']) {
+        $warning_content = '<i class="fa fa-warning text-danger animated bounceIn" title="Signed Reciept Form or/and assignment photo is not uploded"></i>';
+      }
+
+      if (!empty($return)) {
+        $warning_content = '<i class="fa fa-warning text-danger animated bounceIn" title="Signed return Form or/and return photo is not uploded"></i>';
+      }
+    }
+    if (!isset($categories[$asset['category']])) {
+      $categories[$asset['category']] = hrm_basic_asset_category_get_name($asset['category']);
+    }
+    if (!isset($brands[$asset['brand']])) {
+      $brands[$asset['brand']] = hrm_basic_asset_brand_get_name($asset['brand']);
+    }
+
+
+    $asset_no_link = $asset['asset_no'];
+    if ($links) {
+      $asset_no_link = l($asset['asset_no'], 'asset/asset/details/' . $aid);
+      if ($modal) {
+        $asset_no_link = l($asset['asset_no'], 'hrm-modal', array('query' => array('action' => HR_MODAL_ASSET_DETAILS, 'asset_id' => $aid), 'attributes' => array('class' => array()), 'html' => TRUE));
+      }
+    }
+    $rows[$aid] = array(
+      'data' => array(
+        'row_number' => array('data' => ''),
+        'warning' => array('data' => $warning_content, 'class' => array('text-center')),
+        'asset_no' => array('data' => $asset_no_link),
+        'asset_serial' => array('data' => $asset['serial']),
+        'category' => array('data' => (isset($categories[$asset['category']]) ? $categories[$asset['category']] : '')),
+        'brand' => array('data' => (isset($brands[$asset['brand']]) ? $brands[$asset['brand']] : '')),
+        'model' => array('data' => $asset['model']),
+        'status' => array('data' => $status[$asset['status']]),
+        'assigned_to' => array('data' => $assign_to), //Assign to          
+      ),
+      'class' => array()
+    );
+    if (!$check_status) {
+      unset($rows[$aid]['data']['warning']);
+    }
+  }
+
+  $header = array(
+    array('data' => '#', 'class' => array('nosort', 'nosearch', 'text-center', 'remove-padding-r', 'remove-padding-l')),
+    'warning' => array('data' => '<i class="fa fa-warning"></i>', 'class' => array('nosearch', 'text-center', 'remove-padding-r', 'remove-padding-l')),
+    array('data' => 'Asset ID'),
+    array('data' => 'Serial Number'),
+    array('data' => 'Category'),
+    array('data' => 'Brand'),
+    array('data' => 'Model'),
+    array('data' => 'Status'),
+    array('data' => 'Assigned To'),
+  );
+
+  if (!$check_status) {
+    unset($header['warning']);
+  }
+
+  $list = array(
+    'attributes' => array('class' => array('table-hover', 'table-vcenter')),
+    'rows' => $rows,
+    'header' => $header,
+  );
+  $list['attributes']['class'][] = (!empty($rows) ? 'datatable-sort-export' : 'empty-datatable');
+
+  return $list;
+}
+
+/* ---------- Brand ---------- */
+
+function hrm_basic_asset_brand_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_asset_brand', 'assets_brand')
+    ->fields('assets_brand', array('id', 'oid', 'brand_no', 'name', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $brands = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($brands);
+  }
+  return $brands;
+}
+
+function hrm_basic_asset_brand_get_name($brand_id) {
+  $brand_name = db_select('hrm_asset_brand')
+      ->fields('hrm_asset_brand', array('name'))
+      ->condition('id', $brand_id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$brand_name) {
+    $brand_name = 'DELETED';
+  }
+
+  return $brand_name;
+}
+
+function hrm_basic_asset_brand_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_asset_brand')
+    ->fields('hrm_asset_brand', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $brands = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($brands);
+  }
+
+  return $brands;
+}
+
+/* ---------- Vendor ---------- */
+
+function hrm_basic_asset_vendor_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_asset_vendor', 'assets_vendor')
+    ->fields('assets_vendor', array('id', 'oid', 'vendor_no', 'name', 'phone', 'address', 'website', 'email', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $vendors = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($vendors);
+  }
+  return $vendors;
+}
+
+function hrm_basic_asset_vendor_get_name($vendor_id) {
+  $vendor_name = db_select('hrm_asset_vendor')
+      ->fields('hrm_asset_vendor', array('name'))
+      ->condition('id', $vendor_id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$vendor_name) {
+    $vendor_name = 'DELETED';
+  }
+
+  return $vendor_name;
+}
+
+function hrm_basic_asset_vendor_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_asset_vendor')
+    ->fields('hrm_asset_vendor', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $vendors = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($vendors);
+  }
+
+  return $vendors;
+}
+
+/* ---------- Category ---------- */
+
+function hrm_basic_asset_category_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_asset_category', 'assets_vendor')
+    ->fields('assets_vendor', array('id', 'oid', 'category_no', 'name', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $categories = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  foreach ($categories as $id => $category) {
+    $assets = db_select('hrm_asset')
+        ->fields('hrm_asset', array('status'))
+        ->condition('category', $id, '=')
+        ->execute()->fetchCol();
+    $categories[$id]['total'] = count($assets);
+
+    $categories[$id]['status'][HRM_STATUS_IN_STOCK] = 0;
+    $categories[$id]['status'][HRM_STATUS_ASSIGNED] = 0;
+    $categories[$id]['status'][HRM_STATUS_DECOMMISSIONED] = 0;
+    $categories[$id]['status'][HRM_STATUS_STOLEN] = 0;
+    foreach ($assets as $asset_status) {
+      $categories[$id]['status'][$asset_status] += 1;
+    }
+  }
+
+  if ($first_item) {
+    return reset($categories);
+  }
+  return $categories;
+}
+
+function hrm_basic_asset_category_get_name($category_id) {
+  $category_name = db_select('hrm_asset_category')
+      ->fields('hrm_asset_category', array('name'))
+      ->condition('id', $category_id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$category_name) {
+    $category_name = 'DELETED';
+  }
+
+  return $category_name;
+}
+
+function hrm_basic_asset_category_names($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_asset_category')
+    ->fields('hrm_asset_category', array('id', 'name'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+  $categories = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($categories);
+  }
+
+  return $categories;
+}
+
+/*
+ * ========================================
+ * Options list
+ * ========================================
+ */
+
+function hrm_basic_options_list_timezone() {
+  $timezones = timezone_identifiers_list();
+  $options = array();
+  foreach ($timezones as $timezone) {
+    $options[$timezone] = $timezone;
+  }
+
+  return $options;
+}
+
+/*
+ * ========================================
+ * Entitities
+ * ========================================
+ */
+/* ------------------ Entity Functions ------------------ */
+
+function hrm_basic_entity_get_include_file_path($entity) {
+  $hrm_backend_includes_dir = DRUPAL_ROOT . '/' . drupal_get_path('module', HRM_MODULE_BACKEND) . '/includes';
+  $include_files = file_scan_directory($hrm_backend_includes_dir, '/backend_' . $entity . '.inc/');
+  if (count($include_files) > 1) {
+    hrm_backend_modal_not_found();
+  }
+  $include_file = reset($include_files);
+  $include_path_array = explode('/hrm_backend/', $include_file->uri);
+  $include_path = str_replace('.inc', '', $include_path_array[1]);
+
+  return $include_path;
+}
+
+function hrm_basic_entity_icons($key = NULL) {
+  $var_name = HRM_VAR_ADMIN_WF_ENTITY_ICON;
+
+  if ($key) {
+    return variable_get($var_name . $key, '');
+  }
+
+  $defined_contants = get_defined_constants(TRUE);
+  $defined_user_contants = $defined_contants['user'];
+
+  $icons = array();
+  foreach ($defined_user_contants as $key => $value) {
+    if (strncmp($key, 'HRM_ENTITY_', strlen('HRM_ENTITY_')) == 0) {
+      $icons[$value] = variable_get($var_name . $value, '');
+    }
+  }
+
+  return $icons;
+}
+
+function hrm_basic_entity_names($key = NULL) {
+  $var_name = HRM_VAR_ADMIN_WF_ENTITY_NAME;
+
+  if ($key) {
+    return variable_get($var_name . $key, '');
+  }
+
+  $defined_contants = get_defined_constants(TRUE);
+  $defined_user_contants = $defined_contants['user'];
+
+  $entities = array();
+  foreach ($defined_user_contants as $key => $value) {
+    if (strncmp($key, 'HRM_ENTITY_', strlen('HRM_ENTITY_')) == 0) {
+      $entities[$value] = variable_get($var_name . $value, '');
+    }
+  }
+
+  return $entities;
+}
+
+function hrm_basic_entity_key_name($entity) {
+  $keys = array(
+    HRM_ENTITY_NONE => '',
+    HRM_ENTITY_ORGANIZATION => 'oid',
+    HRM_ENTITY_LOCATION => 'lid',
+    HRM_ENTITY_EMPLOYEE => 'empid',
+    HRM_ENTITY_LEAVE => 'lid',
+    HRM_ENTITY_ASSET => 'aid',
+    HRM_ENTITY_DOCUMENT => 'id',
+    HRM_ENTITY_DISCIPLINE => 'did',
+    HRM_ENTITY_DISCIPLINE_ACTION => 'id',
+    HRM_ENTITY_USER => 'uid'
+  );
+
+  return $keys[$entity];
+}
+
+function hrm_basic_entity_title_name($entity) {
+  $titles = array(
+    HRM_ENTITY_NONE => '',
+    HRM_ENTITY_ORGANIZATION => 'name',
+    HRM_ENTITY_LOCATION => 'name',
+    HRM_ENTITY_EMPLOYEE => 'fname',
+    HRM_ENTITY_LEAVE => '',
+    HRM_ENTITY_ASSET => 'model',
+    HRM_ENTITY_DOCUMENT => 'title',
+    HRM_ENTITY_DISCIPLINE => 'title',
+    HRM_ENTITY_DISCIPLINE_ACTION => '',
+    HRM_ENTITY_USER => 'name'
+  );
+
+  return $titles[$entity];
+}
+
+/* ------------------ Statuses ------------------ */
+
+function hrm_basic_status_icons($key = NULL) {
+  $status_lid = hrm_basic_lov_get_lid(HRM_LOV_STATUS);
+
+  if ($key) {
+    return db_select('hrm_lov_option', 'lov_option')
+        ->fields('lov_option', array('fa_icon'))
+        ->condition('lid', $status_lid, '=')
+        ->condition('key_value', $key, '=')
+        ->execute()->fetchField(0);
+  }
+
+  $icons = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array('key_value', 'fa_icon'))
+      ->condition('lid', $status_lid, '=')
+      ->execute()->fetchAllKeyed(0, 1);
+
+
+  return $icons;
+}
+
+function hrm_basic_status_names($key = NULL) {
+  $status_lid = hrm_basic_lov_get_lid(HRM_LOV_STATUS);
+
+  if ($key) {
+    return db_select('hrm_lov_option', 'lov_option')
+        ->fields('lov_option', array('e_name'))
+        ->condition('lid', $status_lid, '=')
+        ->condition('key_value', $key, '=')
+        ->execute()->fetchField(0);
+  }
+
+  $names = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array('key_value', 'e_name'))
+      ->condition('lid', $status_lid, '=')
+      ->execute()->fetchAllKeyed(0, 1);
+
+
+  return $names;
+}
+
+function hrm_basic_status_names_abbrev($key = NULL) {
+  $status_lid = hrm_basic_lov_get_lid(HRM_LOV_STATUS);
+
+  if ($key) {
+    return db_select('hrm_lov_option', 'lov_option')
+        ->fields('lov_option', array('abbrev'))
+        ->condition('lid', $status_lid, '=')
+        ->condition('key_value', $key, '=')
+        ->execute()->fetchField(0);
+  }
+
+  $abbrevs = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array('key_value', 'abbrev'))
+      ->condition('lid', $status_lid, '=')
+      ->execute()->fetchAllKeyed(0, 1);
+
+
+  return $abbrevs;
+}
+
+function hrm_basic_status_classes($key = NULL) {
+  $status_lid = hrm_basic_lov_get_lid(HRM_LOV_STATUS);
+
+  if ($key) {
+    return db_select('hrm_lov_option', 'lov_option')
+        ->fields('lov_option', array('class'))
+        ->condition('lid', $status_lid, '=')
+        ->condition('key_value', $key, '=')
+        ->execute()->fetchField(0);
+  }
+
+  $classes = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array('key_value', 'class'))
+      ->condition('lid', $status_lid, '=')
+      ->execute()->fetchAllKeyed(0, 1);
+
+  foreach ($classes as $key => $value) {
+    $classes[$key] = explode(' ', $value);
+  }
+
+  return $classes;
+}
+
+/* ------------------ Actions functions ------------------ */
+
+function hrm_basic_actions_title($action = NULL) {
+  $var_name = HRM_VAR_ADMIN_WF_ACTION_TITLE;
+
+  if ($action) {
+    return variable_get($var_name . $action, '');
+  }
+
+  $defined_contants = get_defined_constants(TRUE);
+  $defined_user_contants = $defined_contants['user'];
+
+  $titles = array();
+  foreach ($defined_user_contants as $key => $value) {
+    if (strncmp($key, 'HRM_ACTION_', strlen('HRM_ACTION_')) == 0) {
+      $titles[$value] = variable_get($var_name . $value, '');
+    }
+  }
+
+  return $titles;
+}
+
+function hrm_basic_actions_content($action = NULL) {
+  $var_name = HRM_VAR_ADMIN_WF_ACTION_CONTENT;
+
+  if ($action) {
+    return variable_get($var_name . $action, '');
+  }
+
+  $defined_contants = get_defined_constants(TRUE);
+  $defined_user_contants = $defined_contants['user'];
+
+  $contents = array();
+  foreach ($defined_user_contants as $key => $value) {
+    if (strncmp($key, 'HRM_ACTION_', strlen('HRM_ACTION_')) == 0) {
+      $contents[$value] = variable_get($var_name . $value, '');
+    }
+  }
+
+
+  return $contents;
+}
+
+function hrm_basic_actions_icons($key = NULL) {
+  $var_name = HRM_VAR_ADMIN_WF_ACTION_ICON;
+
+  if ($key) {
+    return variable_get($var_name . $key, '');
+  }
+
+  $defined_contants = get_defined_constants(TRUE);
+  $defined_user_contants = $defined_contants['user'];
+
+  $icons = array();
+  foreach ($defined_user_contants as $key => $value) {
+    if (strncmp($key, 'HRM_ACTION_', strlen('HRM_ACTION_')) == 0) {
+      $icons[$value] = variable_get($var_name . $value, '');
+    }
+  }
+
+  return $icons;
+}
+
+/*
+ * ========================================
+ * LOV  functions
+ * ========================================
+ */
+
+function hrm_basic_lov_get_lid($key_name) {
+  $lid = db_select('hrm_lov', 'hrm_lov')
+      ->fields('hrm_lov', array('lid'))
+      ->condition('key_name', $key_name, '=')
+      ->execute()->fetchField(0);
+  if (!$lid) {
+    $lid = 0;
+  }
+
+  return $lid;
+}
+
+function hrm_basic_lov_get_term_field_data($lov, $key_value, $field = HRM_DB_FIELD_ENGLISH_NAME) {
+  $lov_id = hrm_basic_lov_get_lid($lov);
+  $field_data = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array($field))
+      ->condition('key_value', $key_value, '=')
+      ->condition('lid', $lov_id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$field_data) {
+    $field_data = '';
+  }
+
+  return $field_data;
+}
+
+function hrm_basic_lov_get_terms($lov_key_name, $group_value = NULL, $option_key = HRM_DB_FIELD_KEY_VALUE, $option_field = HRM_DB_FIELD_ENGLISH_NAME, $option_sort = NULL) {
+  if (!$option_sort) {
+    $option_sort = 'lov_option.' . HRM_DB_FIELD_WEIGHT;
+  }
+  $query = db_select('hrm_lov_option', 'lov_option')
+    ->fields('lov_option', array($option_key, $option_field));
+  $query->join('hrm_lov', 'lov', 'lov_option.lid = lov.lid');
+  if ($group_value) {
+    $query->join('hrm_lov_group', 'lov_group', 'lov_group.key_value = lov_option.gid');
+  }
+  $query->condition('lov.key_name', $lov_key_name, '=');
+  $query->isNotNull('lov_option.' . $option_field);
+  if ($group_value) {
+    $query->condition('lov_option.gid', $group_value, '=');
+  }
+
+  $query->orderBy($option_sort);
+  $options = $query->execute()->fetchAllKeyed(0, 1);
+
+  return $options;
+}
+
+function hrm_basic_lov_get_options_list($lov_key, $option_key = NULL, $option_field = NULL, $option_sort = NULL) {
+  if (!$option_key) {
+    $option_key = HRM_DB_FIELD_LOV_OPTION_ID;
+  }
+  if (!$option_field) {
+    $option_field = HRM_DB_FIELD_ENGLISH_NAME;
+  }
+  if (!$option_sort) {
+    $option_sort = 'lov_option.' . HRM_DB_FIELD_WEIGHT;
+  }
+  $join_condition = 'lov_option.' . HRM_DB_FIELD_LOV_ID . ' = lov.' . HRM_DB_FIELD_LOV_ID;
+  $query = db_select('hrm_lov_option', 'lov_option')
+    ->fields('lov_option', array($option_key, $option_field));
+  $query->join('hrm_lov', 'lov', $join_condition);
+  $query->condition('lov.' . HRM_DB_FIELD_KEY_NAME, $lov_key, '=');
+  $query->condition('lov_option.' . $option_field, '', '<>');
+  $query->orderBy($option_sort);
+  $options = $query->execute()->fetchAllKeyed(0, 1);
+
+  return $options;
+}
+
+function hrm_basic_lov_get_lov_groups_list($lov_key, $option_key = NULL, $option_field = NULL, $option_sort = NULL) {
+  if (!$option_key) {
+    $option_key = HRM_DB_FIELD_LOV_GROUP_ID;
+  }
+  if (!$option_field) {
+    $option_field = HRM_DB_FIELD_ENGLISH_NAME;
+  }
+  if (!$option_sort) {
+    $option_sort = 'lov_group.' . HRM_DB_FIELD_WEIGHT;
+  }
+  $join_condition = 'lov_group.' . HRM_DB_FIELD_LOV_ID . ' = lov.' . HRM_DB_FIELD_LOV_ID;
+  $query = db_select('hrm_lov_group', 'lov_group')
+    ->fields('lov_group', array($option_key, $option_field));
+  $query->join('hrm_lov', 'lov', $join_condition);
+  $query->condition('lov.' . HRM_DB_FIELD_KEY_NAME, $lov_key, '=');
+  $query->condition('lov_group.' . $option_field, '', '<>');
+  $query->orderBy($option_sort);
+  $groups = $query->execute()->fetchAllKeyed(0, 1);
+
+  return $groups;
+}
+
+function hrm_basic_lov_get_options_list_by_abbrev($lov_key, $abbrev, $option_key = NULL, $option_field = NULL, $option_sort = NULL) {
+  if (!$option_key) {
+    $option_key = HRM_DB_FIELD_KEY_VALUE;
+  }
+  if (!$option_field) {
+    $option_field = HRM_DB_FIELD_ENGLISH_NAME;
+  }
+  if (!$option_sort) {
+    $option_sort = 'lov_option.' . HRM_DB_FIELD_WEIGHT;
+  }
+  $option_join_condition = 'lov_option.' . HRM_DB_FIELD_LOV_ID . ' = lov.' . HRM_DB_FIELD_LOV_ID;
+
+  $query = db_select('hrm_lov_option', 'lov_option')
+    ->fields('lov_option', array($option_key, $option_field));
+  $query->join('hrm_lov', 'lov', $option_join_condition);
+  $query->condition('lov.' . HRM_DB_FIELD_KEY_NAME, $lov_key, '=');
+  $query->condition('lov_option.' . $option_field, '', '<>');
+  $query->condition('lov_option.' . HRM_DB_FIELD_ABBREV, $abbrev, '=');
+  $query->orderBy($option_sort);
+  $options = $query->execute()->fetchAllKeyed(0, 1);
+
+  return $options;
+}
+
+function hrm_basic_lov_get_options_list_by_score($lov_key, $score, $option_key = NULL, $option_field = NULL, $option_sort = NULL) {
+  if (!$option_key) {
+    $option_key = HRM_DB_FIELD_KEY_VALUE;
+  }
+  if (!$option_field) {
+    $option_field = HRM_DB_FIELD_ENGLISH_NAME;
+  }
+
+  $option_join_condition = 'lov_option.' . HRM_DB_FIELD_LOV_ID . ' = lov.' . HRM_DB_FIELD_LOV_ID;
+
+  $query = db_select('hrm_lov_option', 'lov_option')
+    ->fields('lov_option', array($option_key, $option_field));
+  $query->join('hrm_lov', 'lov', $option_join_condition);
+  $query->condition('lov.' . HRM_DB_FIELD_KEY_NAME, $lov_key, '=');
+  $query->condition('lov_option.' . $option_field, '', '<>');
+  $query->condition('lov_option.' . HRM_DB_FIELD_SCORE, $score, '=');
+
+  if ($option_sort) {
+    $query->orderBy($option_sort);
+  }
+  else {
+    $query->orderBy('lov_option.' . HRM_DB_FIELD_WEIGHT);
+    $query->orderBy('lov_option.' . HRM_DB_FIELD_KEY_VALUE);
+  }
+
+  $options = $query->execute()->fetchAllKeyed(0, 1);
+
+  return $options;
+}
+
+function hrm_basic_lov_get_option_name($oid) {
+  $name = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array(HRM_DB_FIELD_ENGLISH_NAME))
+      ->condition('oid', $oid, '=')
+      ->execute()->fetchField(0);
+
+  if (!$name) {
+    $name = '';
+  }
+
+
+  return $name;
+}
+
+function hrm_basic_lov_get_option_name_by_value($lov, $key_value) {
+  $lov_id = db_select('hrm_lov', 'hrm_lov')
+      ->fields('hrm_lov', array(HRM_DB_FIELD_LOV_ID))
+      ->condition('key_name', $lov, '=')
+      ->execute()->fetchField(0);
+  $name = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array(HRM_DB_FIELD_ENGLISH_NAME))
+      ->condition('key_value', $key_value, '=')
+      ->condition('lid', $lov_id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$name) {
+    $name = '';
+  }
+
+
+  return $name;
+}
+
+// by mosa whats is this ###
+function hrm_basic_lov_get_option_value_by_name($lov, $key_name) {
+  $lov_id = db_select('hrm_lov', 'hrm_lov')
+      ->fields('hrm_lov', array(HRM_DB_FIELD_LOV_ID))
+      ->condition('key_name', $lov, '=')
+      ->execute()->fetchField(0);
+  $name = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array(HRM_DB_FIELD_KEY_VALUE))
+      ->condition('key_name', $key_name, '=')
+      ->condition('lid', $lov_id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$name) {
+    $name = '';
+  }
+
+
+  return $name;
+}
+
+function hrm_basic_lov_get_option_field_data_by_value($lov, $key_value, $field = HRM_DB_FIELD_ENGLISH_NAME) {
+  $lov_id = db_select('hrm_lov', 'hrm_lov')
+      ->fields('hrm_lov', array(HRM_DB_FIELD_LOV_ID))
+      ->condition('key_name', $lov, '=')
+      ->execute()->fetchField(0);
+  $field_data = db_select('hrm_lov_option', 'lov_option')
+      ->fields('lov_option', array($field))
+      ->condition('key_value', $key_value, '=')
+      ->condition('lid', $lov_id, '=')
+      ->execute()->fetchField(0);
+
+  if (!$field_data) {
+    $field_data = 0;
+  }
+
+
+  return $field_data;
+}
+
+function hrm_basic_lov_create_option($lov, $e_name, $group = 0, $key_name = '', $key_value = 0, $a_name = '', $abbrev = '', $desc = '', $score = 0, $weigh = 0) {
+  $lov_lid = db_select('hrm_lov')->fields('hrm_lov', array('lid'))->condition('key_name', $lov, '=')->execute()->fetchField(0);
+
+  if (!$key_name) {
+    $key_name_temp_1 = str_replace(' ', '_', $e_name);
+    $key_name_temp_2 = str_replace('-', '_', $key_name_temp_1);
+    $key_name = 'term_' . str_replace('lov_', '', $lov) . '_' . strtolower($key_name_temp_2);
+  }
+  if (!$key_value) {
+    $max_key_value = db_query('SELECT MAX(key_value) from {hrm_lov_option} WHERE lid = :lid', array(':lid' => $lov_lid))->fetchField(0);
+    $key_value = $max_key_value + 1;
+  }
+
+  $oid = db_insert('hrm_lov_option')
+    ->fields(array(
+      'lid' => $lov_lid,
+      'gid' => $group,
+      'key_name' => $key_name,
+      'key_value' => $key_value,
+      'e_name' => $e_name,
+      'a_name' => $a_name,
+      'abbrev' => $abbrev,
+      'description' => $desc,
+      'score' => $score,
+      'weight' => $weigh,
+    ))
+    ->execute();
+
+  if ($oid) {
+    return $key_value;
+  }
+  return FALSE;
+}
+
+/*
+ * QR code 
+ */
+
+function hrm_basic_qr_code_generate_qr_code($content, $dest, $filename) {
+  include 'sites/all/libraries/phpqrcode/qrlib.php';
+
+  file_prepare_directory($dest, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+  QRcode::png($content, $dest . '/' . $filename);
+}
+
+/*
+ * Files helper function
+ */
+
+function hrm_basic_plupload_form_files_submit($form, &$form_state, $form_item, $directory, $usage = array()) {
+  $saved_files = array();
+
+  file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+  if (!empty($form_state['values'][$form_item])) {
+    foreach ($form_state['values'][$form_item] as $uploaded_file) {
+      if ($uploaded_file['status'] == 'done') {
+        $source = $uploaded_file['tmppath'];
+
+        $dummy_path = '/www/htdocs/' . $uploaded_file['name'];
+        $file_info = pathinfo($dummy_path);
+        $filename = hrm_basic_file_rename_non_english_filenames($file_info['filename'], 'file_');
+        $file_extension = '.' . $file_info['extension'];
+
+        $destination = $directory . '/' . $filename . $file_extension;
+        $destination = file_unmanaged_move($source, $destination, FILE_EXISTS_RENAME);
+        $file = plupload_file_uri_to_object($destination);
+
+        $updated_file = file_save($file);
+        if (file_exists($updated_file->uri)) {
+          if (!empty($usage)) {
+            file_usage_add($file, $usage['module'], $usage['type'], $usage['id']);
+          }
+          $saved_files[] = $file->fid;
+        }
+      }
+    }
+  }
+
+  return $saved_files;
+}
+
+function hrm_basic_file_get_pdf_pages_counter($pdfname) {
+  $pdftext = file_get_contents($pdfname);
+  $num = preg_match_all("/\/Page\W/", $pdftext, $dummy);
+  return $num;
+}
+
+function hrm_basic_file_save_file_data($fid, $module, $type, $id) {
+  if ($fid) {
+    $file = file_load($fid);
+    if ($file) {
+      $file->status = FILE_STATUS_PERMANENT;
+      file_save($file);
+      file_usage_add($file, $module, $type, $id);
+    }
+  }
+}
+
+function hrm_basic_file_delete_file_data($fid, $module) {
+  if ($fid) {
+    $file = file_load($fid);
+    if ($file) {
+      file_usage_delete($file, $module);
+      file_delete($file);
+    }
+  }
+}
+
+function hrm_basic_file_save_unmanged_file($uri, $name, $module, $type, $id, $uid = 0) {
+  $file = new stdClass;
+  $file->uid = $uid;
+  $file->filename = $name;
+  $file->uri = $uri;
+  $file->status = FILE_STATUS_PERMANENT;
+  $file->filemime = file_get_mimetype($uri);
+
+  $saved_file = file_save($file);
+  hrm_basic_file_save_file_data($saved_file->fid, $module, $type, $id);
+
+  return $saved_file->fid;
+}
+
+function hrm_basic_file_get_filesize($filename) {
+  $size = filesize($filename);
+  return round($size / pow(1024, 2), 2);
+}
+
+function hrm_basic_file_get_managed_file_uri($fid, $default = NULL) {
+  $uri = db_select('file_managed')
+      ->fields('file_managed', array('uri'))
+      ->condition('fid', $fid, '=')
+      ->execute()->fetchField(0);
+  if (!$uri && $default) {
+    $uri = $default;
+  }
+  return $uri;
+}
+
+function hrm_basic_file_get_managed_file_url($fid, $default = NULL) {
+  $uri = hrm_basic_file_get_managed_file_uri($fid, $default);
+  $url = '';
+  if ($uri) {
+    $url = file_create_url($uri);
+  }
+  if ($url == '' && $default) {
+    $url = file_create_url($default);
+  }
+  return $url;
+}
+
+function hrm_basic_file_get_file_icon_class($extension = NULL) {
+  $files_icons = array('txt' => 'fi fi-txt', 'doc' => 'fi fi-doc', 'rtf' => 'fi fi-rtf', 'log' => 'fi fi-log', 'tex' => 'fi fi-tex', 'msg' => 'fi fi-msg', 'text' => 'fi fi-text', 'wpd' => 'fi fi-wpd',
+    'wps' => 'fi fi-wps', 'docx' => 'fi fi-docx', 'page' => 'fi fi-page', 'csv' => 'fi fi-csv', 'dat' => 'fi fi-dat', 'tar' => 'fi fi-tar', 'xml' => 'fi fi-xml', 'vcf' => 'fi fi-vcf', 'pps' => 'fi fi-pps', 'key' => 'fi fi-key',
+    'ppt' => 'fi fi-ppt', 'pptx' => 'fi fi-pptx', 'sdf' => 'fi fi-sdf', 'gbr' => 'fi fi-gbr', 'ged' => 'fi fi-ged', 'mp3' => 'fi fi-mp3', 'm4a' => 'fi fi-m4a', 'waw' => 'fi fi-waw', 'wma' => 'fi fi-wma', 'mpa' => 'fi fi-mpa',
+    'iff' => 'fi fi-iff', 'aif' => 'fi fi-aif', 'ra' => 'fi fi-ra', 'mid' => 'fi fi-mid', 'm3v' => 'fi fi-m3v', 'e_3gp' => 'fi fi-e_3gp', 'shf' => 'fi fi-shf', 'avi' => 'fi fi-avi', 'asx' => 'fi fi-asx', 'mp4' => 'fi fi-mp4',
+    'e_3g2' => 'fi fi-e_3g2', 'mpg' => 'fi fi-mpg', 'asf' => 'fi fi-asf', 'vob' => 'fi fi-vob', 'wmv' => 'fi fi-wmv', 'mov' => 'fi fi-mov', 'srt' => 'fi fi-srt', 'm4v' => 'fi fi-m4v', 'flv' => 'fi fi-flv', 'rm' => 'fi fi-rm',
+    'png' => 'fi fi-png', 'psd' => 'fi fi-psd', 'psp' => 'fi fi-psp', 'jpg' => 'fi fi-jpg', 'tif' => 'fi fi-tif', 'tiff' => 'fi fi-tiff', 'gif' => 'fi fi-gif', 'bmp' => 'fi fi-bmp', 'tga' => 'fi fi-tga', 'thm' => 'fi fi-thm',
+    'yuv' => 'fi fi-yuv', 'dds' => 'fi fi-dds', 'ai' => 'fi fi-ai', 'eps' => 'fi fi-eps', 'ps' => 'fi fi-ps', 'svg' => 'fi fi-svg', 'pdf' => 'fi fi-pdf', 'pct' => 'fi fi-pct', 'indd' => 'fi fi-indd', 'xlr' => 'fi fi-xlr', 'xls' => 'fi fi-xls',
+    'xlsx' => 'fi fi-xlsx', 'db' => 'fi fi-db', 'dbf' => 'fi fi-dbf', 'mdb' => 'fi fi-mdb', 'pdb' => 'fi fi-pdb', 'sql' => 'fi fi-sql', 'aacd' => 'fi fi-aacd', 'app' => 'fi fi-app', 'exe' => 'fi fi-exe', 'com' => 'fi fi-com',
+    'bat' => 'fi fi-bat', 'apk' => 'fi fi-apk', 'jar' => 'fi fi-jar', 'hsf' => 'fi fi-hsf', 'pif' => 'fi fi-pif', 'vb' => 'fi fi-vb', 'cgi' => 'fi fi-cgi', 'css' => 'fi fi-css', 'js' => 'fi fi-js', 'php' => 'fi fi-php', 'xhtml' => 'fi fi-xhtml',
+    'htm' => 'fi fi-htm', 'html' => 'fi fi-html', 'asp' => 'fi fi-asp', 'cer' => 'fi fi-cer', 'jsp' => 'fi fi-jsp', 'cfm' => 'fi fi-cfm', 'aspx' => 'fi fi-aspx', 'rss' => 'fi fi-rss', 'csr' => 'fi fi-csr', 'less' => 'fi fi-less',
+    'otf' => 'fi fi-otf', 'ttf' => 'fi fi-ttf', 'font' => 'fi fi-font', 'fnt' => 'fi fi-fnt', 'eot' => 'fi fi-eot', 'woff' => 'fi fi-woff', 'zip' => 'fi fi-zip', 'zipx' => 'fi fi-zipx', 'rar' => 'fi fi-rar', 'targ' => 'fi fi-targ',
+    'sitx' => 'fi fi-sitx', 'deb' => 'fi fi-deb', 'e_7z' => 'fi fi-e_7z', 'pkg' => 'fi fi-pkg', 'rpm' => 'fi fi-rpm', 'cbr' => 'fi fi-cbr', 'gz' => 'fi fi-gz', 'dmg' => 'fi fi-dmg', 'cue' => 'fi fi-cue', 'bin' => 'fi fi-bin',
+    'iso' => 'fi fi-iso', 'hdf' => 'fi fi-hdf', 'vcd' => 'fi fi-vcd', 'bak' => 'fi fi-bak', 'tmp' => 'fi fi-tmp', 'ics' => 'fi fi-ics', 'msi' => 'fi fi-msi', 'cfg' => 'fi fi-cfg', 'ini' => 'fi fi-ini', 'prf' => 'fi fi-prf',
+  );
+
+  if ($extension) {
+    $lower_extension = strtolower($extension);
+    if (isset($files_icons[$lower_extension])) {
+      return $files_icons[$lower_extension];
+    }
+    return 'gi gi-file';
+  }
+
+
+  return $files_icons;
+}
+
+function hrm_basic_file_rename_non_english_filenames($filename, $prefix = '') {
+  $new_name = $filename;
+  if (!preg_match("/^[ -~]+$/", $filename)) {
+    $new_name = uniqid($prefix);
+  }
+  return $new_name;
+}
+
+function hrm_basic_file_generate_image_style($style, $uri = '', $fid = 0) {
+  if ($uri == '' && $fid) {
+    $uri = hrm_basic_file_get_managed_file_uri($fid);
+  }
+
+  if (!$uri) {
+    return FALSE;
+  }
+
+  $derivative_uri = image_style_path($style, $uri);
+  $file_exists = file_exists($derivative_uri);
+  if (!$file_exists) {
+    $file_exists = image_style_create_derivative(image_style_load($style), $uri, $derivative_uri);
+  }
+}
+
+function hrm_basic_file_get_image_style_image($style, $uri = '', $fid = 0, $image_classes = array()) {
+  if ($uri == '' && $fid) {
+    $uri = hrm_basic_file_get_managed_file_uri($fid);
+  }
+  if (!$uri) {
+    return FALSE;
+  }
+  return theme('image_style', array('style_name' => $style, 'path' => $uri, 'attributes' => array('class' => $image_classes)));
+}
+
+/*
+ * Text helper functions
+ */
+
+function hrm_basic_text_generate_random_text($length = 10) {
+  $allowable_characters = 'abcdefghijkmnopqrstuvwxyz0123456789';
+  $len = strlen($allowable_characters) - 1;
+  $string = '';
+  for ($i = 0; $i < $length; $i++) {
+    $string .= $allowable_characters[mt_rand(0, $len)];
+  }
+  return $string;
+}
+
+function hrm_basic_text_starts_with($whole, $text) {
+  return strncmp($whole, $text, strlen($text)) == 0;
+}
+
+function hrm_basic_text_ends_with($whole, $text) {
+  return (strpos($whole, $text, strlen($whole) - strlen($text)) !== false);
+}
+
+function hrm_basic_text_fix_java_script_text($string) {
+  $fixed_string = str_replace("'", "\'", preg_replace("/\r\n|\r|\n/", '<br />', $string));
+
+  return $fixed_string;
+}
+
+/*
+ * Time helper functions
+ */
+
+function hrm_basic_time_convert_number_to_time($number) {
+  $timestamp = $number * 3600;
+  $hours = intval($timestamp / 3600);
+  $minutes_timestamp = $timestamp - ($hours * 3600);
+  $minutes = intval($minutes_timestamp / 60);
+  return str_pad($hours, 2, "0", STR_PAD_LEFT) . ':' . str_pad($minutes, 2, "0", STR_PAD_LEFT);
+}
+
+function hrm_basic_time_timestamp_to_time($timestamp) {
+  $hours = intval($timestamp / 3600);
+  $minutes_timestamp = $timestamp - ($hours * 3600);
+  $minutes = intval($minutes_timestamp / 60);
+  return str_pad($hours, 2, "0", STR_PAD_LEFT) . ':' . str_pad($minutes, 2, "0", STR_PAD_LEFT);
+}
+
+function hrm_basic_time_dates_between($first, $last, $step = '+1 day', $format = 'd-m-Y') {
+  $dates = array();
+  $current = strtotime($first);
+  $last = strtotime($last);
+
+  while ($current <= $last) {
+    $dates[] = date($format, $current);
+    $current = strtotime($step, $current);
+  }
+  return $dates;
+}
+
+function hrm_basic_time_months_years_between_dates($from, $to) {
+  $from_date = new DateTime(date(HR_DATETIME_FORMAT_SHORT_DASH, $from));
+  $to_date = new DateTime(date(HR_DATETIME_FORMAT_SHORT_DASH, $to));
+  $interval = $from_date->diff($to_date);
+  $months = (int) round($interval->y * 12 + $interval->m + $interval->d / 30);
+
+  if ($months < 12) {
+    return $months . ' months';
+  }
+
+  $years = intval($months / 12);
+  $months_mod = $months % 12;
+  return $years . ' years ' . $months_mod . ' months';
+}
+
+function hrm_basic_time_get_age($birthday) {
+  if (!is_numeric($birth_date)) {
+    $birth_date = strtotime(str_replace('/', '-', $birth_date));
+  }
+  $age = intval(date('Y', time() - $birth_date)) - 1970;
+
+  return $age;
+}
+
+function hrm_basic_timezone_get_offset($remote_tz, $origin_tz = null) {
+  if ($origin_tz === null) {
+    if (!is_string($origin_tz = date_default_timezone_get())) {
+      return false; // A UTC timestamp was returned -- bail out!
+    }
+  }
+  $origin_dtz = new DateTimeZone($origin_tz);
+  $remote_dtz = new DateTimeZone($remote_tz);
+  $origin_dt = new DateTime("now", $origin_dtz);
+  $remote_dt = new DateTime("now", $remote_dtz);
+  $offset = $remote_dtz->getOffset($remote_dt) - $origin_dtz->getOffset($origin_dt);
+//  $offset = $origin_dtz->getOffset($origin_dt) - $remote_dtz->getOffset($remote_dt);
+
+  /* $json = new stdClass;
+    $json->origin_tz = $origin_tz;
+    $json->remote_tz = $remote_tz;
+    $json->origin_dt = $origin_dt;
+    $json->remote_dt = $remote_dt;
+    $json->offset = $offset;
+    return $json; */
+
+  return $offset;
+}
+
+function hrm_basic_datetime_convert($datetime, $format, $datetime_format = HRM_DATE_SIMPLE) {
+//  $myDateTime = DateTime::createFromFormat('Y-m-d', $dateString);
+//  date_create_from_format
+  $datetime_obj = date_create_from_format($datetime_format, $datetime);
+  return date_format($datetime_obj, $format);
+}
+
+function hrm_basic_datetime_get_timezone_timestamp($datetime, $timezone) {
+  $date = new DateTime($datetime, new DateTimeZone($timezone));
+  return $date->getTimestamp();
+}
+
+function hrm_basic_datetime_days_range($first, $last, $step = '+1 day', $format = HRM_DATE_SIMPLE) {
+  $range = array();
+  $current = strtotime($first);
+  $end = strtotime($last);
+
+  while ($current <= $end) {
+    $range[] = date($format, $current);
+    $current = strtotime($step, $current);
+  }
+  return $range;
+}
+
+/*
+ * Clients
+ */
+
+//monthly client employees
+function hrm_basic_client_generate_montly_employees_data($year = 0, $month = 0) {
+  $now = time();
+  if (!$year) {
+    $year = date(HR_DATETIME_FORMAT_YEAR_4_DIGITS, $now);
+  }
+  if (!$month) {
+    $month = date(HR_DATETIME_FORMAT_MONTH_2_DIGITS, $now);
+  }
+
+  $created = strtotime(date($year . '-' . $month . '-t 23:59'));
+
+  $active_employee_filters = array(
+    array('field' => 'status', 'value' => HR_EMPLOYEE_STATUS_ACTIVE, 'operator' => '='),
+    array('field' => 'created', 'value' => $created, 'operator' => '<')
+  );
+  $employees = hrm_basic_employee_get_employees_info($active_employee_filters);
+
+  $organizations = array();
+  foreach ($employees as $emp_id => $employee) {
+    $org_id = $employee['org_id'];
+    if (!isset($organizations[$org_id])) {
+      $organizations[$org_id] = array(
+        'org_id' => $org_id,
+        'org_name' => hrm_basic_organization_get_name($org_id),
+        'employees_count' => 0,
+        'employees' => array()
+      );
+    }
+
+    $organizations[$org_id]['employees_count'] += 1;
+    $price = 6;
+    if ($organizations[$org_id]['employees_count'] > 150) {
+      $price = 2;
+    }
+    elseif ($organizations[$org_id]['employees_count'] > 70) {
+      $price = 3;
+    }
+    elseif ($organizations[$org_id]['employees_count'] > 35) {
+      $price = 4;
+    }
+
+    $organizations[$org_id]['employees'][$emp_id] = array(
+      'emp_id' => $emp_id,
+      'emp_no' => $employee['emp_no'],
+      'emp_name' => $employee['name'],
+      'emp_location' => $employee['location'],
+      'emp_country' => $employee['country_name'],
+      'price' => $price,
+    );
+  }
+
+  foreach ($organizations as $org_id => $organization) {
+    $insert_query = db_insert('hr_client_monthly_employees')
+      ->fields(array('org_id', 'org_name', 'emp_id', 'emp_no', 'emp_name', 'emp_location', 'emp_country',
+      'price', 'month', 'year', 'created'));
+    foreach ($organization['employees'] as $emp_id => $employee) {
+      $insert_query->values(array($org_id, $organization['org_name'], $emp_id, $employee['emp_no'], $employee['emp_name'],
+        $employee['emp_location'], $employee['emp_country'], $employee['price'], $month, $year, $now));
+    }
+    $insert_query->execute();
+  }
+}
+
+/*
+ * Performance
+ */
+
+// tracker list
+function hrm_basic_perf_tracker_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_perf_tracker', 'tracker')
+    ->fields('tracker', array('tid', 'oid', 'empid', 'title', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $trackers = $query->execute()->fetchAllAssoc('tid', PDO::FETCH_ASSOC);
+
+
+
+  foreach ($trackers as $tid => $tracker) {
+    $trackers[$tid]['logs'] = db_select('hrm_perf_tracker_logs', 'logs')
+        ->fields('logs', array('id', 'tid', 'title', 'indicator', 'added_entity', 'added_entity_id', 'description', 'created', 'changed'))
+        ->condition('tid', $tid, '=')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+    if (empty($trackers[$tid]['logs']) || $trackers[$tid]['logs'] == '') {
+      $trackers[$tid]['logs'] = array();
+    }
+
+    $trackers[$tid]['reviewer'] = db_select('hrm_perf_tracker_reviewer', 'reviewer')
+        ->fields('reviewer', array('tid', 'empid'))
+        ->condition('tid', $tid, '=')
+        ->execute()->fetchAllAssoc('empid', PDO::FETCH_ASSOC);
+
+    if (empty($trackers[$tid]['reviewer']) || $trackers[$tid]['reviewer'] == '') {
+      $trackers[$tid]['reviewer'] = array();
+    }
+  }
+  if ($first_item) {
+    return reset($trackers);
+  }
+
+  return $trackers;
+}
+
+// competency
+function hrm_basic_perf_competency_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_perf_competency_template', 'competency')
+    ->fields('competency', array('cid', 'oid', 'name', 'status', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $competencies = $query->execute()->fetchAllAssoc('cid', PDO::FETCH_ASSOC);
+
+  foreach ($competencies as $cid => $competency) {
+    $competencies[$cid]['group'] = db_select('hrm_perf_competency_template_group', 'tgroup')
+        ->fields('tgroup', array('gid', 'cid', 'title', 'weight', 'status'))
+        ->condition('cid', $cid, '=')
+        ->execute()->fetchAllAssoc('gid', PDO::FETCH_ASSOC);
+
+    if (!empty($competencies[$cid]['group'])) {
+      foreach ($competencies[$cid]['group'] as $gid => $group) {
+        $competencies[$cid]['group'][$gid]['questions'] = db_select('hrm_perf_competency_template_question', 'questions')
+            ->fields('questions', array('qid', 'gid', 'cid', 'text', 'weight', 'status'))
+            ->condition('cid', $cid, '=')
+            ->condition('gid', $gid, '=')
+            ->execute()->fetchAllAssoc('qid', PDO::FETCH_ASSOC);
+      }
+    }
+  }
+  if ($first_item) {
+    return reset($competencies);
+  }
+
+  return $competencies;
+}
+
+function hrm_basic_perf_appraisal_get_data($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_perf_appraisal', 'appraisal')
+    ->fields('appraisal', array('aid', 'oid', 'cid', 'name', 'due_date', 'from_date', 'to_date', 'header', 'eval_main', 'eval_self', 'eval_peers', 'eval_supervisor', 'eval_subordinate', 'description', 'status', 'uid', 'created', 'changed'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $appraisals = $query->execute()->fetchAllAssoc('aid', PDO::FETCH_ASSOC);
+
+  foreach ($appraisals as $aid => $appraisal) {
+
+    $appraisals[$aid]['employee'] = db_select('hrm_perf_appraisal_emp', 'employee')
+        ->fields('employee', array('id', 'aid', 'empid'))
+        ->condition('aid', $aid, '=')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+    $appraisals[$aid]['evaluator'] = db_select('hrm_perf_appraisal_evaluator', 'eval')
+        ->fields('eval', array('id', 'aid', 'eval_empid', 'empid'))
+        ->condition('aid', $aid, '=')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+
+    $appraisals[$aid]['review'] = db_select('hrm_perf_appraisal_review', 'appraisal_review')
+        ->fields('appraisal_review', array('rid', 'aid', 'eval_empid', 'empid', 'rate', 'comment', 'created'))
+        ->condition('aid', $aid, '=')
+        ->execute()->fetchAllAssoc('rid', PDO::FETCH_ASSOC);
+
+    if (!empty($appraisals[$aid]['review'])) {
+      foreach ($appraisals[$aid]['review'] as $rid => $details) {
+        $appraisals[$aid]['review'][$rid]['details'] = db_select('hrm_perf_appraisal_review_details', 'details')
+            ->fields('details', array('id', 'rid', 'qid', 'answer', 'rate'))
+            ->condition('rid', $rid, '=')
+            ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+      }
+    }
+  }
+
+  if ($first_item) {
+    return reset($appraisals);
+  }
+
+  return $appraisals;
+}
+
+function hrm_basic_perf_appraisal_get_review($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_perf_appraisal_review', 'appraisal_review')
+    ->fields('appraisal_review', array('rid', 'aid', 'eval_empid', 'empid', 'rate', 'comment', 'created'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $reviews = $query->execute()->fetchAllAssoc('rid', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    return reset($reviews);
+  }
+
+  return $reviews;
+}
+
+function hrm_basic_perf_competency_get_names($filters = array()) {
+  $query = db_select('hrm_perf_competency_template', 'competency')
+    ->fields('competency', array('cid', 'name', 'status'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $competency = $query->execute()->fetchAllKeyed();
+
+  return $competency;
+}
+
+//Entitelments
+
+function hrm_basic_leave_get_leave_entitlements($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_leave_entitlement', 'emp_leave_entitlement')
+    ->fields('emp_leave_entitlement', array('eid', 'oid', 'empid', 'leave_type', 'leave_period',
+    'days', 'transfered', 'pending', 'used'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : "=");
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $leave_entitlements = $query->execute()->fetchAllAssoc('eid', PDO::FETCH_ASSOC);
+
+  $leave_type_ids = array();
+  foreach ($leave_entitlements as $row) {
+    $leave_type_ids[$row['leave_type']] = $row['leave_type'];
+  }
+
+  $leave_monthly_balance = array();
+  $current_month = date(HRM_DATE_MONTH_MM, time());
+  $current_year = date(HRM_DATE_YEAR_YYYY, time());
+  $months_to_year = 13 - $current_month;
+  if (!empty($leave_type_ids)) {
+    $leave_types = db_select('hrm_config_leave_type', 'leave_type')
+        ->fields('leave_type', array('id', 'days', 'accrue'))
+        ->condition('id', $leave_type_ids, 'IN')
+        ->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+    if (!empty($leave_types)) {
+      foreach ($leave_types as $leave_type_id => $row) {
+        $leave_monthly_balance[$leave_type_id] = 0;
+        if ($row['accrue'] == HRM_FLAG_YES) {
+          $leave_monthly_balance[$leave_type_id] = $row['days'] / 12;
+        }
+      }
+    }
+  }
+  foreach ($leave_entitlements as $key => $row) {
+    $leave_type_id = $row['leave_type'];
+    $leave_entitlements[$key]['monthly_balance'] = 0;
+    $leave_entitlements[$key]['future_accrue'] = $row['days'];
+    if (isset($leave_monthly_balance[$leave_type_id])) {
+      if ($current_year == $row['leave_period']) {
+        $leave_entitlements[$key]['future_accrue'] += ($leave_monthly_balance[$leave_type_id] * $months_to_year);
+      }
+      elseif ($current_year > $row['leave_period']) {
+        $leave_entitlements[$key]['future_accrue'] = $row['days'];
+      }
+      elseif ($current_year < $row['leave_period']) {
+        $leave_entitlements[$key]['future_accrue'] += ($leave_monthly_balance[$leave_type_id] * 12);
+      }
+      $leave_entitlements[$key]['monthly_balance'] = $leave_monthly_balance[$leave_type_id];
+    }
+  }
+
+  if ($first_item) {
+    $leave_entitlement = reset($leave_entitlements);
+    return $leave_entitlement;
+  }
+
+  return $leave_entitlements;
+}
+
+function hrm_basic_leave_entitlement_register_pending_leave($empid, $oid, $leave_type, $leave_period, $leave_days, $leave_status = NULL) {
+  $account = hrm_basic_account_get_info();
+  $entitlemnt_filters = array(
+    array('field' => 'empid', 'value' => $empid, 'operator' => '='),
+    array('field' => 'oid', 'value' => $oid, 'operator' => '='),
+    array('field' => 'leave_type', 'value' => $leave_type, 'operator' => '='),
+    array('field' => 'leave_period', 'value' => $leave_period, 'operator' => '='),
+  );
+  $entitlemnt = hrm_basic_leave_get_leave_entitlements($entitlemnt_filters, TRUE);
+  $updated_days = (isset($entitlemnt['days']) ? $entitlemnt['days'] : 0);
+  $updated_pending_days = $entitlemnt['pending'] + $leave_days;
+  if ($leave_status && $leave_status == HRM_STATUS_SCHEDULED) {
+    $updated_days = $updated_days - $leave_days;
+  }
+// supposed the entitlment never be empty because if its empty the validation stop proccess
+  if (empty($entitlemnt)) {
+    $uid = 0;
+    if ($account['uid']) {
+      $uid = $account['uid'];
+    }
+    db_insert('hrm_leave_entitlement')
+      ->fields(array(
+        'oid' => $oid,
+        'empid' => $empid,
+        'leave_type' => $leave_type,
+        'leave_period' => $leave_period,
+        'days' => $updated_days,
+        'transfered' => 0,
+        'pending' => $updated_pending_days,
+        'used' => 0,
+        'uid' => $uid,
+        'changed' => time(),
+        'changed' => time(),
+      ))
+      ->execute();
+  }
+  else {
+    $updated_pending_leaves = ($entitlemnt['pending'] + $leave_days);
+    db_update('hrm_leave_entitlement')
+      ->fields(array(
+        'pending' => $updated_pending_leaves,
+        'days' => $updated_days,
+        'changed' => time(),
+      ))
+      ->condition('eid', $entitlemnt['eid'], '=')
+      ->execute();
+  }
+}
+
+function hrm_basic_leave_entitlement_register_rejected_leave($emp_id, $org_id, $leave_type, $leave_period, $leave_days) {
+  $entitlemnt_filters = array(
+    array('field' => 'empid', 'value' => $emp_id),
+    array('field' => 'oid', 'value' => $org_id),
+    array('field' => 'leave_type', 'value' => $leave_type),
+    array('field' => 'leave_period', 'value' => $leave_period),
+  );
+  $entitlemnt = hrm_basic_leave_get_leave_entitlements($entitlemnt_filters, TRUE);
+  if (empty($entitlemnt)) {
+    db_insert('hrm_leave_entitlement')
+      ->fields(array(
+        'oid' => $org_id,
+        'empid' => $emp_id,
+        'leave_type' => $leave_type,
+        'leave_period' => $leave_period,
+        'days' => 0,
+        'transfered' => 0,
+        'pending' => 0,
+        'used' => 0,
+        'comment' => 'System auto generated',
+        'uid' => 0,
+        'created' => time(),
+        'changed' => time()
+      ))
+      ->execute();
+  }
+  else {
+    $updated_pending_leaves = ($entitlemnt['pending'] - $leave_days);
+    db_update('hrm_leave_entitlement')
+      ->fields(array(
+        'pending' => $updated_pending_leaves,
+        'changed' => time()
+      ))
+      ->condition('eid', $entitlemnt['eid'], '=')
+      ->execute();
+  }
+}
+
+function hrm_basic_leave_entitlement_register_used_leave($leave) {
+
+  $entitlemnt_filters = array(
+    array('field' => 'empid', 'value' => $leave['empid'], 'operator' => '='),
+    array('field' => 'oid', 'value' => $leave['oid'], 'operator' => '='),
+    array('field' => 'leave_type', 'value' => $leave['leave_type'], 'operator' => '='),
+    array('field' => 'leave_period', 'value' => $leave['leave_period'], 'operator' => '='),
+  );
+  $entitlemnt = hrm_basic_leave_get_leave_entitlements($entitlemnt_filters, TRUE);
+
+  /*
+    if (empty($entitlemnt)) {
+    db_insert('hrm_leave_entitlement')
+    ->fields(array(
+    'oid' => $leave['oid'],
+    'empid' => $leave['empid'],
+    'leave_type' => $leave['leave_type'],
+    'leave_period' => $leave['leave_period'],
+    'days' => 0,
+    'transfered' => 0,
+    'pending' => $leave['leave_days'],
+    'used' => 0,
+    'uid' => 0,
+    'created' => time(),
+    'changed' => time()
+    ))
+    ->execute();
+    $entitlemnt = hrm_basic_leave_entitlement_get_data($entitlemnt_filters, TRUE);
+    }
+   */
+  $updated_pending_leaves = ($entitlemnt['pending'] - $leave['days']);
+  $updated_used_leaves = ($entitlemnt['used'] + $leave['days']);
+  $updated_balance_leaves = $entitlemnt['days'];
+
+//  print("<pre>");
+//  print_r(number_format($updated_used_leaves,4));
+//  exit();
+//  if ($leave['status'] != HRM_STATUS_SCHEDULED) {
+//    $updated_balance_leaves = ($entitlemnt['days'] - $leave['days']);
+//  }
+
+  db_update('hrm_leave_entitlement')
+    ->fields(array(
+      'pending' => $updated_pending_leaves,
+      'used' => $updated_used_leaves,
+      'days' => $updated_balance_leaves,
+      'changed' => time()
+    ))
+    ->condition('eid', $entitlemnt['eid'], '=')
+    ->execute();
+}
+
+function hrm_basic_leave_entitlement_register_canceled_leave($leave) {
+
+  if (!empty($leave)) {
+    $entitlemnt_filters = array(
+      array('field' => 'empid', 'value' => $leave['empid'], 'operator' => '='),
+      array('field' => 'oid', 'value' => $leave['oid'], 'operator' => '='),
+      array('field' => 'leave_type', 'value' => $leave['leave_type'], 'operator' => '='),
+      array('field' => 'leave_period', 'value' => $leave['leave_period'], 'operator' => '='),
+    );
+    $entitlemnt = hrm_basic_leave_get_leave_entitlements($entitlemnt_filters, TRUE);
+
+    if (!empty($entitlemnt)) {
+      $updated_days = $entitlemnt['days'] + $leave['days'];
+      $updated_pending_leaves = ($entitlemnt['pending'] - $leave['days']);
+
+      if ($leave['status'] == HRM_STATUS_SCHEDULED) {
+        db_update('hrm_leave_entitlement')
+          ->fields(array(
+            'pending' => $updated_pending_leaves,
+            'days' => $updated_days,
+            'changed' => time()
+          ))
+          ->condition('eid', $entitlemnt['eid'], '=')
+          ->execute();
+      }
+    }
+  }
+}
+
+/*
+ * Config
+ */
+
+function hrm_basic_config_leave_period_get_leave_periods($filters = array(), $sort = array()) {
+  $query = db_select('hr_leave_period')
+    ->fields('hr_leave_period', array('period_id', 'name', 'start', 'end'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], $filter['operator']);
+    }
+  }
+  if (!empty($sort)) {
+    foreach ($sort as $sort_field) {
+      $query->orderBy($sort_field['field'], $sort_field['direction']);
+    }
+  }
+  $result = $query->execute()->fetchAllAssoc('period_id', PDO::FETCH_ASSOC);
+
+  $leave_periods = array();
+  foreach ($result as $period_id => $period) {
+    $label = $period['name'] . ' (' . date(HR_DATETIME_FORMAT_SHORT_SLASH, $period['start']) . ' - ' . date(HR_DATETIME_FORMAT_SHORT_SLASH, $period['end']) . ')';
+    $leave_periods[$period_id] = $label;
+  }
+  return $leave_periods;
+}
+
+function hrm_basic_config_leave_period_get_basic_info($filters = array(), $sort = array(), $first_item = FALSE) {
+  $query = db_select('hr_leave_period')
+    ->fields('hr_leave_period', array('period_id', 'name', 'start', 'end'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], $filter['operator']);
+    }
+  }
+  if (!empty($sort)) {
+    foreach ($sort as $sort_field) {
+      $query->orderBy($sort_field['field'], $sort_field['direction']);
+    }
+  }
+  $leave_periods = $query->execute()->fetchAllAssoc('period_id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    $leave_period = reset($leave_periods);
+    return $leave_period;
+  }
+  return $leave_periods;
+}
+
+function hrm_basic_identity_document_types($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_config_pim_document_type')
+    ->fields('hrm_config_pim_document_type', array('id', 'name'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+  $identity_documents = $query->execute()->fetchAllKeyed(0, 1);
+
+  if ($first_item) {
+    return reset($identity_documents);
+  }
+
+  return $identity_documents;
+}
+
+function hrm_basic_config_identity_document_get_basic_info($filters = array(), $sort = array(), $first_item = FALSE) {
+  $query = db_select('hr_identity_document')
+    ->fields('hr_identity_document', array('id', 'org_id', 'name', 'uid', 'created', 'changed'));
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], $filter['operator']);
+    }
+  }
+  if (!empty($sort)) {
+    foreach ($sort as $sort_field) {
+      $query->orderBy($sort_field['field'], $sort_field['direction']);
+    }
+  }
+
+  $identity_documents = $query->execute()->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  if ($first_item) {
+    $identity_document = reset($identity_documents);
+    return $identity_document;
+  }
+
+  return $identity_documents;
+}
+
+/*
+ * Options list
+ */
+
+function hrm_basic_options_months() {
+  $options = array(
+    1 => 'January',
+    2 => 'February',
+    3 => 'March',
+    4 => 'April',
+    5 => 'May',
+    6 => 'June',
+    7 => 'July',
+    8 => 'August',
+    9 => 'September',
+    10 => 'October',
+    11 => 'November',
+    12 => 'December',
+  );
+
+
+  return $options;
+}
+
+function hrm_basic_options_months_short() {
+  $options = array(
+    '01' => 'Jan',
+    '02' => 'Feb',
+    '03' => 'Mar',
+    '04' => 'Apr',
+    '05' => 'May',
+    '06' => 'Jun',
+    '07' => 'Jul',
+    '08' => 'Aug',
+    '09' => 'Sep',
+    '10' => 'Oct',
+    '11' => 'Nov',
+    '12' => 'Dec',
+  );
+
+
+  return $options;
+}
+
+// Sort 2 dimansional array
+function hrm_basic_aasort(&$array, $key) {
+  $sorter = array();
+  $ret = array();
+  reset($array);
+  foreach ($array as $ii => $va) {
+    $sorter[$ii] = $va[$key];
+  }
+  asort($sorter);
+  foreach ($sorter as $ii => $va) {
+    $ret[$ii] = $array[$ii];
+  }
+  $array = $ret;
+}
+
+function hrm_basic_fix_js_coordinates_string_format($string) {
+  $fixed_string = str_replace("'", "\'", preg_replace("/\r\n|\r|\n/", '', $string));
+
+  return $fixed_string;
+}
+
+/*
+ * Exchange rate
+ */
+
+function hrm_basic_exchange_rate($ammount, $from, $to) {
+  $total_amount = urlencode($ammount);
+  $from_currency = urlencode($from);
+  $to_currency = urlencode($to);
+
+  $get = file_get_contents("https://www.google.com/finance/converter?a=$total_amount&from=$from_currency&to=$to_currency");
+  $get = explode("<span class=bld>", $get);
+  $get = explode("</span>", $get[1]);
+  $converted_amount = preg_replace("/[^0-9\.]/", null, $get[0]);
+  return $converted_amount;
+}
+
+/*
+ * Checking functions
+ */
+
+function hrm_basic_day_is_working_day($oid, $date) {
+  $day_status = hrm_basic_day_status($oid, $date);
+
+  return (($day_status == HRM_DAY_STATUS_WORKING) ? TRUE : FALSE);
+}
+
+// updated after branch test
+function hrm_basic_day_status($oid, $date) {
+  $day_abbrev = hrm_basic_datetime_convert($date, HRM_DATE_DAY_DDD);
+  $day = hrm_basic_datetime_convert($date, HRM_DATE_DAY_DD);
+  $month = hrm_basic_datetime_convert($date, HRM_DATE_MONTH_MM);
+  $year = hrm_basic_datetime_convert($date, HRM_DATE_YEAR_YYYY);
+
+//  $country = hrm_basic_location_get_country($location);
+  $working_day = db_select('hrm_config_time_work_week')
+      ->fields('hrm_config_time_work_week', array($day_abbrev))
+      ->condition('oid', $oid, '=')
+      ->execute()->fetchField(0);
+
+  $status = HRM_DAY_STATUS_WORKING;
+  if (!$working_day) {
+    $status = HRM_DAY_STATUS_WEEKEND;
+  }
+
+  $holiday_filters = array(
+    array('field' => 'oid', 'value' => $oid),
+  );
+  $holidays = hrm_basic_holiday_get_data($holiday_filters);
+  foreach ($holidays as $holiday) {
+    if (!empty($holiday['days'])) {
+      foreach ($holiday['days'] as $holiday_day) {
+        if (($holiday_day['day'] == $day && $holiday_day['month'] == $month && $holiday_day['year'] == $year) ||
+          ($holiday_day['day'] == $day && $holiday_day['month'] == $month && $holiday['annually'])) {
+          $status = HRM_DAY_STATUS_HOLIDAY;
+          break;
+        }
+      }
+    }
+    if ($status == HRM_DAY_STATUS_HOLIDAY) {
+      break;
+    }
+  }
+
+  return $status;
+}
+
+function hrm_basic_day_status_before_updat_branch($oid, $location, $date) {
+  $day_abbrev = hrm_basic_datetime_convert($date, HRM_DATE_DAY_DDD);
+  $day = hrm_basic_datetime_convert($date, HRM_DATE_DAY_DD);
+  $month = hrm_basic_datetime_convert($date, HRM_DATE_MONTH_MM);
+  $year = hrm_basic_datetime_convert($date, HRM_DATE_YEAR_YYYY);
+
+  $country = hrm_basic_location_get_country($location);
+  $working_day = db_select('hrm_config_time_work_week')
+      ->fields('hrm_config_time_work_week', array($day_abbrev))
+      ->condition('oid', $oid, '=')
+      ->condition('country', $country, '=')
+      ->execute()->fetchField(0);
+  $status = HRM_DAY_STATUS_WORKING;
+  if (!$working_day) {
+    $status = HRM_DAY_STATUS_WEEKEND;
+  }
+
+  $location_holidays = db_select('hrm_holiday_location')
+      ->distinct()
+      ->fields('hrm_holiday_location', array('hid'))
+      ->condition('lid', $location, '=')
+      ->execute()->fetchCol();
+
+  if (!empty($location_holidays)) {
+    $holiday_filters = array(
+      array('field' => 'oid', 'value' => $oid),
+      array('field' => 'hid', 'value' => $location_holidays, 'operator' => 'IN'),
+    );
+    $holidays = hrm_basic_holiday_get_data($holiday_filters);
+
+    foreach ($holidays as $holiday) {
+      if (!empty($holiday['days'])) {
+        foreach ($holiday['days'] as $holiday_day) {
+          if (($holiday_day['day'] == $day && $holiday_day['month'] == $month && $holiday_day['year'] == $year) ||
+            ($holiday_day['day'] == $day && $holiday_day['month'] == $month && $holiday['annually'])) {
+            $status = HRM_DAY_STATUS_HOLIDAY;
+            break;
+          }
+        }
+      }
+      if ($status == HRM_DAY_STATUS_HOLIDAY) {
+        break;
+      }
+    }
+  }
+
+  return $status;
+}
+
+function hrm_basic_day_status_class($day_status = NULL) {
+  $classes = array(
+    HRM_DAY_STATUS_WORKING => 'success',
+    HRM_DAY_STATUS_WEEKEND => 'warning',
+    HRM_DAY_STATUS_HOLIDAY => 'info',
+  );
+
+  if ($day_status) {
+    return $classes[$day_status];
+  }
+
+  return $classes;
+}
+
+function hrm_basic_day_status_names($day_status = NULL) {
+  $names = array(
+    HRM_DAY_STATUS_WORKING => 'Working',
+    HRM_DAY_STATUS_WEEKEND => 'Weekend',
+    HRM_DAY_STATUS_HOLIDAY => 'Holiday',
+  );
+
+  if ($day_status) {
+    return $names[$day_status];
+  }
+
+  return $names;
+}
+
+function hrm_basic_day_is_apply_leave_before($empid, $day_date, $from_time, $to_time) {
+
+  $leaves = db_select('hrm_leave_timing')
+      ->fields('hrm_leave_timing', array('id', 'lid', 'oid', 'leave_type', 'day_date', 'start_time', 'end_time'))
+      ->condition('empid', $empid, '=')
+      ->condition('status', HRM_STATUS_REJECTED, '!=')
+      ->condition('day_date', $day_date, '=')
+      ->execute()->fetchAll(PDO::FETCH_ASSOC);
+  if (!empty($leaves)) {
+    foreach ($leaves as $leave) {
+      if (($from_time >= $leave['start_time'] && $from_time <= $leave['end_time'] ||
+        $to_time > $leave['start_time'] && $to_time < $leave['end_time']) ||
+        ($leave['start_time'] >= $from_time && $leave['start_time'] < $to_time ||
+        $leave['end_time'] > $from_time && $leave['end_time'] < $to_time)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+function hrm_basic_data_source_icons($data_source = NULL) {
+  $data_source_icons = array(
+    0 => '',
+    HRM_DATA_SOURCE_APP => HRM_FA_MOBILE_GREEN,
+    HRM_DATA_SOURCE_WEB => HRM_FA_INTERNET_EXPLORER_RED
+  );
+
+  if ($data_source) {
+    return $data_source_icons[$data_source];
+  }
+
+  return $data_source_icons;
+}
+
+/*
+ * Maps Functions
+ */
+
+function hrm_basic_map_calculate_nearest_location_distance($oid, $coordinates, $locations = array()) {
+  if (empty($locations)) {
+    $locations = hrm_basic_location_get_data(array(array('field' => 'oid', 'value' => $oid)), FALSE, TRUE);
+  }
+
+  $coordinates_array = explode(',', $coordinates);
+  $lng = trim($coordinates_array[0]);
+  $lat = trim($coordinates_array[1]);
+
+  $count = 0;
+  $nearest_distance = 0;
+  foreach ($locations as $location) {
+    if (empty($location['coordinates'])) {
+      continue;
+    }
+    $location_coordinates_array = explode(',', $location['coordinates']);
+    $location_lng = trim($location_coordinates_array[0]);
+    $location_lat = trim($location_coordinates_array[1]);
+
+    $theta = $lng - $location_lng;
+    $dist = sin(deg2rad($lat)) * sin(deg2rad($location_lat)) + cos(deg2rad($lat)) * cos(deg2rad($location_lat)) * cos(deg2rad($theta));
+    $dist = acos($dist);
+    $dist = rad2deg($dist);
+    $miles = $dist * 60 * 1.1515;
+
+    $distance = intval(($miles * 1.609344) * 1000);
+    watchdog('distance - ' . $count, $distance);
+    if ($count == 0) {
+      $nearest_distance = $distance;
+    }
+    if ($distance < $nearest_distance) {
+      $nearest_distance = $distance;
+    }
+    $count++;
+  }
+
+  return $nearest_distance;
+}
+
+function hrm_basic_map_get_nearest_distance_between_locations($from, $locations, $raw = TRUE, $max_limit = 50, $link = TRUE, $attendance_id = NULL, $formatted_raw = FALSE) {
+
+  $count = 0;
+  $nearest_distance = 0;
+  foreach ($locations as $location) {
+    $theta = $from['lng'] - $location['lng'];
+    $dist = sin(deg2rad($from['lat'])) * sin(deg2rad($location['lat'])) + cos(deg2rad($from['lat'])) * cos(deg2rad($location['lat'])) * cos(deg2rad($theta));
+    $dist = acos($dist);
+    $dist = rad2deg($dist);
+    $miles = $dist * 60 * 1.1515;
+
+    $distance = intval(($miles * 1.609344) * 1000);
+    if ($count == 0) {
+      $nearest_distance = $distance;
+      $count++;
+    }
+    if ($distance < $nearest_distance) {
+      $nearest_distance = $distance;
+    }
+  }
+
+  $raw_value = $nearest_distance;
+  $formatted_value = $nearest_distance;
+
+  if (!$raw) {
+    $class = 'text-success';
+    if ($nearest_distance > $max_limit) {
+      $class = 'text-danger';
+    }
+    $class .= ' font-bold';
+
+    $formatted_value = '<span class="' . $class . '" data-sort="' . $nearest_distance . '" title="' . $nearest_distance . 'm away from the nearest location">' . $nearest_distance . 'm</span>';
+
+    if ($link && $attendance_id) {
+      $formatted_value = l($formatted_value, 'hrm-modal', array('query' => array('action' => 'attendance-map', 'id' => $attendance_id,), 'attributes' => array('class' => array('font-underline')), 'html' => TRUE));
+    }
+  }
+
+  if ($raw) {
+    return $raw_value;
+  }
+  elseif ($formatted_raw) {
+    return array(
+      'raw' => $raw_value,
+      'formatted' => $formatted_value,
+    );
+  }
+
+  return $formatted_value;
+}
+
+function hrm_basic_map_get_nearest_location($from, $locations) {
+  $count = 0;
+  $nearest_distance = 0;
+  $nearest_location = 0;
+  foreach ($locations as $location_id => $location) {
+    $theta = $from['lng'] - $location['lng'];
+    $dist = sin(deg2rad($from['lat'])) * sin(deg2rad($location['lat'])) + cos(deg2rad($from['lat'])) * cos(deg2rad($location['lat'])) * cos(deg2rad($theta));
+    $dist = acos($dist);
+    $dist = rad2deg($dist);
+    $miles = $dist * 60 * 1.1515;
+
+    $distance = intval(($miles * 1.609344) * 1000);
+    if ($count == 0) {
+      $nearest_distance = $distance;
+      $nearest_location = $location_id;
+      $count++;
+    }
+    if ($distance < $nearest_distance) {
+      $nearest_distance = $distance;
+      $nearest_location = $location_id;
+    }
+  }
+
+  return $nearest_location;
+}
+
+function hrm_basic_map_coordinates_to_array($coordinates) {
+  
+}
+
+/*
+ * GSM helper functions
+ */
+
+function hrm_basic_gcm_get_device_id($filters = array(), $first_item = FALSE) {
+  $query = db_select('hrm_emp', 'hrm_emp')
+    ->distinct()
+    ->fields('hrm_emp', array('device_id'))
+    ->condition('device_id', '', '<>');
+
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $query->condition($filter['field'], $filter['value'], $operator);
+    }
+  }
+
+
+  $devices_ids = $query->execute()->fetchCol();
+
+  if ($first_item) {
+    $device_id = reset($devices_ids);
+    return $device_id;
+  }
+
+  return $devices_ids;
+}
+
+/*
+ * Helper functions
+ */
+
+function hrm_basic_build_tree($items, $parent_key = 'parent_id', $item_key = 'id') {
+  if (count($items) == 1) {
+    return $items;
+  }
+  $childs = array();
+
+  foreach ($items as &$item)
+    $childs[$item[$parent_key]][] = &$item;
+  unset($item);
+
+  foreach ($items as &$item)
+    if (isset($childs[$item[$item_key]]))
+      $item['children'] = $childs[$item[$item_key]];
+
+  return $childs[0];
+}
+
+/*
+ * Fixes
+ */
+
+function hrm_basic_fix_special_leaves() {
+  $leave_type_id = 13;
+
+  $leave_filters = array(
+    array('field' => 'leave_type', 'value' => $leave_type_id, 'operator' => '='),
+  );
+  $leaves = hrm_basic_leave_get_leave_basic_information($leave_filters);
+
+  $entitlment_filters = array(
+    'emp_id' => array('field' => 'emp_id', 'value' => 0, 'operator' => '='),
+    'leave_type' => array('field' => 'leave_type', 'value' => $leave_type_id, 'operator' => '='),
+  );
+  foreach ($leaves as $leave) {
+    $emp_id = $leave['emp_id'];
+    $entitlment_filters['emp_id']['value'] = $emp_id;
+    $entitlment = hrm_basic_leave_get_leave_entitlements($entitlment_filters, array(), TRUE);
+    if (empty($entitlment)) {
+      $entitlment_fields = array(
+        'emp_id' => $emp_id,
+        'org_id' => $leave['org_id'],
+        'leave_type' => $leave_type_id,
+        'leave_period' => date(HR_DATETIME_FORMAT_YEAR_4_DIGITS, $leave['from_date']),
+        'transfered' => 0,
+        'pending' => 0,
+        'taken' => 0,
+        'balance' => 0,
+        'comment' => '',
+        'uid' => 0,
+        'created' => 0,
+        'changed' => 0,
+      );
+      db_insert('hr_employee_leave_entitlement')
+        ->fields($entitlment_fields)
+        ->execute();
+
+      $entitlment = hrm_basic_leave_get_leave_entitlements($entitlment_filters, array(), TRUE);
+    }
+
+    $entitlment['taken'] += $leave['days'];
+    $entitlment['balance'] -= $leave['days'];
+    db_update('hr_employee_leave_entitlement')
+      ->fields(array(
+        'taken' => $entitlment['taken'],
+        'balance' => $entitlment['balance'],
+      ))
+      ->condition('id', $entitlment['id'], '=')
+      ->execute();
+
+    if ($leave['status'] != HR_LEAVE_STATUS_TAKEN) {
+      db_update('hr_employee_leave')
+        ->fields(array(
+          'status' => HR_LEAVE_STATUS_TAKEN,
+          'changed' => time(),
+        ))
+        ->condition('leave_id', $leave['leave_id'], '=')
+        ->execute();
+    }
+  }
+}
+
+function hrm_basic_fix_sick_leaves() {
+  $leave_type_id = 8;
+
+  $leave_filters = array(
+    array('field' => 'leave_type', 'value' => $leave_type_id, 'operator' => '='),
+  );
+  $leaves = hrm_basic_leave_get_leave_basic_information($leave_filters);
+
+  $entitlment_filters = array(
+    'emp_id' => array('field' => 'emp_id', 'value' => 0, 'operator' => '='),
+    'leave_type' => array('field' => 'leave_type', 'value' => $leave_type_id, 'operator' => '='),
+  );
+  foreach ($leaves as $leave) {
+    $emp_id = $leave['emp_id'];
+    $entitlment_filters['emp_id']['value'] = $emp_id;
+    $entitlment = hrm_basic_leave_get_leave_entitlements($entitlment_filters, array(), TRUE);
+    if (!empty($entitlment)) {
+      $entitlment['taken'] += $leave['days'];
+      $entitlment['balance'] -= $leave['days'];
+      db_update('hr_employee_leave_entitlement')
+        ->fields(array(
+          'taken' => $entitlment['taken'],
+          'balance' => $entitlment['balance'],
+        ))
+        ->condition('id', $entitlment['id'], '=')
+        ->execute();
+
+      if ($leave['status'] != HR_LEAVE_STATUS_TAKEN) {
+        db_update('hr_employee_leave')
+          ->fields(array(
+            'status' => HR_LEAVE_STATUS_TAKEN,
+            'changed' => time(),
+          ))
+          ->condition('leave_id', $leave['leave_id'], '=')
+          ->execute();
+      }
+    }
+  }
+}
+
+function hrm_basic_fix_annual_leaves() {
+  $leave_type_id = 7;
+
+  $leave_filters = array(
+    array('field' => 'leave_type', 'value' => $leave_type_id, 'operator' => '='),
+  );
+  $leaves = hrm_basic_leave_get_leave_basic_information($leave_filters);
+
+  $entitlment_filters = array(
+    'emp_id' => array('field' => 'emp_id', 'value' => 0, 'operator' => '='),
+    'leave_type' => array('field' => 'leave_type', 'value' => $leave_type_id, 'operator' => '='),
+  );
+  foreach ($leaves as $leave) {
+    $emp_id = $leave['emp_id'];
+    $entitlment_filters['emp_id']['value'] = $emp_id;
+    $entitlment = hrm_basic_leave_get_leave_entitlements($entitlment_filters, array(), TRUE);
+    if (!empty($entitlment)) {
+      $entitlment['taken'] += $leave['days'];
+      $entitlment['balance'] -= $leave['days'];
+      db_update('hr_employee_leave_entitlement')
+        ->fields(array(
+          'taken' => $entitlment['taken'],
+          'balance' => $entitlment['balance'],
+        ))
+        ->condition('id', $entitlment['id'], '=')
+        ->execute();
+
+      if ($leave['status'] != HR_LEAVE_STATUS_TAKEN) {
+        db_update('hr_employee_leave')
+          ->fields(array(
+            'status' => HR_LEAVE_STATUS_TAKEN,
+            'changed' => time(),
+          ))
+          ->condition('leave_id', $leave['leave_id'], '=')
+          ->execute();
+      }
+    }
+  }
+}
+
+/*
+ * Testing
+ */
+
+function hrm_basic_test_page() {
+  $start_time = hrm_basic_datetime_convert('08:00:23', HRM_DATE_TIME_12, HRM_DATE_SYSTEM_TIME);
+
+  print '****' . $start_time;
+  exit();
+  return 'test';
+}

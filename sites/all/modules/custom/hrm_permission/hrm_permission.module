@@ -1,0 +1,616 @@
+<?php
+
+/*
+ * Administration
+ */
+
+define('HRM_PERM_ADMIN_ACCESS', 'administration - access');
+
+/*
+ * Branches
+ */
+define('HRM_PERM_ADMINISTRATION_BRANCH_ACCESS', 'administration - branch - access');
+define('HRM_PERM_ADMINISTRATION_BRANCH_ACCESS_DETAILS', 'administration - branch - access details');
+define('HRM_PERM_ADMINISTRATION_BRANCH_ADD', 'administration - branch - add ');
+define('HRM_PERM_ADMINISTRATION_BRANCH_EDIT', 'administration - branch - edit');
+define('HRM_PERM_ADMINISTRATION_BRANCH_DELETE', 'administration - branch - delete');
+/*
+ * Location
+ */
+define('HRM_PERM_ADMINISTRATION_LOCATION_ACCESS', 'administration - location - access');
+define('HRM_PERM_ADMINISTRATION_LOCATION_ACCESS_DETAILS', 'administration - location - access details');
+define('HRM_PERM_ADMINISTRATION_LOCATION_ADD', 'administration - location - add ');
+define('HRM_PERM_ADMINISTRATION_LOCATION_EDIT', 'administration - location - edit');
+define('HRM_PERM_ADMINISTRATION_LOCATION_DELETE', 'administration - location - delete');
+
+/*
+ * Holiday
+ */
+define('HRM_PERM_ADMINISTRATION_HOLIDAY_ACCESS', 'administration - holiday - access');
+define('HRM_PERM_ADMINISTRATION_HOLIDAY_ADD', 'administration - holiday - add ');
+define('HRM_PERM_ADMINISTRATION_HOLIDAY_EDIT', 'administration - holiday - edit');
+define('HRM_PERM_ADMINISTRATION_HOLIDAY_DELETE', 'administration - holiday - delete');
+
+/*
+ * Holiday
+ */
+define('HRM_PERM_ADMINISTRATION_ANNOUNCEMENT_ACCESS', 'administration - announcement - access');
+define('HRM_PERM_ADMINISTRATION_ANNOUNCEMENT_ADD', 'administration - announcement - add ');
+define('HRM_PERM_ADMINISTRATION_ANNOUNCEMENT_EDIT', 'administration - announcement - edit');
+define('HRM_PERM_ADMINISTRATION_ANNOUNCEMENT_DELETE', 'administration - announcement - delete');
+define('HRM_PERM_ADMINISTRATION_ANNOUNCEMENT_PUBLISH', 'administration - announcement - publish ');
+
+/*
+ * Users Management
+ */
+
+define('HRM_PERM_USER_ACCESS', 'user - access');
+define('HRM_PERM_USER_ACCESS_DETAILS', 'user - access details');
+define('HRM_PERM_USER_ADD', 'user - add');
+define('HRM_PERM_USER_MANAGE_USERS', 'user - manage users');
+define('HRM_PERM_USER_MANAGE_ALL_USERS', 'user - manage all users');
+define('HRM_PERM_USER_MANAGE_ADMIN_USERS', 'user - manage admin users');
+define('HRM_PERM_USER_MANAGE_HR_USERS', 'user - manage hr users');
+define('HRM_PERM_USER_MANAGE_LOGISTICS_USERS', 'user - manage logisitics users');
+define('HRM_PERM_USER_MANAGE_FINANCE_USERS', 'user - manage finance users');
+define('HRM_PERM_USER_MANAGE_OWN_USER', 'user - manage own user');
+
+/*
+ * Assets
+ */
+//Assets
+define('HRM_PERM_ASSET_ACCESS', 'asset - access');
+define('HRM_PERM_ASSET_ACCESS_DETAILS', 'asset - access details');
+define('HRM_PERM_ASSET_ADD', 'asset - add');
+define('HRM_PERM_ASSET_EDIT', 'asset - edit');
+define('HRM_PERM_ASSET_DELETE', 'asset - delete');
+define('HRM_PERM_ASSET_ASSIGN', 'asset - assign');
+define('HRM_PERM_ASSET_RETURN', 'asset - return');
+define('HRM_PERM_ASSET_TRACKING_ACCESS', 'asset - tracking - access');
+
+define('HRM_PERM_ASSET_UPDATE_STATUS', 'asset - update status');
+define('HRM_PERM_ASSET_DOCUMENT_ACCES', 'asset - access documents');
+define('HRM_PERM_ASSET_DOCUMENT_ADD', 'asset - document add');
+define('HRM_PERM_ASSET_DOCUMENT_EDIT', 'asset - document edit');
+define('HRM_PERM_ASSET_DOCUMENT_DELETE', 'asset - document delete');
+
+//Assets Brands
+define('HRM_PERM_ASSET_BRAND_ACCESS', 'asset - brand - access');
+define('HRM_PERM_ASSET_BRAND_ACCESS_DETAILS', 'asset - brand - access details');
+define('HRM_PERM_ASSET_BRAND_ADD', 'asset - brand - add');
+define('HRM_PERM_ASSET_BRAND_EDIT', 'asset - brand - edit');
+define('HRM_PERM_ASSET_BRAND_DELETE', 'asset - brand - delete');
+//Assets Category
+define('HRM_PERM_ASSET_CATEGORY_ACCESS', 'asset - category - access');
+define('HRM_PERM_ASSET_CATEGORY_ACCESS_DETAILS', 'asset - category - access details');
+define('HRM_PERM_ASSET_CATEGORY_ADD', 'asset - category - add');
+define('HRM_PERM_ASSET_CATEGORY_EDIT', 'asset - category - edit');
+define('HRM_PERM_ASSET_CATEGORY_DELETE', 'asset - category - delete');
+//Assets Vendors
+define('HRM_PERM_ASSET_VENDOR_ACCESS', 'asset - vendor -access');
+define('HRM_PERM_ASSET_VENDOR_ACCESS_DETAILS', 'asset - vendor - access details');
+define('HRM_PERM_ASSET_VENDOR_ADD', 'asset - vendor - add');
+define('HRM_PERM_ASSET_VENDOR_EDIT', 'asset - vendor - edit');
+define('HRM_PERM_ASSET_VENDOR_DELETE', 'asset - vendor - delete');
+
+
+/*
+ * Timesheet
+ */
+define('HRM_PERM_TIMESHEET_ACCESS', 'timesheet - access');
+define('HRM_PERM_TIMESHEET_EMPLOYEE_TIMESHEET_ACCESS', 'timesheet - employee - access');
+define('HRM_PERM_TIMESHEET_PROJECT_TIMESHEET_ACCESS', 'timesheet - project - access');
+define('HRM_PERM_TIMESHEET_SUMMARY_TIMESHEET_ACCESS', 'timesheet -  summary - access');
+
+/*
+ * Discpline
+ */
+define('HRM_PERM_DISCIPLINE_ACCESS', 'disciplines - access');
+define('HRM_PERM_DISCIPLINE_ACCESS_DETAILS', 'disciplines - access details');
+define('HRM_PERM_DISCIPLINE_ADD', 'disciplines - add');
+define('HRM_PERM_DISCIPLINE_EDIT', 'disciplines - edit');
+define('HRM_PERM_DISCIPLINE_CLOSE', 'disciplines - close');
+define('HRM_PERM_DISCIPLINE_DELETE', 'disciplines - delete');
+
+define('HRM_PERM_DISCIPLINE_ACTIONS_ACCESS', 'disciplines - documents - access');
+define('HRM_PERM_DISCIPLINE_ACTIONS_ADD', 'disciplines - actions - add');
+define('HRM_PERM_DISCIPLINE_ACTIONS_EDIT', 'disciplines - actions - edit');
+define('HRM_PERM_DISCIPLINE_ACTIONS_DELETE', 'disciplines - actions - delete');
+
+define('HRM_PERM_DISCIPLINE_DOCUMENT_ACCESS', 'disciplines - documents - access');
+define('HRM_PERM_DISCIPLINE_DOCUMENT_ADD', 'disciplines - documents - add');
+define('HRM_PERM_DISCIPLINE_DOCUMENT_EDIT', 'disciplines - documents - edit');
+define('HRM_PERM_DISCIPLINE_DOCUMENT_DELETE', 'disciplines - documents - delete');
+
+define('HRM_PERM_DISCIPLINE_PICTURES_ACCESS', 'disciplines - documents - access');
+define('HRM_PERM_DISCIPLINE_PICTURES_ADD', 'disciplines - pictures - add');
+define('HRM_PERM_DISCIPLINE_PICTURES_EDIT', 'disciplines - pictures - edit');
+define('HRM_PERM_DISCIPLINE_PICTURES_DELETE', 'disciplines - pictures - delete');
+
+
+/*
+ * Documents
+ */
+
+define('HRM_PERM_DOCUMENT_ACCESS', 'documents - access');
+define('HRM_PERM_DOCUMENT_ADD', 'documents- add');
+define('HRM_PERM_DOCUMENT_EDIT', 'documents - edit');
+define('HRM_PERM_DOCUMENT_DELETE', 'documents - delete');
+
+
+/*
+ * Performance
+ */
+
+
+/* Tracking */
+define('HRM_PERM_PERF_ACCESS', 'performance - access');
+define('HRM_PERM_PERF_TRACKER_ACCESS', 'performance - tracker - access');
+define('HRM_PERM_PERF_TRACKER_LIST_ACCESS', 'performance - tracker list - access');
+define('HRM_PERM_PERF_TRACKER_ADD', 'performance - tracker - add');
+define('HRM_PERM_PERF_TRACKER_EDIT', 'performance - tracker - edit');
+define('HRM_PERM_PERF_TRACKER_EDIT_ALL', 'performance - tracker - edit all');
+define('HRM_PERM_PERF_TRACKER_EDIT_OWN', 'performance - tracker - edit own');
+define('HRM_PERM_PERF_TRACKER_DELETE', 'performance - tracker - delete');
+define('HRM_PERM_PERF_TRACKER_DELETE_ALL', 'performance - tracker - delete all');
+define('HRM_PERM_PERF_TRACKER_DELETE_OWN', 'performance - tracker - delete own');
+define('HRM_PERM_PERF_TRACKER_LOGS_ACCESS', 'performance - logs - access');
+define('HRM_PERM_PERF_TRACKER_LOGS_ADD', 'performance - logs - add');
+define('HRM_PERM_PERF_TRACKER_LOGS_EDIT', 'performance - logs - edit');
+define('HRM_PERM_PERF_TRACKER_LOGS_EDIT_ALL', 'performance - logs - edit all');
+define('HRM_PERM_PERF_TRACKER_LOGS_EDIT_OWN', 'performance - logs - edit own');
+define('HRM_PERM_PERF_TRACKER_LOGS_DELETE', 'performance - logs - delete');
+define('HRM_PERM_PERF_TRACKER_LOGS_DELETE_ALL', 'performance - logs - delete all');
+define('HRM_PERM_PERF_TRACKER_LOGS_DELETE_OWN', 'performance - logs - delete own');
+define('HRM_PERM_PERF_TRACKER_MY_TRACKERS_ACCESS', 'performance - my tracker - access');
+define('HRM_PERM_PERF_TRACKER_MANAGE_TRACKER_ACCESS', 'performance - manage tracker - access');
+
+/* Competency */
+define('HRM_PERM_PERF_COMPETENCY_ACCESS', 'performance - competency - access');
+define('HRM_PERM_PERF_COMPETENCY_ACCESS_DETAILS', 'performance - competency - access details');
+define('HRM_PERM_PERF_COMPETENCY_ADD', 'performance - competency - add');
+define('HRM_PERM_PERF_COMPETENCY_MANAGE', 'performance - competency - manage');
+define('HRM_PERM_PERF_COMPETENCY_MANAGE_ALL', 'performance - competency - manage all');
+define('HRM_PERM_PERF_COMPETENCY_MANAGE_OWN', 'performance - competency - manage own');
+
+/* Appraisal */
+define('HRM_PERM_PERF_APPRAISAL_ACCESS', 'performance - appraisal - access');
+define('HRM_PERM_PERF_APPRAISAL_ACCESS_DETAILS', 'performance - appraisal - access details');
+define('HRM_PERM_PERF_APPRAISAL_CYCLE_ACCESS', 'performance - appraisal cycle - access');
+define('HRM_PERM_PERF_APPRAISAL_MY_APPRAISAL_ACCESS', 'performance - my appraisal - access');
+define('HRM_PERM_PERF_APPRAISAL_ADD', 'performance - appraisal - add');
+define('HRM_PERM_PERF_APPRAISAL_EMPLOYEE_ADD', 'performance - appraisal - employee - add');
+define('HRM_PERM_PERF_APPRAISAL_EMPLOYEE_DELETE', 'performance - appraisal - employee - delete');
+define('HRM_PERM_PERF_APPRAISAL_EVALUATOR_DELETE', 'performance - appraisal - evaluator - delete');
+define('HRM_PERM_PERF_APPRAISAL_EDIT', 'performance - appraisal - edit');
+define('HRM_PERM_PERF_APPRAISAL_EDIT_ALL', 'performance - appraisal - edit all');
+define('HRM_PERM_PERF_APPRAISAL_EDIT_OWN', 'performance - appraisal - edit own');
+define('HRM_PERM_PERF_APPRAISAL_DELETE', 'performance - appraisal - delete');
+define('HRM_PERM_PERF_APPRAISAL_DELETE_ALL', 'performance - appraisal - delete all');
+define('HRM_PERM_PERF_APPRAISAL_DELETE_OWN', 'performance - appraisal - delete own');
+define('HRM_PERM_PERF_APPRAISAL_REVIEWS_ACCESS', 'performance - appraisal - reviews - access');
+define('HRM_PERM_PERF_APPRAISAL_ACTIVATE', 'performance - appraisal - activate');
+define('HRM_PERM_PERF_APPRAISAL_CLOSE', 'performance - appraisal - close');
+
+
+
+
+
+
+define('HRM_PERM_ADMIN_MANAGE_SITE_ADMINISTRATION', 'administration - manage site administration');
+define('HRM_PERM_ADMIN_MANAGE_HRM_CONFIGURATION', 'administration - manage hrm configuration');
+define('HRM_PERM_ADMIN_MANAGE_APP_CONFIGURATION', 'administration - manage app configuration');
+define('HRM_PERM_ADMIN_MANAGE_DASHBOARD_CONFIGURATION', 'administration - manage hrm configuration');
+define('HRM_PERM_ADMIN_MANAGE_EMAILS_CONFIGURATION', 'administration - manage emails configuration');
+define('HRM_PERM_ADMIN_MANAGE_LOCANTION_AND_MAPS_CONFIGURATION', 'administration - manage location and maps configuration');
+define('HRM_PERM_ADMIN_MANAGE_API_AND_KEYS_CONFIGURATION', 'administration - manage apis and keys configuration');
+define('HRM_PERM_ADMIN_MANAGE_DATE_AND_TIME_CONFIGURATION', 'administration - manage date and time configuration');
+define('HRM_PERM_ADMIN_MANAGE_USERS_CONFIGURATION', 'administration - manage users configuration');
+define('HRM_PERM_ADMIN_MANAGE_WORKFLOW_CONFIGURATION', 'administration - manage workflow configuration');
+define('HRM_PERM_ADMIN_MANAGE_LOV', 'administration - manage lovs');
+define('HRM_PERM_ADMIN_MANAGE_FINANCE_CONFIGURATION', 'administration - manage finance configuration');
+define('HRM_PERM_ADMIN_MANAGE_INTERFACE_IMAGES_CONFIGURATION', 'administration - manage interface images configuration');
+define('HRM_PERM_ADMIN_MANAGE_OTHER_CONFIGURATION', 'administration - manage other configuration');
+define('HRM_PERM_ADMIN_MANAGE_CRON_CONFIGURATION', 'administration - manage cron configuration');
+define('HRM_PERM_ADMIN_MANAGE_FUNCTIONS_CONFIGURATION', 'administration - manage functions configuration');
+define('HRM_PERM_ADMIN_MANAGE_FILES_CONFIGURATION', 'administration - manage files configuration');
+define('HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS', 'administration - manage organizations');
+define('HRM_PERM_ADMIN_MANAGE_ADMINISTRATION', 'administration - manage administration');
+
+
+/*
+ * Global 
+ */
+define('HRM_PERM_MODAL_ACCESS', 'modal - access modals');
+
+/*
+ * Entity
+ */
+//Documents 
+define('HRM_PERM_ENTITY_DOCUMENT_ADD', 'entity - document add');
+define('HRM_PERM_ENTITY_DOCUMENT_EDIT', 'entity - document edit');
+define('HRM_PERM_ENTITY_DOCUMENT_DELETE', 'entity - document delete');
+
+//pictures
+define('HRM_PERM_ENTITY_PICTURE_ADD', 'entity - picture - add');
+define('HRM_PERM_ENTITY_PICTURE_EDIT', 'entity - picture - edit');
+define('HRM_PERM_ENTITY_PICTURE_DELETE', 'entity - picture - delete');
+
+/*
+ * Dasboard
+ */
+define('HRM_PERM_DASHBOARD_ACCESS', 'dashboard - access dashboard');
+
+/*
+ * ORGANIZATION
+ */
+define('HRM_PERM_ORG_ACCESS_ORGANIZATION', 'organization - access organization');
+define('HRM_PERM_ORG_EDIT_ORGANIZATION', 'organization - edit organization');
+define('HRM_PERM_ORG_MEDIA_ACCESS', 'organization - access organization media');
+define('HRM_PERM_ORG_MEDIA_ADD', 'organization - add organization media');
+define('HRM_PERM_ORG_MEDIA_EDIT', 'organization - edit organization media');
+define('HRM_PERM_ORG_MEDIA_DELETE', 'organization - delete organization media');
+
+
+
+
+/*
+ * Configuration
+ */
+define('HRM_PERM_CONFIG_ACCESS', 'configuration - access');
+/* --------------- JOB --------------- */
+define('HRM_PERM_CONFIG_JOB_ACCESS', 'configuration job - access');
+//Job Title
+define('HRM_PERM_CONFIG_JOB_TITLE_ACCESS', 'configuration job - job title - access');
+define('HRM_PERM_CONFIG_JOB_TITLE_ACCESS_DETAILS', 'configuration job - job title - access details');
+define('HRM_PERM_CONFIG_JOB_TITLE_ADD', 'configuration job - job title - add');
+define('HRM_PERM_CONFIG_JOB_TITLE_EDIT', 'configuration job - job title - edit');
+define('HRM_PERM_CONFIG_JOB_TITLE_DELETE', 'configuration job - job title - delete');
+
+//Job Structure
+define('HRM_PERM_CONFIG_JOB_STRUCTURE_ACCESS', 'configuration job - job structure - access');
+
+//Employment Status
+define('HRM_PERM_CONFIG_JOB_EMPLOYMENT_STATUS_ACCESS', 'configuration job - employment status - access');
+define('HRM_PERM_CONFIG_JOB_EMPLOYMENT_STATUS_ADD', 'configuration job - employment status - add');
+define('HRM_PERM_CONFIG_JOB_EMPLOYMENT_STATUS_EDIT', 'configuration job - employment status - edit');
+define('HRM_PERM_CONFIG_JOB_EMPLOYMENT_STATUS_DELETE', 'configuration job - employment status - delete');
+
+//Recruitment sources
+define('HRM_PERM_CONFIG_JOB_RECRUITMENT_SOURCE_ACCESS', 'configuration job - recruitment source - access');
+define('HRM_PERM_CONFIG_JOB_RECRUITMENT_SOURCE_ADD', 'configuration job - recruitment source - add');
+define('HRM_PERM_CONFIG_JOB_RECRUITMENT_SOURCE_EDIT', 'configuration job - recruitment source - edit');
+define('HRM_PERM_CONFIG_JOB_RECRUITMENT_SOURCE_DELETE', 'configuration job - recruitment source - delete');
+
+//Reporting method
+define('HRM_PERM_CONFIG_JOB_REPORTING_METHOD_ACCESS', 'configuration job - reporting method - access');
+define('HRM_PERM_CONFIG_JOB_REPORTING_METHOD_ADD', 'configuration job - reporting method - add');
+define('HRM_PERM_CONFIG_JOB_REPORTING_METHOD_EDIT', 'configuration job - reporting method - edit');
+define('HRM_PERM_CONFIG_JOB_REPORTING_METHOD_DELETE', 'configuration job - reporting method - delete');
+
+//Termination reason
+define('HRM_PERM_CONFIG_JOB_TERMINATION_REASON_ACCESS', 'configuration job - termination reason - access');
+define('HRM_PERM_CONFIG_JOB_TERMINATION_REASON_ADD', 'configuration job - termination reason - add');
+define('HRM_PERM_CONFIG_JOB_TERMINATION_REASON_EDIT', 'configuration job - termination reason - edit');
+define('HRM_PERM_CONFIG_JOB_TERMINATION_REASON_DELETE', 'configuration job - termination reason - delete');
+
+//Job Title
+define('HRM_PERM_CONFIG_JOB_PROJECT_ACCESS', 'configuration job - project - access');
+define('HRM_PERM_CONFIG_JOB_PROJECT_ACCESS_DETAILS', 'configuration job - project - access details');
+define('HRM_PERM_CONFIG_JOB_PROJECT_ADD', 'configuration job - project - add');
+define('HRM_PERM_CONFIG_JOB_PROJECT_EDIT', 'configuration job - project - edit');
+define('HRM_PERM_CONFIG_JOB_PROJECT_DELETE', 'configuration job - project - delete');
+
+/* --------------- Time --------------- */
+define('HRM_PERM_CONFIG_TIME_ACCESS', 'configuration time - access');
+
+//Work week
+define('HRM_PERM_CONFIG_TIME_WORK_WEEK_ACCESS', 'configuration time - work week - access');
+define('HRM_PERM_CONFIG_TIME_WORK_WEEK_EDIT', 'configuration time - work week - edit');
+
+//Work shift
+define('HRM_PERM_CONFIG_TIME_WORK_SHIFT_ACCESS', 'configuration time - work shift - access');
+define('HRM_PERM_CONFIG_TIME_WORK_SHIFT_ADD', 'configuration time - work shift - add');
+define('HRM_PERM_CONFIG_TIME_WORK_SHIFT_EDIT', 'configuration time - work shift - edit');
+define('HRM_PERM_CONFIG_TIME_WORK_SHIFT_DELETE', 'configuration time - work shift - delete');
+
+//Date/Time Forms
+define('HRM_PERM_CONFIG_TIME_DATE_TIME_ACCESS', 'configuration time - date time format - access');
+define('HRM_PERM_CONFIG_TIME_DATE_TIME_EDIT', 'configuration time - date time format - edit');
+
+
+/* --------------- Payroll --------------- */
+define('HRM_PERM_CONFIG_PAYROLL_ACCESS', 'configuration payroll - access');
+
+//Pay Grade
+define('HRM_PERM_CONFIG_PAYROLL_GRADE_ACCESS', 'configuration payroll - grade - access');
+define('HRM_PERM_CONFIG_PAYROLL_GRADE_ADD', 'configuration payroll - grade - add');
+define('HRM_PERM_CONFIG_PAYROLL_GRADE_EDIT', 'configuration payroll - grade - edit');
+define('HRM_PERM_CONFIG_PAYROLL_GRADE_DELETE', 'configuration payroll - grade - delete');
+
+//Salary Components
+define('HRM_PERM_CONFIG_PAYROLL_SALARY_COMPONENT_ACCESS', 'configuration payroll - sallary component - access');
+define('HRM_PERM_CONFIG_PAYROLL_SALARY_COMPONENT_ADD', 'configuration payroll - sallary component - add');
+define('HRM_PERM_CONFIG_PAYROLL_SALARY_COMPONENT_EDIT', 'configuration payroll - sallary component - edit');
+define('HRM_PERM_CONFIG_PAYROLL_SALARY_COMPONENT_DELETE', 'configuration payroll - sallary component - delete');
+
+/* --------------- Leave --------------- */
+define('HRM_PERM_CONFIG_LEAVE_ACCESS', 'configuration leave - access');
+
+//Leave Types
+define('HRM_PERM_CONFIG_LEAVE_TYPE_ACCESS', 'configuration leave - leave type - access');
+define('HRM_PERM_CONFIG_LEAVE_TYPE_ACCESS_DETAILS', 'configuration leave -  leave type - access details');
+define('HRM_PERM_CONFIG_LEAVE_TYPE_ADD', 'configuration leave -  leave type - add');
+define('HRM_PERM_CONFIG_LEAVE_TYPE_EDIT', 'configuration leave -  leave type - edit');
+define('HRM_PERM_CONFIG_LEAVE_TYPE_DELETE', 'configuration leave -  leave type - delete');
+
+/* --------------- PIM --------------- */
+define('HRM_PERM_CONFIG_PIM_ACCESS', 'configuration pim - access');
+
+//Identify Document
+define('HRM_PERM_CONFIG_IDENTITY_DOCUMENT_ACCESS', 'configuration pim - identity document - access');
+define('HRM_PERM_CONFIG_IDENTITY_DOCUMENT_ADD', 'configuration pim - identity document - add');
+define('HRM_PERM_CONFIG_IDENTITY_DOCUMENT_EDIT', 'configuration pim - identity document - edit');
+define('HRM_PERM_CONFIG_IDENTITY_DOCUMENT_DELETE', 'configuration pim - identity document - delete');
+
+//qualifications
+define('HRM_PERM_CONFIG_QUALIFICATIONS_ACCESS', 'configuration pim - qualifications - access');
+define('HRM_PERM_CONFIG_QUALIFICATIONS_ADD', 'configuration pim - qualifications - add');
+define('HRM_PERM_CONFIG_QUALIFICATIONS_EDIT', 'configuration pim - qualifications - edit');
+define('HRM_PERM_CONFIG_QUALIFICATIONS_DELETE', 'configuration pim - qualifications - delete');
+
+/* --------------- Attendance --------------- */
+define('HRM_PERM_CONFIG_GENERAL_ACCESS', 'configuration general - access');
+
+//Attendance
+define('HRM_PERM_CONFIG_GENERAL_ATTENDANCE_ACCESS', 'configuration general - attendance - access');
+define('HRM_PERM_CONFIG_GENERAL_ATTENDANCE_MANAGE', 'configuration general - attendance - manage');
+
+
+/*
+ * PIM
+ */
+define('HRM_PERM_PIM_ACCESS_PIM', 'pim - access pim');
+/* ----------------- Employee ----------------- */
+define('HRM_PERM_PIM_EMP_ACCESS_EMPLOYEES', 'pim employee - access employees');
+define('HRM_PERM_PIM_EMP_ACCESS_EMPLOYEE_DETAILS', 'pim employee - access employee details');
+define('HRM_PERM_PIM_EMP_ADD_EMPLOYEE', 'pim employee - add employee');
+define('HRM_PERM_PIM_EMP_EDIT_EMPLOYEE', 'pim employee - edit employee');
+define('HRM_PERM_PIM_EMP_TERMINATE_EMPLOYEE', 'pim employee - terminate employee');
+define('HRM_PERM_PIM_EMP_ACTIVATE_EMPLOYEE', 'pim employee - activate employee');
+//Job
+define('HRM_PERM_PIM_EMP_JOB_ACCESS', 'pim employee - job access');
+define('HRM_PERM_PIM_EMP_JOB_MANAGE', 'pim employee - job manage');
+//Salary
+define('HRM_PERM_PIM_EMP_SALARY_ACCESS', 'pim employee - salary access');
+define('HRM_PERM_PIM_EMP_SALARY_MANAGE', 'pim employee - salary manage');
+//Contact Deatils
+define('HRM_PERM_PIM_EMP_CONTACT_DETAILS_ACCESS', 'pim employee - contact details access');
+define('HRM_PERM_PIM_EMP_CONTACT_DETAILS_MANAGE', 'pim employee - contact details manage');
+//Emergency Contacts
+define('HRM_PERM_PIM_EMP_EMERGENCY_CONTACTS_ACCESS', 'pim employee - emergency contacts access');
+define('HRM_PERM_PIM_EMP_EMERGENCY_CONTACTS_MANAGE', 'pim employee - emergency contacts manage');
+//Report-to
+define('HRM_PERM_PIM_EMP_REPORT_TO_ACCESS', 'pim employee - report-to access');
+define('HRM_PERM_PIM_EMP_REPORT_TO_MANAGE', 'pim employee - report-to manage');
+//Qualifications
+define('HRM_PERM_PIM_EMP_QUALIFICATIONS_ACCESS', 'pim employee - qualifications access');
+define('HRM_PERM_PIM_EMP_QUALIFICATIONS_MANAGE', 'pim employee - qualifications manage');
+//Identity Documents
+define('HRM_PERM_PIM_EMP_IDENTITY_DOCUMENTS_ACCESS', 'pim employee - identity documents access');
+define('HRM_PERM_PIM_EMP_IDENTITY_DOCUMENTS_MANAGE', 'pim employee - identity documents manage');
+//Documents
+define('HRM_PERM_PIM_EMP_DOCUMENTS_ACCESS', 'pim employee - documents access');
+define('HRM_PERM_PIM_EMP_DOCUMENTS_MANAGE', 'pim employee - documents manage');
+//Account
+define('HRM_PERM_PIM_EMP_ACCOUNT_ACCESS', 'pim employee - account access');
+define('HRM_PERM_PIM_EMP_ACCOUNT_MANAGE', 'pim employee - account manage');
+//Attendance
+define('HRM_PERM_PIM_EMP_ATTENDANCE_ACCESS', 'pim employee - attendance access');
+//Leaves
+define('HRM_PERM_PIM_EMP_LEAVES_ACCESS', 'pim employee - leaves access');
+//Assets
+define('HRM_PERM_PIM_EMP_ACCESS_ASSETS', 'pim employee - assets access');
+
+/*
+ * Time
+ */
+define('HRM_PERM_TIME_ACCESS_TIME', 'time - access time');
+//Attendance
+define('HRM_PERM_TIME_ATTENDANCE_ACCESS', 'time attendance - access attendance');
+define('HRM_PERM_TIME_ATTENDANCE_ACCESS_EMPLOYEE_RECORDS', 'time attendance - access employee records');
+define('HRM_PERM_TIME_ATTENDANCE_EDIT_EMPLOYEE_RECORDS', 'time attendance - edit employee records');
+define('HRM_PERM_TIME_ATTENDANCE_ACCESS_ATTENDANCE_DETIALS', 'time attendance - access attendance details');
+define('HRM_PERM_TIME_ATTENDANCE_ACCESS_ATTENDANCE_SUMMARY', 'time attendance - access attendance summary');
+define('HRM_PERM_TIME_ATTENDANCE_ACCESS_ATTENDANCE_MONTHLY', 'time attendance - access attendance monthly');
+
+define('HRM_PERM_ATTENDANCE_ACCESS_EMPLOYEE_ATTENDANCE_RECORD', 'access employee attendance record');
+define('HRM_PERM_ATTENDANCE_ADD_ATTENDANCE_RECORD', 'add attendance record');
+define('HRM_PERM_ATTENDANCE_EDIT_ATTENDANCE_RECORD', 'edit attendance record');
+
+
+
+
+
+/*
+ * Leave Management
+ */
+define('HRM_PERM_LEAVE_ACCESS', 'leave - access');
+//Entitlements
+define('HRM_PERM_LEAVE_ENTITLEMENT_ACCESS_ENTITLEMENTS', 'leave entitlement - access entitlements');
+define('HRM_PERM_LEAVE_ENTITLEMENT_ACCESS_ENTITLEMENT_DETAILS', 'leave entitlement - access entitlement details');
+define('HRM_PERM_LEAVE_ENTITLEMENT_ADD_ENTITLEMENTS', 'leave entitlement - add entitlements');
+define('HRM_PERM_LEAVE_ENTITLEMENT_UPDATE_ENTITLEMENTS', 'leave entitlement - update entitlements');
+define('HRM_PERM_LEAVE_ENTITLEMENT_DELETE_ENTITLEMENTS', 'leave entitlement - delete entitlements');
+
+//Leaves
+define('HRM_PERM_LEAVE_ACCESS_LEAVES', 'leave - access leaves');
+define('HRM_PERM_LEAVE_ACCESS_STAFF_LEAVES', 'leave - access staff leaves');
+define('HRM_PERM_LEAVE_ACCESS_OWN_LEAVES', 'leave - access own leaves');
+
+
+
+define('HRM_PERM_LEAVE_ACCESS_DETAILS', 'leave - access details');
+define('HRM_PERM_LEAVE_ASSIGN_LEAVE', 'leave - assign leave');
+define('HRM_PERM_LEAVE_CANCEL_LEAVE', 'leave - cancel leave');
+define('HRM_PERM_LEAVE_ACCESS_LEAVES_ALL', 'leave - access leaves - all');
+define('HRM_PERM_LEAVE_ACCESS_LEAVES_OWN', 'leave - access leaves - own');
+
+
+define('HRM_PERM_LEAVE_DELETE_LEAVE', 'leave - delete leave');
+define('HRM_PERM_LEAVE_MANAGE_LEAVE', 'leave - manage leave');
+
+define('HRM_PERM_LEAVE_DOCUMENT_ACCESS', 'leave - document - access');
+define('HRM_PERM_LEAVE_DOCUMENT_ADD', 'leave - document - add');
+define('HRM_PERM_LEAVE_DOCUMENT_EDIT', 'leave - document - edit');
+define('HRM_PERM_LEAVE_DOCUMENT_DELETE', 'leave - document - delete');
+
+// employees
+// TASHEEL EMP
+define('HRM_PERM_LEAVE_MY_LEAVES_ACCESS', 'leave - my leaves -access');
+define('HRM_PERM_LEAVE_MY_ENTITLEMENTS_ACCESS', 'leave - my entitlements -access');
+define('HRM_PERM_PROFILE_ACCESS', 'profile - my profile -access');
+define('HRM_PERM_LEAVE_APPLY_LEAVE', 'leave - apply leave');
+
+
+
+
+
+
+
+
+
+/*
+ * Configuration
+ */
+define('HRM_PERM_CONFIG_MANAGE_CONFIGURATION', 'manage configuration');
+
+define('HRM_PERM_CONFIG_JOB_ACCESS_JOB_CONFIGURATION', 'access job configuration');
+
+
+
+//Reporting Method
+define('HRM_PERM_CONFIG_REPORTING_METHOD_ACCESS_REPORTING_METHOD', 'access reporting method');
+define('HRM_PERM_CONFIG_REPORTING_METHOD_ADD_REPORTING_METHOD', 'add reporting method');
+define('HRM_PERM_CONFIG_REPORTING_METHOD_EDIT_REPORTING_METHOD', 'edit reporting method');
+
+
+
+
+
+//Employment Type
+define('HRM_PERM_CONFIG_EMPLOYMENT_TYPE_ACCESS_EMPLOYMENT_TYPE', 'access employment type');
+define('HRM_PERM_CONFIG_EMPLOYMENT_TYPE_ADD_EMPLOYMENT_TYPE', 'add employment type');
+define('HRM_PERM_CONFIG_EMPLOYMENT_TYPE_EDIT_EMPLOYMENT_TYPE', 'edit employment type');
+
+//Recruitment source
+define('HRM_PERM_CONFIG_RECRUITMENT_SOURCE_ACCESS_RECRUITMENT_SOURCE', 'access recruitment source');
+define('HRM_PERM_CONFIG_RECRUITMENT_SOURCE_ADD_RECRUITMENT_SOURCE', 'add recruitment source');
+define('HRM_PERM_CONFIG_RECRUITMENT_SOURCE_EDIT_RECRUITMENT_SOURCE', 'edit recruitment source');
+
+
+//Termination Reasons
+define('HRM_PERM_CONFIG_TERMINATION_REASON_ACCESS_TERMINATION_REASONS', 'access termination reasons');
+define('HRM_PERM_CONFIG_TERMINATION_REASON_ADD_TERMINATION_REASON', 'add termination reason');
+define('HRM_PERM_CONFIG_TERMINATION_REASON_EDIT_TERMINATION_REASON', 'edit termination reason');
+
+//Projects
+define('HRM_PERM_CONFIG_PROJECT_ACCESS_PROJECTS', 'access projects');
+define('HRM_PERM_CONFIG_PROJECT_ACCESS_PROJECT_DETAILS', 'access project details');
+define('HRM_PERM_CONFIG_PROJECT_ADD_PROJECT', 'add project');
+define('HRM_PERM_CONFIG_PROJECT_EDIT_PROJECT', 'edit project');
+
+//Leave Cofiguration
+define('HRM_PERM_CONFIG_LEAVE_ACCESS_LEAVE_CONFIGURATION', 'access leave configuration');
+
+//Leave Types
+define('HRM_PERM_CONFIG_LEAVE_TYPE_ACCESS_LEAVE_TYPES', 'access leave types');
+define('HRM_PERM_CONFIG_LEAVE_TYPE_ADD_LEAVE_TYPE', 'add leave type');
+define('HRM_PERM_CONFIG_LEAVE_TYPE_EDIT_LEAVE_TYPE', 'edit leave type');
+
+
+//Holidays 
+define('HRM_PERM_CONFIG_HOLIDAY_ACCESS_HOLIDAYS', 'access holidays');
+define('HRM_PERM_CONFIG_HOLIDAY_ADD_HOLIDAY', 'add holiday');
+define('HRM_PERM_CONFIG_HOLIDAY_EDIT_HOLIDAY', 'edit holiday');
+define('HRM_PERM_CONFIG_HOLIDAY_DELETE_HOLIDAY', 'delete holiday');
+
+//PIM Configuration
+define('HRM_PERM_CONFIG_PIM_ACCESS_CONFIGURATION', 'access pim configuration');
+
+//Qualifications 
+define('HRM_PERM_CONFIG_QUALIFICATION_ACCESS_QUALIFICATIONS', 'access qualifications');
+define('HRM_PERM_CONFIG_QUALIFICATION_ADD_QUALIFICATION', 'add qualification');
+define('HRM_PERM_CONFIG_QUALIFICATION_EDIT_QUALIFICATION', 'edit qualification');
+
+//Identity Documents
+define('HRM_PERM_CONFIG_IDENTITY_DOCUMENT_ACCESS_IDENTITY_DOCUMENT', 'access identity document');
+define('HRM_PERM_CONFIG_IDENTITY_DOCUMENT_ADD_IDENTITY_DOCUMENT', 'add identity document');
+define('HRM_PERM_CONFIG_IDENTITY_DOCUMENT_EDIT_IDENTITY_DOCUMENT', 'edit identity document');
+
+/*
+ * Locations
+ */
+define('HRM_PERM_LOCATION_ACCESS_LOCATIONS', 'access locations');
+define('HRM_PERM_LOCATION_ACCESS_LOCATION_DETAILS', 'access location details');
+define('HRM_PERM_LOCATION_ADD_LOCATION', 'add location');
+define('HRM_PERM_LOCATION_EDIT_LOCATION', 'edit location');
+define('HRM_PERM_LOCATION_DELETE_LOCATION', 'delete location');
+
+
+/*
+ * Announcements
+ */
+define('HRM_PERM_ANNOUNCEMENT_ACCESS_ANNOUNCEMENTS', 'access announcements');
+define('HRM_PERM_ANNOUNCEMENT_ADD_ANNOUNCEMENT', 'add announcement');
+define('HRM_PERM_ANNOUNCEMENT_EDIT_ANNOUNCEMENT', 'edit announcement');
+define('HRM_PERM_ANNOUNCEMENT_PUBLISH_ANNOUNCEMENT', 'publish announcement');
+define('HRM_PERM_ANNOUNCEMENT_DELETE_ANNOUNCEMENT', 'delete announcement');
+
+
+
+
+
+
+
+/*
+ * Other
+ */
+//Org chart
+define('HRM_PERM_ORG_CHART_ACCESS_ORG_CHART', 'access organizational chart');
+
+
+/*
+ * ==========================================
+ * Reports module
+ * ==========================================
+ */
+define('HRM_PERM_REPORTS_ACCESS_REPORTS', 'access reports');
+//PIM
+define('HRM_PERM_REPORTS_PIM_ACCESS_PIM_REPORTS', 'access pim reports');
+define('HRM_PERM_REPORTS_PIM_ACCESS_CONTACTS_LIST_REPORT', 'access contacts list report');
+
+//Leaves
+define('HRM_PERM_REPORTS_LEAVE_ACCESS_LEAVE_REPORTS', 'access leave reports');
+define('HRM_PERM_REPORTS_LEAVE_ACCESS_YEARLY_LEAVES_REPORT', 'access yearly leaves report');
+
+//Custom
+define('HRM_PERM_REPORTS_CUSTOM_ACCESS_CUSTOM_REPORTS', 'access custom reports');
+
+/**
+ * Implementation of hook_permission()
+ */
+function hrm_permission_permission() {
+  $defined_contants = get_defined_constants(TRUE);
+
+  $defined_user_contants = $defined_contants['user'];
+
+  $permissions = array();
+  foreach ($defined_user_contants as $key => $value) {
+    if (strncmp($key, 'HRM_PERM_', strlen('HRM_PERM_')) == 0) {
+      $permissions[$value] = array('title' => strtoupper($value));
+    }
+  }
+
+  return $permissions;
+}

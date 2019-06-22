@@ -1,0 +1,5 @@
+name = ResponseHRM Permissions
+description = custom module that contains customization for the permissions.
+core = 7.x
+
+package = responseHRM

@@ -1,0 +1,584 @@
+/*
+ *  Document   : themes.css
+ *  Author     : pixelcave
+ *  Description: The themes stylesheet of the template. The classes can be used to
+ *  alter the text, the background or the border color of an element individually
+ *
+ */
+
+/*
+=================================================================
+Custom styles
+=================================================================
+*/
+
+.themed-color-red { color: #d2232a !important; }
+.themed-color-yellow { color: #faa61a !important; }
+.themed-color-black { color: #000 !important; }
+.themed-color-green { color: #27ae60 !important; }
+.themed-color-blue { color: #4986e7 !important; }
+.themed-color-purple { color: #cd74e6 !important; }
+.themed-color-brown { color: #ac725e !important; }
+.themed-color-light-blue { color: #1bbae1 !important; }
+.themed-color-dark-blue { color: #212E3B !important; }
+.themed-color-gray { color: #808080 !important; }
+.themed-color-orange { color: #e67e22 !important; }
+.themed-color-primary-color{ color: #ec1c23 !important;}
+
+.themed-color-low{color: #7eaa55 !important; }
+.themed-color-moderate{color: #f6c142 !important; }
+.themed-color-high{color: #df8244 !important; }
+.themed-color-severe{color: #eb3223 !important; }
+
+.themed-background-red { background-color: #d2232a !important; }
+.themed-background-yellow { background-color: #faa61a !important; }
+.themed-background-black { background-color: #000 !important; }
+.themed-background-green { background-color: #27ae60 !important; }
+.themed-background-blue { background-color: #4986e7 !important; }
+.themed-background-purple { background-color: #cd74e6 !important; }
+.themed-background-light-blue { background-color: #1bbae1 !important; }
+.themed-background-dark-blue { background-color: #337ab7 !important; }
+.themed-background-gray { background-color: #808080 !important; }
+.themed-background-orange { background-color: #f0ad4e !important; }
+
+.themed-background-primary-color{ background-color: #ec1c23 !important;}
+.themed-background-primary-color-light{ background-color: rgba(236, 112, 0, .8) !important;}
+
+.themed-background-low{background-color: #dce9d5 !important; }
+.themed-background-moderate{background-color: #fdf2d0 !important; }
+.themed-background-high{background-color: #f8e5d0 !important; }
+.themed-background-severe{background-color: #eecdcd !important; }
+
+.table tbody > tr:hover > td.themed-background-low{background-color: #cbe7bc !important; }
+.table tbody > tr:hover > td.themed-background-moderate{background-color: #f7ecca !important; }
+.table tbody > tr:hover > td.themed-background-high{background-color: #f7dfc4 !important; }
+.table tbody > tr:hover > td.themed-background-severe{background-color: #e7bfc0 !important; }
+
+/*.themed-color-low{color: #7eaa55 !important; }
+.themed-color-moderate{color: #f6c142 !important; }
+.themed-color-high{color: #df8244 !important; }
+.themed-color-severe{color: #eb3223 !important; }*/
+
+.themed-border-color-low{border-color: #7eaa55 !important; }
+.themed-border-color-moderate{border-color: #f6c142 !important; }
+.themed-border-color-high{border-color: #df8244 !important; }
+.themed-border-color-severe{border-color: #eb3223 !important; }
+
+/*
+=================================================================
+THEME DEFAULT
+=================================================================
+*/
+
+.themed-color-default {
+  color: #1bbae1 !important;
+}
+
+.themed-border-default {
+  border-color: #1bbae1 !important;
+}
+
+.themed-background-default {
+  background-color: #1bbae1 !important;
+}
+
+.themed-color-dark-default {
+  color: #394263 !important;
+}
+
+.themed-border-dark-default {
+  border-color: #394263 !important;
+}
+
+.themed-background-dark-default {
+  background-color: #394263 !important;
+}
+
+.table-hover > tbody > tr.themed-background-default:hover > td,
+.table-hover > tbody > tr.themed-background-default:hover > th {
+  background-color: #1dafd4 !important;
+}
+/*
+=================================================================
+THEME NIGHT
+=================================================================
+*/
+
+.themed-color-night {
+  color: #888888 !important;
+}
+
+.themed-border-night {
+  border-color: #888888 !important;
+}
+
+.themed-background-night {
+  background-color: #888888 !important;
+}
+
+.themed-color-dark-night {
+  color: #333333 !important;
+}
+
+.themed-border-dark-night {
+  border-color: #333333 !important;
+}
+
+.themed-background-dark-night {
+  background-color: #333333 !important;
+}
+
+/*
+=================================================================
+THEME AMETHYST
+=================================================================
+*/
+
+.themed-color-amethyst {
+  color: #af64cc !important;
+}
+
+.themed-border-amethyst {
+  border-color: #af64cc !important;
+}
+
+.themed-background-amethyst {
+  background-color: #af64cc !important;
+}
+
+.themed-color-dark-amethyst {
+  color: #583a63 !important;
+}
+
+.themed-border-dark-amethyst {
+  border-color: #583a63 !important;
+}
+
+.themed-background-dark-amethyst {
+  background-color: #583a63 !important;
+}
+
+/*
+=================================================================
+THEME MODERN
+=================================================================
+*/
+
+.themed-color-modern {
+  color: #46b7bf !important;
+}
+
+.themed-border-modern {
+  border-color: #46b7bf !important;
+}
+
+.themed-background-modern {
+  background-color: #46b7bf !important;
+}
+
+.themed-color-dark-modern {
+  color: #3b3f40 !important;
+}
+
+.themed-border-dark-modern {
+  border-color: #3b3f40 !important;
+}
+
+.themed-background-dark-modern {
+  background-color: #3b3f40 !important;
+}
+
+/*
+=================================================================
+THEME AUTUMN
+=================================================================
+*/
+
+.themed-color-autumn {
+  color: #e67e22 !important;
+}
+
+.themed-border-autumn {
+  border-color: #e67e22 !important;
+}
+
+.themed-background-autumn {
+  background-color: #e67e22 !important;
+}
+
+.themed-color-dark-autumn {
+  color: #4a392b !important;
+}
+
+.themed-border-dark-autumn {
+  border-color: #4a392b !important;
+}
+
+.themed-background-dark-autumn {
+  background-color: #4a392b !important;
+}
+
+.table-hover > tbody > tr.themed-background-autumn:hover > td,
+.table-hover > tbody > tr.themed-background-autumn:hover > th {
+  background-color: #ea8a35 !important;
+}
+/*
+=================================================================
+THEME FLATIE
+=================================================================
+*/
+
+.themed-color-flatie {
+  color: #1ec1b8 !important;
+}
+
+.themed-border-flatie {
+  border-color: #1ec1b8 !important;
+}
+
+.themed-background-flatie {
+  background-color: #1ec1b8 !important;
+}
+
+.themed-color-dark-flatie {
+  color: #32323a !important;
+}
+
+.themed-border-dark-flatie {
+  border-color: #32323a !important;
+}
+
+.themed-background-dark-flatie {
+  background-color: #32323a !important;
+}
+
+/*
+=================================================================
+THEME SPRING
+=================================================================
+*/
+
+.themed-color-spring {
+  color: #27ae60 !important;
+}
+
+.themed-border-spring {
+  border-color: #27ae60 !important;
+}
+
+.themed-background-spring {
+  background-color: #27ae60 !important;
+}
+
+.themed-color-dark-spring {
+  color: #344a3d !important;
+}
+
+.themed-border-dark-spring {
+  border-color: #344a3d !important;
+}
+
+.themed-background-dark-spring {
+  background-color: #344a3d !important;
+}
+
+/*
+=================================================================
+THEME FANCY
+=================================================================
+*/
+
+.themed-color-fancy {
+  color: #d9416c !important;
+}
+
+.themed-border-fancy {
+  border-color: #d9416c !important;
+}
+
+.themed-background-fancy {
+  background-color: #d9416c !important;
+}
+
+.themed-color-dark-fancy {
+  color: #352b4e !important;
+}
+
+.themed-border-dark-fancy {
+  border-color: #352b4e !important;
+}
+
+.themed-background-dark-fancy {
+  background-color: #352b4e !important;
+}
+
+/*
+=================================================================
+THEME FIRE
+=================================================================
+*/
+
+.themed-color-fire {
+  color: #e74c3c !important;
+}
+
+.themed-border-fire {
+  border-color: #e74c3c !important;
+}
+
+.themed-background-fire {
+  background-color: #e74c3c !important;
+}
+
+.themed-color-dark-fire {
+  color: #4a2e2b !important;
+}
+
+.themed-border-dark-fire {
+  border-color: #4a2e2b !important;
+}
+
+.themed-background-dark-fire {
+  background-color: #4a2e2b !important;
+}
+
+/*
+=================================================================
+THEME CORAL
+=================================================================
+*/
+
+.themed-color-coral {
+  color: #ff6b6b !important;
+}
+
+.themed-border-coral {
+  border-color: #ff6b6b !important;
+}
+
+.themed-background-coral {
+  background-color: #ff6b6b !important;
+}
+
+.themed-color-dark-coral {
+  color: #3c3e4f !important;
+}
+
+.themed-border-dark-coral {
+  border-color: #3c3e4f !important;
+}
+
+.themed-background-dark-coral {
+  background-color: #3c3e4f !important;
+}
+
+/*
+=================================================================
+THEME LAKE
+=================================================================
+*/
+
+.themed-color-lake {
+  color: #e38e7b !important;
+}
+
+.themed-border-lake {
+  border-color: #e38e7b !important;
+}
+
+.themed-background-lake {
+  background-color: #e38e7b !important;
+}
+
+.themed-color-dark-lake {
+  color: #043e50 !important;
+}
+
+.themed-border-dark-lake {
+  border-color: #043e50 !important;
+}
+
+.themed-background-dark-lake {
+  background-color: #043e50 !important;
+}
+
+/*
+=================================================================
+THEME FOREST
+=================================================================
+*/
+
+.themed-color-forest {
+  color: #0ead87 !important;
+}
+
+.themed-border-forest {
+  border-color: #0ead87 !important;
+}
+
+.themed-background-forest {
+  background-color: #0ead87 !important;
+}
+
+.themed-color-dark-forest {
+  color: #3b322c !important;
+}
+
+.themed-border-dark-forest {
+  border-color: #3b322c !important;
+}
+
+.themed-background-dark-forest {
+  background-color: #3b322c !important;
+}
+
+/*
+=================================================================
+THEME WATERLILY
+=================================================================
+*/
+
+.themed-color-waterlily {
+  color: #4ca5a9 !important;
+}
+
+.themed-border-waterlily {
+  border-color: #4ca5a9 !important;
+}
+
+.themed-background-waterlily {
+  background-color: #4ca5a9 !important;
+}
+
+.themed-color-dark-waterlily {
+  color: #4f243e !important;
+}
+
+.themed-border-dark-waterlily {
+  border-color: #4f243e !important;
+}
+
+.themed-background-dark-waterlily {
+  background-color: #4f243e !important;
+}
+
+/*
+=================================================================
+THEME EMERALD
+=================================================================
+*/
+
+.themed-color-emerald {
+  color: #69b899 !important;
+}
+
+.themed-border-emerald {
+  border-color: #69b899 !important;
+}
+
+.themed-background-emerald {
+  background-color: #69b899 !important;
+}
+
+.themed-color-dark-emerald {
+  color: #07313a !important;
+}
+
+.themed-border-dark-emerald {
+  border-color: #07313a !important;
+}
+
+.themed-background-dark-emerald {
+  background-color: #07313a !important;
+}
+
+
+/*
+=================================================================
+THEME BLACKBERRY
+=================================================================
+*/
+
+.themed-color-blackberry {
+  color: #148e81 !important;
+}
+
+.themed-border-blackberry {
+  border-color: #148e81 !important;
+}
+
+.themed-background-blackberry {
+  background-color: #148e81 !important;
+}
+
+.themed-color-dark-blackberry {
+  color: #352738 !important;
+}
+
+.themed-border-dark-blackberry {
+  border-color: #352738 !important;
+}
+
+.themed-background-dark-blackberry {
+  background-color: #352738 !important;
+}
+
+
+/*
+=================================================================
+THEME Light Blue
+=================================================================
+*/
+
+.themed-color-light-blue {
+  color: #6ad2eb !important;
+}
+
+.themed-border-light-blue {
+  border-color: #6ad2eb !important;
+}
+
+.themed-background-light-blue {
+  background-color: #6ad2eb !important;
+}
+
+/*
+=================================================================
+THEME WHITE
+=================================================================
+*/
+
+.themed-color-white {
+  color: #fff !important;
+}
+
+.themed-border-white {
+  border-color: #fff !important;
+}
+
+.themed-background-white {
+  background-color: #fff !important;
+}
+
+/*
+=================================================================
+THEME cinderella
+=================================================================
+*/
+
+.themed-color-cinderella {
+  color: #FDE9D9 !important;
+}
+
+.themed-border-cinderella {
+  border-color: #FDE9D9 !important;
+}
+
+.themed-background-cinderella {
+  background-color: #FDE9D9 !important;
+}
+
+.table-hover > tbody > tr.themed-background-cinderella:hover > td,
+.table-hover > tbody > tr.themed-background-cinderella:hover > th {
+  background-color: #f8e3d2 !important;
+}

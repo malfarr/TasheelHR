@@ -1,0 +1,728 @@
+<?php
+
+function hrm_emails_theme() {
+  $hrm_emails_path = drupal_get_path('module', HRM_MODULE_EMAILS);
+  return array(
+    'employee_account_notification' => array(
+      'render element' => 'element',
+      'template' => 'employee-account-notification',
+      'path' => $hrm_emails_path . '/templates'
+    ),
+    'announcment_notification' => array(
+      'render element' => 'element',
+      'template' => 'announcment-notification',
+      'path' => $hrm_emails_path . '/templates'
+    ),
+    'asset_notification' => array(
+      'render element' => 'element',
+      'template' => 'asset-notification',
+      'path' => $hrm_emails_path . '/templates'
+    ),
+    /*
+     * PIM
+     */
+    //Job
+    'employee_pim_job_notification' => array(
+      'render element' => 'element',
+      'template' => 'pim-job-notification',
+      'path' => $hrm_emails_path . '/templates'
+    ),
+    /*
+     * Leave
+     */
+    'leave_notification' => array(
+      'render element' => 'element',
+      'template' => 'leave-notification',
+      'path' => $hrm_emails_path . '/templates'
+    ),
+    /*
+     * Leave
+     */
+    'document_notification' => array(
+      'render element' => 'element',
+      'template' => 'document-notification',
+      'path' => $hrm_emails_path . '/templates'
+    ),
+    /*
+     * Reports
+     */
+    'reports_pim_contacts_list' => array(
+      'render element' => 'element',
+      'template' => 'reports-pim-contact-list',
+      'path' => $hrm_emails_path . '/templates/reports'
+    ),
+  );
+}
+
+function hrm_emails_send_email($key, $arg) {
+
+  $module = 'hrm_emails';
+  $mail_key = 'email_notification';
+  $to = $arg['to'];
+  $language = language_default();
+  $from = 'ResponseHRM <no-reply@responsehrm.com>';
+  $send = TRUE;
+  $params = array(
+    'message' => $arg['body'],
+    'subject' => $arg['subject'],
+  );
+
+  $email_params['attachment'] = array();
+  if (isset($arg['attachment']) && !empty($arg['attachment'])) {
+    $params['attachment'] = $arg['attachment'];
+  }
+
+  if (isset($arg['cc'])) {
+    $params['cc'] = $arg['cc'];
+  }
+  drupal_mail($module, $mail_key, $to, $language, $params, $from, $send);
+}
+
+function hrm_emails_mail($key, &$message, $params) {
+  $message['subject'] = $params['subject'];
+  $message['body'][] = $params['message'];
+  $message['headers']['Content-Type'] = "text/html; charset=UTF-8; format=flowed; delsp=yes";
+  $message['headers']['Bcc'] = 'admin@response-tech.com';
+  if (isset($params['cc'])) {
+    $message['headers']['cc'] = $params['cc'];
+  }
+  if (isset($params['Priority'])) {
+    $message['headers']['Priority'] = 'High';
+    $message['headers']['X-Priority'] = '1';
+    $message['headers']['X-MSMail-Priority'] = 'Highest';
+  }
+
+  if (isset($params['attachment']) && !empty($params['attachment'])) {
+    $message['params']['attachments'] = $params['attachment'];
+  }
+}
+
+/*
+ * ===============================================
+ * Accounts
+ * ===============================================
+ */
+
+function hrm_emails_notification_user_new($account, $password) {  
+  $role = hrm_basic_role_names($account['role']);
+
+  $body = '        
+        Dear ' . $account['name'] . ',<br/><br/>
+        Tasheel HR - System administrator has created an account for you at ' . l('responsehrm.com', '') . ' as ' . $role . '. Please use the below user credentials to ' . l('Login', 'user/login') . ': <br /><br />        
+        Username: ' . $account['email'] . '<br />
+        Password: ' . $password;
+
+  $email_args = array(
+    'subject' => 'New account at Tasheel HR',
+    'to' => $account['name'] . " <" . $account['email'] . ">",
+    'body' => $body,
+  );
+
+  hrm_emails_send_email('notification_user_new', $email_args);
+}
+
+/*
+ * ===============================================
+ * PIM Employees
+ * ===============================================
+ */
+
+function hrm_emails_notification_new_employee($employee, $password) {
+  $oid = $employee['oid'];
+  $organization_name = hrm_basic_organization_get_name($oid);
+  $name = ucwords($employee['name']);
+  $responsehrm_name = 'TasheelHR®';
+  $responsehrm_link = l($responsehrm_name, 'https://www.tasheel.ae');
+  $responsehrm_app_link = l($responsehrm_name . ' App', 'https://play.google.com/store/apps/details?id=com.responsetech.hrm&hl=en');
+  $email = strtolower($employee['email']);
+
+  $body_template = theme('employee_account_notification', array('type' => HRM_EMAIL_NOTIF_EMPLOYEE_ACCOUNT_NEW));
+  $search = array('@[name]', '@[responsehrm_link]', '@[responsehrm_app_link]', '@[email]', '@[password]', '@[organization_name]', '@[responsehrm_name]');
+  $replace = array($name, $responsehrm_link, $responsehrm_app_link, $email, $password, $organization_name, $responsehrm_name);
+  $body = str_replace($search, $replace, $body_template);
+
+  $email_args = array(
+    'subject' => 'Your account at ' . $responsehrm_name,
+    'to' => $name . " <$email>",
+    'body' => $body,
+  );
+  hrm_emails_send_email(HRM_EMAIL_NOTIF_EMPLOYEE_ACCOUNT_NEW, $email_args);
+}
+
+function hrm_emails_notification_pim_employee_reset_password($employee, $password) {
+  $oid = $employee['oid'];
+  $organization_name = hrm_basic_organization_get_name($oid);
+  $name = ucwords($employee['name']);
+  $responsehrm_name = 'ResponseHRM®';
+  $responsehrm_link = l($responsehrm_name, 'https://www.responsehrm.com');
+  $email = strtolower($employee['email']);
+
+  $body_template = theme('employee_account_notification', array('type' => HRM_EMAIL_NOTIF_EMPLOYEE_ACCOUNT_RESET_PASSWORD));
+  $search = array('@[name]', '@[responsehrm_link]', '@[email]', '@[password]', '@[organization_name]', '@[responsehrm_name]');
+  $replace = array($name, $responsehrm_link, $email, $password, $organization_name, $responsehrm_name);
+  $body = str_replace($search, $replace, $body_template);
+
+  $email_args = array(
+    'subject' => 'Replacement login information at ' . $responsehrm_name,
+    'to' => $name . " <$email>",
+    'body' => $body,
+  );
+  hrm_emails_send_email(HRM_EMAIL_NOTIF_EMPLOYEE_ACCOUNT_RESET_PASSWORD, $email_args);
+}
+
+/*
+ * Job
+ */
+
+function hrm_emails_notification_pim_job_end_probation_period($employee, $days) {
+  $org_id = $employee['org_id'];
+  $organization_name = hrm_basic_organization_get_name($org_id);
+  $responsehrm_name = 'ResponseHRM®';
+  $email = strtolower($employee['email']);
+
+  $emp_id = $employee['emp_id'];
+  $supervisor_emp_ids = hrm_basic_employee_get_supervisors($emp_id);
+  $supervisor_emp_ids[] = 0;
+  $supervisors = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $supervisor_emp_ids, 'operator' => 'IN')));
+  $organization_users = hrm_basic_organization_get_accounts($org_id, array(HR_ROLE_ORGANIZATION_ADMINISTRATOR, HR_ROLE_ORGANIZATION_HR), TRUE);
+  $direct_supervisors = array();
+  $send_to = array(
+    array('name' => $employee['name'], 'first_name' => $employee['fname'], 'email' => $employee['email']),
+  );
+  foreach ($supervisors as $supervisor) {
+    $send_to[] = array('name' => $supervisor['name'], 'first_name' => $supervisor['fname'], 'email' => $supervisor['email']);
+    $direct_supervisors[] = $supervisor['name'];
+  }
+  foreach ($organization_users as $user) {
+    $send_to[] = array('name' => $user['name'], 'first_name' => $user['first_name'], 'email' => $user['mail']);
+  }
+
+  $permanency_date = date(HR_DATETIME_FORMAT_SHORT_DASH, $employee['permanency_date']);
+  $end_probation_timestamp = strtotime($permanency_date . "-1 days");
+  $end_probation_date = date(HR_DATETIME_FORMAT_SHORT_SLASH, $end_probation_timestamp);
+
+  $contract_start_date = date(HR_DATETIME_FORMAT_SHORT_SLASH, $employee['job']['contract_start_date']);
+  $contract_end_date = date(HR_DATETIME_FORMAT_SHORT_SLASH, $employee['job']['contract_end_date']);
+  $department = hrm_basic_organization_get_department_name($org_id, HR_ROLE_ORGANIZATION_HR);
+
+  $days_text = 'seven';
+  if($days == 15){
+    $days_text = 'fifteen';
+  }
+  elseif($days == 30){
+    $days_text = 'thirty';
+  }
+  $subject = 'Probation Period ending in ' . $days_text . ' days: ';
+  $body_template = theme('employee_pim_job_notification', array('type' => HR_EMAIL_NOTIF_PIM_JOB_PROBATION_END));
+
+  $search = array('@[name]', '@[employee_name]', '@[days]', '@[job_title]', '@[end_probation_date]',
+    '@[contract_start_date]', '@[direct_supervisor]', '@[organization_name]', '@[department]', '@[responsehrm_name]');
+  
+  $sent_emails = array();
+  foreach ($send_to as $row) {
+    $name = ucwords($row['name']);
+    $email = strtolower($row['email']);
+    
+    if(in_array($email, $sent_emails)){
+      continue;
+    }
+    $sent_emails[] = $email;
+
+    $replace = array($row['first_name'], $employee['name'], $days, $employee['title'], $end_probation_date,
+      $contract_start_date, implode(', ', $direct_supervisors), $organization_name, $department, $responsehrm_name);
+    $body = str_replace($search, $replace, $body_template);
+    
+    $temp_subject = $subject . $employee['name'];
+    $email_args = array(
+      'subject' => $temp_subject,
+      'to' => $name . " <$email>",
+      'body' => $body,
+    );
+    hrm_emails_send_email(HR_EMAIL_NOTIF_PIM_JOB_PROBATION_END, $email_args);
+  }
+}
+
+function hrm_emails_notification_pim_job_end_contract($employee, $days) {
+  $org_id = $employee['org_id'];
+  $organization_name = hrm_basic_organization_get_name($org_id);
+  $responsehrm_name = 'ResponseHRM®';
+  $email = strtolower($employee['email']);
+
+  $emp_id = $employee['emp_id'];
+  $supervisor_emp_ids = hrm_basic_employee_get_supervisors($emp_id);
+  $supervisor_emp_ids[] = 0;
+  $supervisors = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $supervisor_emp_ids, 'operator' => 'IN')));
+  $organization_users = hrm_basic_organization_get_accounts($org_id, array(HR_ROLE_ORGANIZATION_ADMINISTRATOR, HR_ROLE_ORGANIZATION_HR));
+  $direct_supervisors = array();
+  $send_to = array(
+    array('name' => $employee['name'], 'first_name' => $employee['fname'], 'email' => $employee['email']),
+  );
+  foreach ($supervisors as $supervisor) {
+    $send_to[] = array('name' => $supervisor['name'], 'first_name' => $supervisor['fname'], 'email' => $supervisor['email']);
+    $direct_supervisors[] = $supervisor['name'];
+  }
+  foreach ($organization_users as $user) {
+    $send_to[] = array('name' => $user['name'], 'first_name' => $user['first_name'], 'email' => $user['mail']);
+  }
+
+  $contract_start_date = date(HR_DATETIME_FORMAT_SHORT_SLASH, $employee['job']['contract_start_date']);
+  $contract_end_date = date(HR_DATETIME_FORMAT_SHORT_SLASH, $employee['job']['contract_end_date']);
+  $department = hrm_basic_organization_get_department_name($org_id, HR_ROLE_ORGANIZATION_HR);
+
+  $days_text = 'seven';
+  if($days == 15){
+    $days_text = 'fifteen';
+  }
+  elseif($days == 30){
+    $days_text = 'thirty';
+  }
+  
+  $subject = 'Contract ending in ' . $days_text . ' days: ';
+  $body_template = theme('employee_pim_job_notification', array('type' => HR_EMAIL_NOTIF_PIM_JOB_CONTRACT_END));
+
+  $search = array('@[name]', '@[employee_name]', '@[days]', '@[job_title]', '@[contract_start_date]',
+    '@[contract_end_date]', '@[direct_supervisor]', '@[organization_name]', '@[department]', '@[responsehrm_name]');
+
+  $sent_emails = array();
+  foreach ($send_to as $row) {
+    $name = ucwords($row['name']);
+    $email = strtolower($row['email']);
+
+    if(in_array($email, $sent_emails)){
+      continue;
+    }
+    $sent_emails[] = $email;
+    
+    $replace = array($row['first_name'], $employee['name'], $days, $employee['title'], $contract_start_date,
+      $contract_end_date, implode(', ', $direct_supervisors), $organization_name, $department, $responsehrm_name);
+    $body = str_replace($search, $replace, $body_template);
+    $temp_subject = $subject . $employee['name'];
+    
+    $email_args = array(
+      'subject' => $temp_subject,
+      'to' => $name . " <$email>",
+      'body' => $body,
+    );
+    hrm_emails_send_email(HR_EMAIL_NOTIF_PIM_JOB_PROBATION_END, $email_args);
+  }
+}
+
+/*
+ * Leave notifications
+ */
+
+function hrm_emails_notification_leave_auto_approved_leave($emp_id, $leave_id) {
+  $employee = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+
+  $org_id = $employee['org_id'];
+  $organization_name = hrm_basic_organization_get_name($org_id);
+  $responsehrm_name = 'ResponseHRM®';
+  $email = strtolower($employee['email']);
+
+  $supervisor_emp_ids = hrm_basic_employee_get_supervisors($emp_id);
+  $supervisor_emp_ids[] = 0;
+  $supervisors = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $supervisor_emp_ids, 'operator' => 'IN')));
+  $organization_users = hrm_basic_organization_get_accounts($org_id, array(HR_ROLE_ORGANIZATION_ADMINISTRATOR, HR_ROLE_ORGANIZATION_HR));
+  $direct_supervisors = array();
+  $send_to = array(
+    array('name' => $employee['name'], 'first_name' => $employee['fname'], 'email' => $employee['email']),
+  );
+  foreach ($supervisors as $supervisor) {
+    $send_to[] = array('name' => $supervisor['name'], 'first_name' => $supervisor['fname'], 'email' => $supervisor['email']);
+    $direct_supervisors[] = $supervisor['name'];
+  }
+  foreach ($organization_users as $user) {
+    $send_to[] = array('name' => $user['name'], 'first_name' => $user['first_name'], 'email' => $user['mail']);
+  }
+
+  $leave = hrm_basic_leave_get_leave_basic_information(array(array('field' => 'leave_id', 'value' => $leave_id, 'operator' => '=')), array(), TRUE);
+  if (!empty($leave)) {
+    $leave_type = hrm_basic_config_leave_type_get_leave_type_name($leave['leave_type']);
+
+    $from_date = date(HR_DATETIME_FORMAT_SHORT_SLASH, $leave['from_date']);
+    $to_time = date(HR_DATETIME_FORMAT_SHORT_SLASH, $leave['to_date']);
+    $leave_date = $from_date . ' - ' . $to_time;
+    if ($from_date == $to_time) {
+      $leave_date = $from_date . ' (' . date(HR_DATETIME_FORMAT_HOUR_12, $leave['from_date']) . ' - ' . date(HR_DATETIME_FORMAT_HOUR_12, $leave['to_date']) . ')';
+    }
+    $from_date_long = date(HR_DATETIME_FORMAT_SHORT_SPACE_DAY_MONTH_SHORT_NAME, $leave['from_date']);
+
+    $days = number_format($leave['days']);
+    $hours_duration = $leave['hours'] * (60 * 60);
+    $hours = hrm_basic_time_format_time($hours_duration);
+
+    $department = hrm_basic_organization_get_department_name($org_id, HR_ROLE_ORGANIZATION_HR);
+
+    $subject = $employee['name'] . ' is on a ' . $leave_type . ' as of ' . $from_date;
+    $body_template = theme('leave_notification', array('type' => HR_EMAIL_NOTIF_LEAVE_AUTO_APPROVAL));
+    $search = array('@[name]', '@[employee_name]', '@[leave_type]', '@[employee_first_name]', '@[leave_start_date_long]',
+      '@[leave_date]', '@[leave_days]', '@[leave_hours]', '@[organization_name]', '@[department]', '@[responsehrm_name]');
+
+    foreach ($send_to as $row) {
+      $name = ucwords($row['name']);
+      $email = strtolower($row['email']);
+
+      $replace = array($row['first_name'], $employee['name'], $leave_type, $employee['fname'], $from_date_long,
+        $leave_date, $days, $hours, $organization_name, $department, $responsehrm_name);
+      $body = str_replace($search, $replace, $body_template);
+
+      $email_args = array(
+        'subject' => $subject,
+        'to' => $name . " <$email>",
+        'body' => $body,
+      );
+      hrm_emails_send_email(HR_EMAIL_NOTIF_LEAVE_AUTO_APPROVAL, $email_args);
+    }
+  }
+}
+
+/*
+ * ===============================================
+ * Announcments
+ * ===============================================
+ */
+
+function hrm_emails_notification_announcment_notifications($announcment, $emp_ids, $notification_type) {
+  $org_id = $announcment['org_id'];
+  $organization_name = hrm_basic_organization_get_name($org_id);
+  $responsehrm_name = 'ResponseHRM®';
+ //  $department = hrm_basic_organization_get_department_name($org_id, HR_ROLE_NAME_ORGANIZATION_HR);
+  
+  if ($notification_type == HR_EMAIL_NOTIF_ANNOUNCMENT_PUBLISHED) {
+    $body_template = theme('announcment_notification', array('type' => HR_EMAIL_NOTIF_ANNOUNCMENT_PUBLISHED));
+    $search = array('@[topic]', '@[description]', '@[organization_name]', '@[department]', '@[responsehrm_name]');
+    $description = check_markup($announcment['description'], 'filtered_html');
+    $replace = array($announcment['topic'], $description, $organization_name, $responsehrm_name);
+    $body = str_replace($search, $replace, $body_template);
+    foreach ($emp_ids as $emp_id) {
+      $name = hrm_basic_employee_get_name($emp_id);
+      $email = hrm_basic_employee_get_email($emp_id);
+
+      $email_args = array(
+        'subject' => 'Announcment: ' . $announcment['topic'],
+        'to' => $name . " <$email>",
+        'body' => $body,
+      );
+      hrm_emails_send_email(HR_EMAIL_NOTIF_ANNOUNCMENT_PUBLISHED, $email_args);
+    }
+  }
+}
+
+/*
+ * Assets Notifications
+ */
+
+function hrm_emails_notification_asset_notifications($asset, $notification_type, $data = array()) {
+  $org_id = $asset['oid'];
+  $organization_name = hrm_basic_organization_get_name($oid);
+  $responsehrm_name = 'ResponseHRM®';
+ // $department = hrm_basic_organization_get_department_name($org_id, HRM_ROLE_LOGISTICS);
+
+  if ($notification_type == HRM_EMAIL_NOTIF_ASSET_ASSIGNED) {
+
+    $emp_id = $data['empid'];
+    $employee = hrm_basic_get_employees_info(array(array('field' => 'empid', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+    $send_to = array(
+      array('name' => $employee['fname'] .' '. $employee['lname'] , 'first_name' => $employee['fname'], 'email' => $employee['email']),
+    );
+//    $organization_users = hrm_basic_organization_get_organization_users($org_id, array(HRM_ROLE_ADMINISTRATOR, HRM_ROLE_HR, HRM_ROLE_LOGISTICS, HRM_ROLE_FINANCE ), TRUE);
+//    foreach ($organization_users as $user) {
+//      $send_to[] = array('name' => $user['name'], 'first_name' => $user['first_name'], 'email' => $user['mail']);
+//   }
+
+    $body_template = theme('asset_notification', array('type' => HRM_EMAIL_NOTIF_ASSET_ASSIGNED));
+    $search = array('@[name]', '@[assigned_to_name]', '@[category]', '@[assigned_by_name]', '@[asset_no]', 
+      '@[serial_number]', '@[brand]', '@[model]', '@[assign_condition]', '@[organization_name]', 
+      '@[department]', '@[responsehrm_name]');
+
+    $receipt_form_path = strtr(HRM_DIR_ASSET_RECEIPT, array('%oid' => $org_id, '%aid' => $asset['aid']));
+    $receipt_form_path .= '/' . 'asset-assign-receipt-form-' . $data['id'] . '.pdf';
+    $receipt_form = array();
+    if (file_exists($receipt_form_path)) {
+      $receipt_form = array(
+        'filecontent' => file_get_contents($receipt_form_path),
+        'filename' => 'asset-assign-receipt-form-' . $data['id'] . '.pdf',
+        'filemime' => 'application/pdf'
+      );
+    }
+
+    $assign_condition = check_markup($data['condition'], 'filtered_html');
+
+    $subject = 'A ' . $data['category'] . ' has been assigned to ' . $data['assigned_to_name'];
+    foreach ($send_to as $row) {
+      $replace = array($row['first_name'], $data['assigned_to_name'], $data['category'], $data['assigned_by_name'], $data['asset_no'], 
+      $data['serial_number'], $data['brand'], $data['model'], $assign_condition, $organization_name, $responsehrm_name);
+      
+      $body = str_replace($search, $replace, $body_template);
+
+      $email_args = array(
+        'subject' => $subject,
+        'to' => $row['name'] . " <" . $row['email'] . ">",
+        'body' => $body,
+      );
+      if (!empty($receipt_form)) {
+        $email_args['attachment'][] = $receipt_form;
+      }
+
+      hrm_emails_send_email(HRM_EMAIL_NOTIF_ASSET_ASSIGNED, $email_args);
+    }
+  }
+  elseif ($notification_type == HRM_EMAIL_NOTIF_ASSET_ASSIGNMENT_NOT_COMPLETED) {
+    $assignment = $asset['assignment'];
+    $emp_id = $assignment['empid'];
+    $employee = hrm_basic_employee_get_employees_info(array(array('field' => 'empid', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+
+    $data = array(
+      'id' => $assignment['id'],
+      'empid' => $assignment['emp_id'],
+      'assign_date' => date(HR_DATETIME_FORMAT_LONG_SLASH, $assignment['created']),
+      'assigned_to' => hrm_basic_employee_get_name($assignment['emp_id']),
+      'assigned_by' => hrm_basic_account_get_name($assignment['uid']),
+      'asset_no' => $asset['asset_no'],
+      'serial_number' => $asset['serial'],
+      'category' => hrm_basic_asset_category_get_name($asset['category']),
+      'brand' => hrm_basic_asset_brand_get_name($asset['brand']),
+      'model' => $asset['model'],
+    );
+
+    $send_to = array(
+      array('name' => $employee['name'], 'first_name' => $employee['fname'], 'email' => $employee['email']),
+    );
+    $organization_users = hrm_basic_organization_get_accounts($org_id, array(HR_ROLE_ORGANIZATION_ADMINISTRATOR, HR_ROLE_ORGANIZATION_HR, HR_ROLE_ORGANIZATION_LOGISTICS));
+    foreach ($organization_users as $user) {
+      $send_to[] = array('name' => $user['name'], 'first_name' => $user['first_name'], 'email' => $user['mail']);
+    }
+
+    $body_template = theme('asset_notification', array('type' => HR_EMAIL_NOTIF_ASSET_ASSIGNMENT_NOT_COMPLETED));
+    $search = array('@[name]', '@[assigned_to_name]', '@[category]', '@[assign_date]', '@[assigned_by_name]',
+      '@[asset_no]', '@[serial_number]', '@[category]', '@[brand]', '@[model]', '@[organization_name]',
+      '@[department]', '@[responsehrm_name]');
+
+    $subject = 'Incomplete asset assignment proccess of ' . $data['assigned_to'] . '\'s ' . $data['category'];
+    foreach ($send_to as $row) {
+      $replace = array($row['first_name'], $employee['name'], $data['category'], $data['assign_date'], $data['assigned_by'],
+      $data['asset_no'], $data['serial_number'], $data['category'], $data['brand'], $data['model'], $organization_name,
+      $department, $responsehrm_name);
+           
+      $body = str_replace($search, $replace, $body_template);
+
+      $email_args = array(
+        'subject' => $subject,
+        'to' => $row['name'] . " <" . $row['email'] . ">",
+        'body' => $body,
+      );
+
+      hrm_emails_send_email(HRM_EMAIL_NOTIF_ASSET_ASSIGNMENT_NOT_COMPLETED, $email_args);
+    }
+  }
+  elseif ($notification_type == HRM_EMAIL_NOTIF_ASSET_RETURN) {
+    $emp_id = $data['emp_id'];
+    $employee = hrm_basic_employee_get_employees_info(array(array('field' => 'empid', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+
+    $send_to = array(
+      array('name' => $employee['name'], 'first_name' => $employee['fname'], 'email' => $employee['email']),
+    );
+    $organization_users = hrm_basic_organization_get_accounts($org_id, array(HRM_ROLE_ADMINISTRATOR, HRM_ROLE_HR, HRM_ROLE_LOGISTICS));
+    foreach ($organization_users as $user) {
+      $send_to[] = array('name' => $user['name'], 'first_name' => $user['first_name'], 'email' => $user['mail']);
+    }
+
+    $body_template = theme('asset_notification', array('type' => HRM_EMAIL_NOTIF_ASSET_RETURN));
+    $search = array('@[name]', '@[assigned_to_name]', '@[category]', '@[return_date]', '@[assigned_to_name]',
+      '@[returned_by_name]', '@[asset_no]', '@[serial_number]', '@[brand]', '@[model]', '@[return_condition]',
+      '@[organization_name]', '@[department]', '@[responsehrm_name]');
+
+    $return_form_path = strtr(HRM_DIR_ASSET_RECEIPT, array('%oid' => $oid, '%aid' => $asset['aid']));
+    $return_form_path .= '/' . 'asset-return-receipt-form-' . $data['assignment_id'] . '.pdf';
+    $return_form = array();
+    if (file_exists($return_form_path)) {
+      $return_form = array(
+        'filecontent' => file_get_contents($return_form_path),
+        'filename' => 'asset-return-receipt-form-' . $data['assignment_id'] . '.pdf',
+        'filemime' => 'application/pdf'
+      );
+    }
+
+    $subject = $data['assigned_to_name'] . ' Returning Asset: ' . $data['category'] . ', ' . $data['brand'] . ' ' . $data['model'];
+    foreach ($send_to as $row) {
+      $replace = array($row['first_name'], $data['assigned_to_name'], $data['category'], $data['return_date'], $data['assigned_to_name'],
+        $data['returned_by'], $data['asset_no'], $data['serial_number'], $data['brand'], $data['model'], $data['return_condition'],
+        $organization_name, $department, $responsehrm_name);
+      $body = str_replace($search, $replace, $body_template);
+
+      $email_args = array(
+        'subject' => $subject,
+        'to' => $row['name'] . " <" . $row['email'] . ">",
+        'body' => $body,
+      );
+      if (!empty($receipt_form)) {
+        $email_args['attachment'][] = $return_form;
+      }
+
+      hrm_emails_send_email(HR_EMAIL_NOTIF_ASSET_RETURN, $email_args);
+    }
+  }
+  elseif ($notification_type == HRM_EMAIL_NOTIF_ASSET_RETURN_NOT_COMPLETED) {
+    $assignment = $asset['assignment'];
+    $return = $asset['return'];
+
+    $data = array(
+      'return_id' => $return['id'],
+      'emp_id' => $return['emp_id'],
+      'return_date' => date(HR_DATETIME_FORMAT_LONG_SLASH, $return['created']),
+      'assigned_to_name' => hrm_basic_employee_get_name($assignment['emp_id']),
+      'returned_by' => hrm_basic_account_get_name($return['uid']),
+      'asset_no' => $asset['asset_no'],
+      'serial_number' => $asset['serial'],
+      'category' => hrm_basic_asset_category_get_name($asset['category']),
+      'brand' => hrm_basic_asset_brand_get_name($asset['brand']),
+      'model' => $asset['model'],
+    );
+
+    $emp_id = $return['emp_id'];
+    $employee = hrm_basic_employee_get_employees_info(array(array('field' => 'emp_id', 'value' => $emp_id, 'operator' => '=')), array(), TRUE);
+
+    $send_to = array(
+      array('name' => $employee['name'], 'first_name' => $employee['fname'], 'email' => $employee['email']),
+    );
+    $organization_users = hrm_basic_organization_get_accounts($org_id, array(HR_ROLE_ORGANIZATION_ADMINISTRATOR, HR_ROLE_ORGANIZATION_HR, HR_ROLE_ORGANIZATION_LOGISTICS));
+    foreach ($organization_users as $user) {
+      $send_to[] = array('name' => $user['name'], 'first_name' => $user['first_name'], 'email' => $user['mail']);
+    }
+
+    $body_template = theme('asset_notification', array('type' => HR_EMAIL_NOTIF_ASSET_RETURN_NOT_COMPLETED));
+    $search = array('@[name]', '@[assigned_to_name]', '@[category]', '@[return_date]', '@[assigned_to_name]',
+      '@[returned_by_name]', '@[asset_no]', '@[serial_number]', '@[brand]', '@[model]',
+      '@[organization_name]', '@[department]', '@[responsehrm_name]');
+
+
+    $subject = 'Incomplete asset return proccess of ' . $data['assigned_to_name'] . '\'s ' . $data['category'];
+    foreach ($send_to as $row) {
+      $replace = array($row['first_name'], $data['assigned_to_name'], $data['category'], $data['return_date'], $data['assigned_to_name'],
+        $data['returned_by'], $data['asset_no'], $data['serial_number'], $data['brand'], $data['model'],
+        $organization_name, $department, $responsehrm_name);
+      $body = str_replace($search, $replace, $body_template);
+
+      $email_args = array(
+        'subject' => $subject,
+        'to' => $row['name'] . " <" . $row['email'] . ">",
+        'body' => $body,
+      );
+
+      hrm_emails_send_email(HR_EMAIL_NOTIF_ASSET_RETURN_NOT_COMPLETED, $email_args);
+    }
+  }
+}
+
+/*
+ * ===============================================
+ * Documents
+ * ===============================================
+ */
+
+function hrm_emails_documents_email_document($employee, $document) {
+  $oid = $employee['oid'];
+  $organization_name = hrm_basic_organization_get_name($oid);
+  $responsehrm_name = 'ResponseHRM®';
+
+  $document_attachment;
+  if (file_exists($document['uri'])) {
+    $file = file_load($document['fid']);
+    if ($file) {
+      $document_attachment = array(
+        'filecontent' => file_get_contents($file->uri),
+        'filename' => $file->filename,
+        'filemime' => $file->filemime
+      );
+    }
+  }
+  if (is_array($document_attachment)) {
+    $name = ucwords($employee['name']);
+    $email = strtolower($employee['email']);
+
+    $body_template = theme('document_notification', array('type' => HRM_EMAIL_NOTIF_DOCUMENT_SEND_DOCUMENT));
+    $search = array('@[name]', '@[document_title]', '@[organization_name]', '@[responsehrm_name]');
+    $replace = array($employee['name'], $document['title'], $organization_name, $responsehrm_name);
+    $body = str_replace($search, $replace, $body_template);
+    $attachments = array($document_attachment);
+
+    $email_args = array(
+      'subject' => $document['title'] . ' - Document',
+      'to' => $name . " <$email>",
+      'body' => $body,
+      'attachment' => $attachments,
+    );
+
+    hrm_emails_send_email(HRM_EMAIL_NOTIF_DOCUMENT_SEND_DOCUMENT, $email_args);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/*
+ * ===============================================
+ * Reports 
+ * ===============================================
+ */
+
+function hrm_emails_reports_pim_montly_contact_list($org_ids = array(), $emp_ids = array()) {
+  if (empty($org_ids)) {
+    $org_ids = db_select('hrm_org')
+            ->fields('hrm_org', array('org_id'))
+            ->condition('status', HR_ORGANIZATION_STATUS_ACTIVE, '=')
+            ->execute()->fetchCol();
+  }
+
+  $month = strtolower(date(HR_DATETIME_FORMAT_MONTH_FULL_NAME, time()));
+  $year = strtolower(date(HR_DATETIME_FORMAT_YEAR_4_DIGITS, time()));
+  $subject = 'Employees Contacts Information ' . ucwords($month) . ', ' . $year;
+  
+  foreach ($org_ids as $org_id) {
+    $employees_query = db_select('hrm_employee')
+              ->fields('hrm_employee', array('emp_id'))
+              ->condition('org_id', $org_id, '=')
+              ->condition('status', HR_EMPLOYEE_STATUS_ACTIVE, '=');
+    if(!empty($emp_ids)){
+      $employees_query->condition('emp_id', $emp_ids, 'IN');
+    }
+    $employees = $employees_query->execute()->fetchCol();
+
+    $organization_name = hrm_basic_organization_get_name($org_id);
+    $responsehrm_name = 'ResponseHRM®';
+
+    $body_template = theme('reports_pim_contacts_list');
+    $search = array('@[name]', '@[month]', '@[year]', '@[organization_name]', '@[responsehrm_name]');
+    $replace = array('name', ucwords($month), $year, $organization_name, $responsehrm_name);
+
+    $contacts_list_path = strtr(HR_DIRECTORY_ORGANIZATION_CONTACTS_LIST_PDF_DIR, array('%org_id' => $org_id, '%year' => $year));
+    $contacts_list_path .= '/' . 'contacts-list-' . $month . '.pdf';
+    $contacts_list = array();
+    if (file_exists($contacts_list_path)) {
+      $contacts_list = array(
+        'filecontent' => file_get_contents($contacts_list_path),
+        'filename' => 'contacts-list-' . $month . '.pdf',
+        'filemime' => 'application/pdf'
+      );
+    }
+    if (empty($contacts_list)) {
+      continue;
+    }
+
+    foreach ($employees as $emp_id) {
+      $name = ucwords(hrm_basic_employee_get_name($emp_id));
+      $email = strtolower(hrm_basic_employee_get_email($emp_id));
+
+      $replace[0] = $name;
+      $body = str_replace($search, $replace, $body_template);
+
+      $email_args = array(
+        'subject' => $subject,
+        'to' => $name . " <$email>",
+        'body' => $body,
+      );
+      $email_args['attachment'][] = $contacts_list;
+
+      hrm_emails_send_email(HR_EMAIL_REPORTS_PIM_CONTACTS_LIST, $email_args);
+    }   
+  }
+}

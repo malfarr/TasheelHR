@@ -1,0 +1,2093 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function hrm_administration_menu() {
+  $hr_administration_path = drupal_get_path('module', HRM_MODULE_ADMINISTRATION);
+  
+  $items['admin/hrm-administration'] = array(
+    'title' => 'ResponseHRM Administration',
+    'description' => 'ResponseHRM Administration',
+    'page callback' => 'hrm_administration_hrm_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_SITE_ADMINISTRATION),
+  );
+  $items['admin/hrm-administration/hrm'] = array(
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'title' => 'ResponseHRM',
+    'weight' => 0,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_HRM_CONFIGURATION),
+  );
+  $items['admin/hrm-administration/app'] = array(
+    'title' => 'App',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'hrm_administration_app_configuration_page',
+    'weight' => 1,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_APP_CONFIGURATION),
+  );
+  $items['admin/hrm-administration/dashboard'] = array(
+    'title' => 'Dashboard',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'hrm_administration_dashboard_configuration_page',
+    'weight' => 2,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_DASHBOARD_CONFIGURATION),
+  );     
+  $items['admin/hrm-administration/email'] = array(
+    'title' => 'Emails',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+    'page callback' => 'hrm_administration_emails_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_EMAILS_CONFIGURATION),
+  );
+  $items['admin/hrm-administration/location'] = array(
+    'title' => 'Locations & Maps',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+    'page callback' => 'hrm_administration_location_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOCANTION_AND_MAPS_CONFIGURATION),
+  );
+  $items['admin/hrm-administration/api-keys'] = array(
+    'title' => 'APIs & Keys',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+    'page callback' => 'hrm_administration_api_keys_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_API_AND_KEYS_CONFIGURATION),
+  );
+  $items['admin/hrm-administration/date-time'] = array(
+    'title' => 'Date & Time',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 6,
+    'page callback' => 'hrm_administration_date_time_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_DATE_AND_TIME_CONFIGURATION),
+  );
+  $items['admin/hrm-administration/users'] = array(
+    'title' => 'Users',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 7,
+    'page callback' => 'hrm_administration_users_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_USERS_CONFIGURATION),
+  );
+  //Workflow
+  $items['admin/hrm-administration/workflow'] = array(
+    'title' => 'Workflow',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 8,
+    'page callback' => 'hrm_administration_workflow_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_WORKFLOW_CONFIGURATION),
+  );
+  //LOV
+  $items['admin/hrm-administration/lov'] = array(
+    'title' => 'LOVs',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'hrm_administration_lovs',
+    'weight' => 9,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+  );
+  //Finance
+  $items['admin/hrm-administration/finance'] = array(
+    'title' => 'Finance',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+    'page callback' => 'hrm_administration_finance_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_FINANCE_CONFIGURATION),
+  );
+  //Interface Images
+  $items['admin/hrm-administration/interface-images'] = array(
+    'title' => 'Interface Images',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'hrm_administration_interface_images_configuration_page',
+    'weight' => 11,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_INTERFACE_IMAGES_CONFIGURATION),
+  );
+  //Cron  
+  $items['admin/hrm-administration/cron'] = array(
+    'title' => 'Cron',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'hrm_administration_cron_configuration_page',
+    'weight' => 12,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_CRON_CONFIGURATION),
+  );
+  //Functions  
+  $items['admin/hrm-administration/functions'] = array(
+    'title' => 'Functions',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'hrm_administration_functions_configuration_page',
+    'weight' => 13,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_FUNCTIONS_CONFIGURATION),
+  );
+  //Functions  
+  $items['admin/hrm-administration/files'] = array(
+    'title' => 'Files',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'hrm_administration_files_configuration_page',
+    'weight' => 14,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_FILES_CONFIGURATION),
+  );
+  //Other  
+  $items['admin/hrm-administration/other'] = array(
+    'title' => 'Other',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'hrm_administration_other_configuration_page',
+    'weight' => 15,
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_OTHER_CONFIGURATION),
+  );
+  //Organizations
+  $items['admin/hrm-administration/organization'] = array(
+    'title' => 'Organizations',    
+    'page callback' => 'hrm_administration_organizations',        
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),    
+    'type' => MENU_LOCAL_TASK, 
+    'weight' => 16, 
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  ); 
+  
+  /*
+   * Workflow menues
+   */
+  $items['admin/hrm-administration/workflow/entity'] = array(
+    'title' => 'Entities',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+    'page arguments' => array(3),
+    'page callback' => 'hrm_administration_workflow_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_WORKFLOW_CONFIGURATION),
+  );
+  $items['admin/hrm-administration/workflow/actions'] = array(
+    'title' => 'Actions',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'page arguments' => array(3),
+    'page callback' => 'hrm_administration_workflow_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_WORKFLOW_CONFIGURATION),
+  );
+  $items['admin/hrm-administration/workflow/global'] = array(
+    'title' => 'Global',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'page arguments' => array(3),
+    'page callback' => 'hrm_administration_workflow_configuration_page',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_WORKFLOW_CONFIGURATION),
+  );
+  /*
+   * LOV menues
+   */
+  $items['admin/hrm-administration/lov/list'] = array(
+    'title' => 'LOV',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+    'page arguments' => array(3),
+    'page callback' => 'hrm_administration_lovs',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+  );
+  $items['admin/hrm-administration/lov/add'] = array(
+    'title' => 'Add LOV',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_lovs_lov_add_form'),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/hrm-administration/lov/%'] = array(
+    'title' => 'LOV Details',
+    'page callback' => 'hrm_administration_lovs_lov_options',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+    'weight' => 1,
+  );
+  $items['admin/hrm-administration/lov/%/view'] = array(
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'title' => 'Options',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+  );
+  $items['admin/hrm-administration/lov/%/group'] = array(
+    'title' => 'Groups',
+    'page callback' => 'hrm_administration_lovs_lov_groups',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+  $items['admin/hrm-administration/lov/%/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_lovs_lov_edit_form', 3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+  );
+  $items['admin/hrm-administration/lov/%/option/add'] = array(
+    'title' => 'Add LOV Option',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_lovs_lov_option_add_form', 3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/hrm-administration/lov/%/option/%/edit'] = array(
+    'title' => 'Edit LOV Option',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_lovs_lov_option_edit_form', 3, 5),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+  );
+  //LOV group
+  $items['admin/hrm-administration/lov/%/group/add'] = array(
+    'title' => 'Add LOV Group',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_lovs_lov_group_add_form', 3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/hrm-administration/lov/%/group/%/edit'] = array(
+    'title' => 'Edit LOV Group',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_lovs_lov_group_edit_form', 3, 5),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_LOV),
+  );
+  
+    
+  /*
+   * Organizations
+   */  
+  $items['admin/hrm-administration/organization/list'] = array(
+    'title' => 'Organizations',        
+    'page arguments' => array(3),
+    'page callback' => 'hrm_administration_organizations',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),
+    'type' => MENU_DEFAULT_LOCAL_TASK, 'weight' => 0,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/add'] = array(
+    'title' => 'Add Organization',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_organization_form', '0'),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%'] = array(
+    'title' => 'Details',
+    'page callback' => 'hrm_administration_organization_details',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),
+    'weight' => 1,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%/details'] = array(
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'title' => 'Details',
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_organization_form', 3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),    
+    'type' => MENU_LOCAL_TASK, 'weight' => 3,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%/users'] = array(
+    'title' => 'Users',
+    'page callback' => 'hrm_administration_organization_users',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),    
+    'type' => MENU_LOCAL_TASK, 'weight' => 3,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%/users/add'] = array(
+    'title' => 'Add User',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_organization_user_form', 3, '0'),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%/users/edit/%'] = array(
+    'title' => 'Add User',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_organization_user_form', 3, 6),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%/resources'] = array(
+    'title' => 'Resources',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_organization_resources_form', 3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),    
+    'type' => MENU_LOCAL_TASK, 'weight' => 4,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%/assets'] = array(
+    'title' => 'Assets',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_organization_assets_form', 3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),    
+    'type' => MENU_LOCAL_TASK, 'weight' => 5,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+  $items['admin/hrm-administration/organization/%/departments'] = array(
+    'title' => 'Departments',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hrm_administration_organization_departments_form', 3),
+    'access arguments' => array(HRM_PERM_ADMIN_MANAGE_ORGANIZATIONS),    
+    'type' => MENU_LOCAL_TASK, 'weight' => 6,
+    'file' => 'includes/administration_organization.inc', 'file path' => $hr_administration_path,
+  );
+
+    
+  return $items;
+}
+
+/*
+ * HRM
+ */
+
+function hrm_administration_hrm_configuration_page() {
+  return drupal_get_form('hrm_administration_hrm_configuration_form');
+}
+
+function hrm_administration_hrm_configuration_form($form, &$form_state) {
+  //IMPACT Configuration
+  $form['hrm'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'ResponseHRM Configuration',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  $form['hrm'][HRM_VAR_ADMIN_HRM_RELEASE] = array(
+    '#type' => 'textfield',
+    '#title' => 'IMPACT Release',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_HRM_RELEASE, ''),
+    '#required' => TRUE,
+  );
+  return system_settings_form($form);
+}
+
+
+/*
+ * Clients Configurations
+ */
+
+
+/*
+ * APP
+ */
+
+function hrm_administration_app_configuration_page() {
+  return drupal_get_form('hrm_administration_app_configuration_form');
+}
+
+function hrm_administration_app_configuration_form($form, &$form_state) {
+  $form['app'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('App Configuration'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+
+  $form['app'][HRM_VAR_ADMIN_APP_VERSION] = array(
+    '#type' => 'textfield',
+    '#title' => 'App Version',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_APP_VERSION, ''),
+    '#required' => TRUE,
+  );
+  return system_settings_form($form);
+}
+
+/*
+ * Dashboard
+ */
+
+function hrm_administration_dashboard_configuration_page() {
+  return 'Dashboard';
+}
+
+/*
+ * Emails Configuration
+ */
+
+function hrm_administration_emails_configuration_page() {
+  return drupal_get_form('hrm_administration_emails_configuration_form');
+}
+
+function hrm_administration_emails_configuration_form($form, &$form_state) {
+  $form['emails'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Emails Configuration',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+
+  $form['emails'][HRM_VAR_ADMIN_EMAIL_SENDER_NAME] = array(
+    '#type' => 'textfield',
+    '#title' => 'Sender Name',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_EMAIL_SENDER_NAME, 'ResponseHRM'),
+    '#required' => TRUE,
+  );
+  $form['emails'][HRM_VAR_ADMIN_EMAIL_SENDER_EMAIL] = array(
+    '#type' => 'textfield',
+    '#title' => 'Sender email address',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_EMAIL_SENDER_EMAIL, 'no-responsehrm.com'),
+    '#required' => TRUE,
+  );
+
+  $form['emails'][HRM_VAR_ADMIN_EMAIL_BCC_EMAIL] = array(
+    '#type' => 'textfield',
+    '#title' => 'BCC email address',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_EMAIL_BCC_EMAIL, ''),
+    '#required' => FALSE,
+  );
+
+  $form['emails'][HRM_VAR_ADMIN_EMAIL_HEADER_IMAGE] = array(
+    '#type' => 'managed_file',
+    '#title' => 'Email header image',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_EMAIL_HEADER_IMAGE, ''),
+    '#upload_location' => strtr(HRM_DIR_ADMIN, array('%type' => 'emails')),
+    '#upload_validators' => array('file_validate_extensions' => array(HRM_FILE_EXT_PICTURE_PNG)),
+    '#required' => TRUE,
+    '#description' => HRM_FILE_EXT_DESC_PICTURE_PNG,
+  );
+
+  $form['emails'][HRM_VAR_ADMIN_EMAIL_FOOTER] = array(
+    '#type' => 'textarea',
+    '#title' => 'Footer content',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_EMAIL_FOOTER, ''),
+    '#required' => TRUE,
+  );
+  $form['#submit'][] = 'hrm_administration_emails_configuration_form_submit';
+  return system_settings_form($form);
+}
+
+function hrm_administration_emails_configuration_form_submit($form, &$form_state) {
+  global $user;
+
+  $prev_email_header = variable_get(HRM_VAR_ADMIN_EMAIL_HEADER_IMAGE, '');
+  if ($form_state['values'][HRM_VAR_ADMIN_EMAIL_HEADER_IMAGE] != $prev_email_header) {
+    $file = file_load($form_state['values'][HRM_VAR_ADMIN_EMAIL_HEADER_IMAGE]);
+    if ($file) {
+      $file->status = FILE_STATUS_PERMANENT;
+      file_save($file);
+      file_usage_add($file, HRM_MODULE_ADMINISTRATION, 'emails_header_image', $user->uid);
+    }
+
+    if ($prev_email_header) {
+      $file = file_load($prev_email_header);
+      if ($file) {
+        file_usage_delete($file, HRM_MODULE_ADMINISTRATION);
+        file_delete($file);
+      }
+    }
+  }
+}
+
+/*
+ * Locations and Maps
+ */
+
+function hrm_administration_location_configuration_page() {
+  return drupal_get_form('hrm_administration_location_configuration_form');
+}
+
+function hrm_administration_location_configuration_form($form, &$form_state) {
+  $form['location'] = array('#markup' => 'Locations');
+
+  return system_settings_form($form);
+}
+
+/*
+ * APIs and Keys
+ */
+
+function hrm_administration_api_keys_configuration_page() {
+  return drupal_get_form('hrm_administration_api_keys_configuration_form');
+}
+
+function hrm_administration_api_keys_configuration_form($form, &$form_state) {
+  $form['google'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Google APIs - Configuration',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  $form['google'][HRM_VAR_ADMIN_API_GOOGLE_MAP_API_KEY] = array(
+    '#type' => 'textfield',
+    '#title' => 'Google map API key',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_API_GOOGLE_MAP_API_KEY, ''),
+    '#required' => TRUE,
+  );
+
+  $form['firebase'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Firebase APIs - Configuration',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  $form['firebase'][HRM_VAR_ADMIN_API_FIREBASE_PROJECT_NAME] = array(
+    '#type' => 'textfield',
+    '#title' => 'Project name',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_API_FIREBASE_PROJECT_NAME, ''),
+    '#required' => TRUE,
+  );
+  $form['firebase'][HRM_VAR_ADMIN_API_FIREBASE_PROJECT_ID] = array(
+    '#type' => 'textfield',
+    '#title' => 'Project ID',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_API_FIREBASE_PROJECT_ID, ''),
+    '#required' => TRUE,
+  );
+  $form['firebase'][HRM_VAR_ADMIN_API_FIREBASE_URL] = array(
+    '#type' => 'textfield',
+    '#title' => 'URL',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_API_FIREBASE_URL, ''),
+    '#required' => TRUE,
+  );
+  $form['firebase'][HRM_VAR_ADMIN_API_FIREBASE_SENDER_ID] = array(
+    '#type' => 'textfield',
+    '#title' => 'Sender ID',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_API_FIREBASE_SENDER_ID, ''),
+    '#required' => TRUE,
+  );
+  $form['firebase'][HRM_VAR_ADMIN_API_FIREBASE_SERVER_KEY] = array(
+    '#type' => 'textarea',
+    '#title' => 'Server key',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_API_FIREBASE_SERVER_KEY, ''),
+    '#required' => TRUE,
+    '#rows' => 2,
+    '#resizable' => FALSE,
+  );
+  $form['firebase'][HRM_VAR_ADMIN_API_FIREBASE_SERVER_KEY_LEGACY] = array(
+    '#type' => 'textfield',
+    '#title' => '*Legacy server key',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_API_FIREBASE_SERVER_KEY_LEGACY, ''),
+    '#required' => TRUE,
+  );
+
+  $form['firebase'][HRM_VAR_ADMIN_API_FIREBASE_GOOGLE_SERVICES_JSON] = array(
+    '#type' => 'textarea',
+    '#title' => 'google-services.json',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_API_FIREBASE_GOOGLE_SERVICES_JSON, ''),
+    '#required' => TRUE,
+    '#rows' => 10,
+    '#resizable' => FALSE,
+  );
+
+  return system_settings_form($form);
+}
+
+/*
+ * Date and Time
+ */
+
+function hrm_administration_date_time_configuration_page() {
+  return drupal_get_form('hrm_administration_date_time_configuration_form');
+}
+
+function hrm_administration_date_time_configuration_form($form, &$form_state) {
+  $form[HRM_VAR_ADMIN_DATE_TIMEZONE] = array(
+    '#type' => 'textfield',
+    '#title' => 'Timezone',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_DATE_TIMEZONE, ''),
+    '#required' => TRUE,
+  );
+
+
+  return system_settings_form($form);
+}
+
+/*
+ * Users Management
+ */
+
+function hrm_administration_users_configuration_page() {
+  return drupal_get_form('hrm_administration_users_configuration_form');
+}
+
+function hrm_administration_users_configuration_form($form, &$form_state) {
+  $all_roles = user_roles();
+  $roles = $all_roles;
+  unset($roles[HRM_ROLE_ANONYMOUS]);
+  unset($roles[HRM_ROLE_AUTHENTICATED]);
+  
+  //Roles Configuration
+  $form['roles'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Roles Configuration',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  //Names and Abbrevaition
+  $form['roles']['titles'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Names',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  $form['roles']['titles_abbrev'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Abbreviations',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  foreach ($all_roles as $key => $value) {
+    $var_name = HRM_VAR_ADMIN_USERS_ROLE_NAME . $key;
+    $form['roles']['titles'][$var_name] = array(
+      '#type' => 'textfield',
+      '#title' => $value . ' - ' . $key,
+      '#default_value' => variable_get($var_name, $value),
+      '#required' => TRUE,
+    );
+
+    $var_name_abbrev = HRM_VAR_ADMIN_USERS_ROLE_NAME_ABBREV . $key;
+    $form['roles']['titles_abbrev'][$var_name_abbrev] = array(
+      '#type' => 'textfield',
+      '#title' => $value . ' - ' . $key,
+      '#default_value' => variable_get($var_name_abbrev, $value),
+      '#required' => TRUE,
+    );
+  }
+
+  return system_settings_form($form);
+}
+
+/*
+ * Workflow
+ */
+
+function hrm_administration_workflow_configuration_page($type = 'entity') {
+  switch ($type) {
+    case 'entity':
+      return drupal_get_form('hrm_administration_workflow_configuration_entity_form');
+      break;
+    case 'actions':
+      return drupal_get_form('hrm_administration_workflow_configuration_actions_form');
+      break;
+    case 'global':
+      return drupal_get_form('hrm_administration_workflow_configuration_global_form');
+      break;
+  }
+}
+
+function hrm_administration_workflow_configuration_entity_form($form, &$form_state) {
+  //Action titles  
+  $form['names'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+    '#title' => 'Entity Names',);
+  
+  $entity_names = hrm_basic_entity_names();
+  foreach ($entity_names as $key => $value) {
+    $var_name = HRM_VAR_ADMIN_WF_ENTITY_NAME . $key;
+    $title = $key;
+    $default = variable_get($var_name, $value);
+    $form['names'][$var_name] = array(
+      '#type' => 'textfield',
+      '#title' => $title,
+      '#default_value' => $default,
+      '#required' => TRUE,
+    );
+  }
+
+  //Status Icons  
+  $form['icons'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+    '#title' => 'Icons',);
+
+  $entity_icons = hrm_basic_entity_icons();
+  foreach ($entity_icons as $key => $value) {
+    $var_name = HRM_VAR_ADMIN_WF_ENTITY_ICON . $key;
+
+    $title = $key;
+    $default = variable_get($var_name, $value);
+    $form['icons'][$var_name] = array(
+      '#type' => 'textfield',
+      '#title' => $title,
+      '#default_value' => $default,
+      '#required' => TRUE,
+      '#field_suffix' => $default,
+    );
+  }
+  return system_settings_form($form);
+}
+
+function hrm_administration_workflow_configuration_actions_form($form, &$form_state) {
+  //Action titles  
+  $form['titles'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+    '#title' => 'Actions Title',
+  );
+  //hrm_basic_here
+  $actions_title = hrm_basic_actions_title();  
+  foreach ($actions_title as $key => $value) {
+    $var_name = HRM_VAR_ADMIN_WF_ACTION_TITLE . $key;
+    $title = $key;
+    $form['titles'][$var_name] = array(
+      '#type' => 'textfield',
+      '#title' => $title,
+      '#default_value' => variable_get($var_name, $value),
+      '#required' => TRUE,
+    );
+  }
+
+  //Action Content  
+  $form['content'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+    '#title' => 'Actions Content',
+  );  
+  $actions_content = hrm_basic_actions_content();  
+  foreach ($actions_content as $key => $value) {
+    $var_name = HRM_VAR_ADMIN_WF_ACTION_CONTENT . $key;
+    $title = $key;
+    $form['content'][$var_name] = array(
+      '#type' => 'textarea',
+      '#title' => $title,
+      '#default_value' => variable_get($var_name, $value),
+      '#required' => TRUE,
+      '#rows' => 2,
+      '#resizable' => FALSE,
+    );
+  }
+
+  //Status Icons  
+  $form['icons'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+    '#title' => 'Icons',
+  );  
+  $actions_icon = hrm_basic_actions_icons();
+  foreach ($actions_icon as $key => $value) {
+    $var_name = HRM_VAR_ADMIN_WF_ACTION_ICON . $key;
+
+    $title = $key;
+    $default = variable_get($var_name, $value);
+    $form['icons'][$var_name] = array(
+      '#type' => 'textfield',
+      '#title' => $title,
+      '#default_value' => $default,
+      '#required' => TRUE,
+      '#field_suffix' => $default,
+    );
+  }
+
+  return system_settings_form($form);
+}
+
+function hrm_administration_workflow_configuration_global_form($form, &$form_state) {
+  /*
+   * Serial number
+   */
+  $form['sn'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Serial number',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  $form['sn'][HRM_VAR_ADMIN_WF_GL_SERIAL_NUMBER_SEQUENCE] = array(
+    '#type' => 'textfield',
+    '#title' => 'Next Serial Number',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_WF_GL_SERIAL_NUMBER_SEQUENCE, 1),
+    '#required' => TRUE,
+  );
+  return system_settings_form($form);
+}
+
+/*
+ * LOVs functions
+ */
+
+function hrm_administration_lovs() {
+  $lovs = hrm_administration_lovs_get_lovs_data();
+
+  $rows = array();
+  foreach ($lovs as $lov) {
+    $rows[]['data'] = array(
+      array('data' => $lov['lid']),
+      array('data' => l($lov['e_name'], 'admin/hrm-administration/lov/' . $lov['lid'])),
+      array('data' => $lov['key_name']),
+      array('data' => $lov['key_value']),
+      array('data' => $lov['groups_count']),
+      array('data' => $lov['options_count']),
+      array('data' => $lov['weight']),
+      array('data' => l('Edit', 'admin/hrm-administration/lov/' . $lov['lid'] . '/edit')),
+    );
+  }
+
+  $header = array(
+    array('data' => 'ID'),
+    array('data' => 'Name'),
+    array('data' => 'Key Name'),
+    array('data' => 'Key Value'),
+    array('data' => 'Groups #'),
+    array('data' => 'Options #'),
+    array('data' => 'Weight'),
+    array('data' => 'Edit'),
+  );
+  $list = array(
+    'attributes' => array('class' => array()),
+    'header' => $header,
+    'rows' => $rows
+  );
+
+  return theme('table', $list);
+}
+
+function hrm_administration_lovs_lov_options($lid) {
+  $lov = hrm_administration_lovs_get_lovs_data(array(array('field' => 'lid', 'value' => $lid)), array(), TRUE);
+
+  drupal_set_title($lov['e_name'] . ' LOV');
+
+  $rows = array();
+  foreach ($lov['options'] as $option) {
+    $group = '';
+    if ($option['gid'] && isset($lov['groups'][$option['gid']]['e_name'])) {
+      $group = $lov['groups'][$option['gid']]['e_name'];
+    }
+    $option_class = (!empty($option['class']) ? explode(' ', $option['class']) : array());
+    foreach($option_class as $class_key => $class_value){
+      $option_class[$class_key] = 'text-' . $class_value;
+    }
+    $rows[]['data'] = array(
+      'oid' => array('data' => $option['oid']),
+      'e_name' => array('data' => $option['e_name'], 'class' => $option_class),
+      'a_name' => array('data' => $option['a_name'], 'class' => $option_class),
+      'abbrev' => array('data' => $option['abbrev']),
+      'key_name' => array('data' => $option['key_name']),
+      'key_value' => array('data' => $option['key_value']),
+      'group' => array('data' => $group),
+      'score' => array('data' => ($option['score'] ? $option['score'] : '')),
+      'weight' => array('data' => $option['weight']),
+      'edit' => array('data' => l('Edit', 'admin/hrm-administration/lov/' . $lov['lid'] . '/option/' . $option['oid'] . '/edit')),
+    );
+  }
+
+  $header = array(
+    array('data' => 'ID'),
+    array('data' => 'E Name'),
+    array('data' => 'A Name'),
+    array('data' => 'Abbreviation'),
+    array('data' => 'Key Name'),
+    array('data' => 'Key Value'),
+    array('data' => 'Group'),
+    array('data' => 'Score'),
+    array('data' => 'Weight'),
+    array('data' => 'Edit'),
+  );
+  $list = array(
+    'attributes' => array('class' => array()),
+    'header' => $header,
+    'rows' => $rows
+  );
+
+  return theme('table', $list);
+}
+
+function hrm_administration_lovs_lov_groups($lid) {
+  $lov = hrm_administration_lovs_get_lovs_data(array(array('field' => 'lid', 'value' => $lid)), array(), TRUE);
+
+  drupal_set_title($lov['e_name']);
+
+  $rows = array();
+  foreach ($lov['groups'] as $group) {
+    $rows[]['data'] = array(
+      'gid' => array('data' => $group['gid']),
+      'e_name' => array('data' => $group['e_name']),
+      'a_name' => array('data' => $group['a_name']),
+      'abbrev' => array('data' => $group['abbrev']),
+      'key_name' => array('data' => $group['key_name']),
+      'key_value' => array('data' => $group['key_value']),
+      'options_count' => array('data' => $group['options_count']),
+      'weight' => array('data' => $group['weight']),
+      'edit' => array('data' => l('Edit', 'admin/hrm-administration/lov/' . $lov['lid'] . '/group/' . $group['gid'] . '/edit')),
+    );
+  }
+
+  $header = array(
+    array('data' => 'ID'),
+    array('data' => 'E Name'),
+    array('data' => 'A Name'),
+    array('data' => 'Abbreviation'),
+    array('data' => 'Key Name'),
+    array('data' => 'Key Value'),
+    array('data' => 'Options #'),
+    array('data' => 'Weight'),
+    array('data' => 'Edit'),
+  );
+  $list = array(
+    'attributes' => array('class' => array()),
+    'header' => $header,
+    'rows' => $rows
+  );
+
+  return theme('table', $list);
+}
+
+function hrm_administration_lovs_get_lovs_data($filters = array(), $sort = array(), $first_item = FALSE) {
+  if (empty($sort)) {
+    $sort[] = array('field' => 'weight');
+  }
+
+  $query = db_select('hrm_lov')
+      ->fields('hrm_lov', array('lid', 'key_name', 'key_value', 'e_name', 'a_name', 'description', 'weight'));
+  if (!empty($filters)) {
+    foreach ($filters as $filter) {
+      $operator = (isset($filter['operator']) ? $filter['operator'] : '=');
+      $field = (isset($filter['table']) ? $filter['table'] . '.' . $filter['field'] : $filter['field']);
+      $query->condition($field, $filter['value'], $operator);
+    }
+  }
+  if (!empty($sort)) {
+    foreach ($sort as $sort_field) {
+      $sort_field = (isset($sort_field['table']) ? $sort_field['table'] . '.' . $sort_field['field'] : $sort_field['field']);
+      $sort_direction = (isset($sort_field['direction']) ? $sort_field['direction'] : 'ASC');
+      if (isset($sort_field['table'])) {
+        $field = $sort_field['table'] . '.' . $sort_field['field'];
+      }
+      $query->orderBy($sort_field, $sort_direction);
+    }
+  }
+  $lovs = $query->execute()->fetchAllAssoc('lid', PDO::FETCH_ASSOC);
+
+  $groups_options_count_query = db_select('hrm_lov_option', 'hrm_lov_option')
+      ->fields('hrm_lov_option', array('gid'));
+  $groups_options_count_query->addExpression('COUNT(*)', 'options_count');
+  $groups_options_count_query->groupBy('gid');
+  $groups_options_count = $groups_options_count_query->execute()->fetchAllKeyed(0, 1);
+
+  foreach ($lovs as $lid => $row) {
+    $lovs[$lid]['options'] = db_select('hrm_lov_option')
+            ->fields('hrm_lov_option', array('oid', 'lid', 'gid', 'key_name', 'key_value', 'e_name', 'a_name',
+              'abbrev', 'score', 'fa_icon', 'class', 'ref_1', 'ref_2', 'description', 'weight'))
+            ->condition('lid', $lid, '=')
+            ->orderBy('weight')
+            ->execute()->fetchAllAssoc('oid', PDO::FETCH_ASSOC);
+
+    $lovs[$lid]['groups'] = db_select('hrm_lov_group')
+            ->fields('hrm_lov_group', array('gid', 'lid', 'key_name', 'key_value', 'e_name', 'a_name', 'abbrev', 'description', 'weight'))
+            ->condition('lid', $lid, '=')
+            ->execute()->fetchAllAssoc('gid', PDO::FETCH_ASSOC);
+    if (!empty($lovs[$lid]['groups'])) {
+      foreach ($lovs[$lid]['groups'] as $gid => $group_row) {
+        $lovs[$lid]['groups'][$gid]['options_count'] = (isset($groups_options_count[$gid]) ? $groups_options_count[$gid] : 0);
+      }
+    }
+
+    $lovs[$lid]['options_count'] = count($lovs[$lid]['options']);
+    $lovs[$lid]['groups_count'] = count($lovs[$lid]['groups']);
+  }
+
+  if ($first_item) {
+    return reset($lovs);
+  }
+
+
+  return $lovs;
+}
+
+/*
+ * LOV Add/Edit
+ */
+
+function hrm_administration_lovs_lov_add_form($form, &$form_state) {
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+  $form['key_name'] = array(
+    '#type' => 'machine_name',
+    '#maxlength' => 255,
+    '#machine_name' => array(
+      'exists' => 'hrm_administration_lovs_lov_add_form_validate',
+    ),
+  );
+  $form['key_value'] = array(
+    '#title' => 'Key Value',
+    '#type' => 'textfield',
+    '#maxlength' => 11,
+    '#element_validate' => array('element_validate_integer'),
+    '#attributes' => array('class' => array())
+  );
+  $form['a_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Arabic Name'),
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Description'),
+  );
+  $form['weight'] = array(
+    '#title' => 'Weight',
+    '#type' => 'weight',
+    '#required' => TRUE,
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+
+  return $form;
+}
+
+function hrm_administration_lovs_lov_add_form_validate($form, &$form_state) {
+  if (isset($form_state['values']['key_name'])) {
+    $key_name = $form_state['values']['key_name'];
+    $exists = db_select('hrm_lov')
+            ->fields('hrm_lov', array('key_name'))
+            ->condition('key_name', $key_name, '=')
+            ->execute()->fetchField(0);
+    if ($key_name == $exists) {
+      form_set_error('key_name', t('The machine-readable name already exists.'));
+    }
+  }
+  if (isset($form_state['values']['key_value'])) {
+    $key_value = $form_state['values']['key_value'];
+    $exists = db_select('hrm_lov')
+            ->fields('hrm_lov', array('key_value'))
+            ->condition('key_value', $key_value, '=')
+            ->execute()->fetchField(0);
+    if ($key_value == $exists) {
+      form_set_error('key_value', t('Key value already exists.'));
+    }
+  }
+}
+
+function hrm_administration_lovs_lov_add_form_submit($form, &$form_state) {
+  db_insert('hrm_lov')
+      ->fields(array(
+        'key_name' => $form_state['values']['key_name'],
+        'key_value' => $form_state['values']['key_value'],
+        'e_name' => $form_state['values']['name'],
+        'a_name' => $form_state['values']['a_name'],
+        'description' => $form_state['values']['description'],
+        'weight' => $form_state['values']['weight'],
+      ))
+      ->execute();
+  drupal_set_message(t('Created new LOV %name.', array('%name' => $form_state['values']['name'])));
+  watchdog('hrm_administration', 'Created new LOV %name.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE);
+  $form_state['redirect'] = 'admin/hrm-administration/lov';
+}
+
+function hrm_administration_lovs_lov_edit_form($form, &$form_state, $lid) {
+  if (!isset($form_state['lov'])) {
+    $form_state['lov'] = hrm_administration_lovs_get_lovs_data(array(array('field' => 'lid', 'value' => $lid)), array(), TRUE);
+    if (empty($form_state['lov'])) {
+      drupal_set_message('LOV not found', 'error');
+      drupal_goto('admin/hrm-administration/lov');
+    }
+  }
+  $lov = $form_state['lov'];
+
+
+  if (isset($form_state['confirm_delete']) && $form_state['confirm_delete'] && isset($form_state['lov']['lid'])) {
+    $question = t('Are you sure you want to delete the vocabulary %title?', array('%title' => $lov['e_name']));
+    drupal_set_title($question, PASS_THROUGH);
+
+    $confirm_message = '<p>' . t('Deleting LOV will delete all the options in it. This action cannot be undone.') . '</p>';
+
+    $form['#attributes']['class'][] = 'confirmation';
+    $form['description'] = array('#markup' => $confirm_message);
+
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['confirm'] = array('#type' => 'submit', '#value' => t('Confirm Delete'));
+    $form['actions']['cancel'] = array('#type' => 'submit', '#value' => t('Cancel'));
+
+    if (!isset($form['#theme'])) {
+      $form['#theme'] = 'confirm_form';
+    }
+
+    return $form;
+  }
+
+  $form['lid'] = array('#type' => 'value', '#value' => $lid);
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+    '#default_value' => $lov['e_name'],
+  );
+  $form['key_name'] = array(
+    '#type' => 'machine_name',
+    '#maxlength' => 255,
+    '#machine_name' => array(
+      'exists' => 'hrm_administration_lovs_lov_edit_form_validate',
+    ),
+    '#default_value' => $lov['key_name'],
+  );
+  $form['key_value'] = array(
+    '#title' => 'Key Value',
+    '#type' => 'textfield',
+    '#maxlength' => 11,
+    '#element_validate' => array('element_validate_integer'),
+    '#attributes' => array('class' => array(),),
+    '#default_value' => $lov['key_value'],
+  );
+  $form['a_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Arabic Name'),
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $lov['a_name'],
+  );
+  $form['description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#default_value' => $lov['description'],
+  );
+  $form['weight'] = array(
+    '#title' => 'Weight',
+    '#type' => 'weight',
+    '#required' => TRUE,
+    '#default_value' => $lov['weight'],
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+  $form['actions']['delete'] = array('#type' => 'submit', '#value' => t('Delete'));
+
+  return $form;
+}
+
+function hrm_administration_lovs_lov_edit_form_validate($form, &$form_state) {
+  if (isset($form_state['values']['key_name'])) {
+    $key_name = $form_state['values']['key_name'];
+    $exists = db_select('hrm_lov')
+            ->fields('hrm_lov', array('key_name'))
+            ->condition('key_name', $key_name, '=')
+            ->condition('lid', $form_state['values']['lid'], '<>')
+            ->execute()->fetchField(0);
+    if ($key_name == $exists) {
+      form_set_error('key_name', t('The machine-readable name already exists.'));
+    }
+  }
+  if (isset($form_state['values']['key_value'])) {
+    $key_value = $form_state['values']['key_value'];
+    $exists = db_select('hrm_lov')
+            ->fields('hrm_lov', array('key_value'))
+            ->condition('key_value', $key_value, '=')
+            ->condition('lid', $form_state['values']['lid'], '<>')
+            ->execute()->fetchField(0);
+    if ($key_value == $exists) {
+      form_set_error('key_value', t('Key already exists.'));
+    }
+  }
+}
+
+function hrm_administration_lovs_lov_edit_form_submit($form, &$form_state) {
+  $lid = $form_state['lov']['lid'];
+
+  if ($form_state['triggering_element']['#value'] == t('Delete')) {
+    $form_state['rebuild'] = TRUE;
+    $form_state['confirm_delete'] = TRUE;
+    return;
+  }
+  if ($form_state['triggering_element']['#value'] == t('Confirm Delete')) {
+    db_delete('hrm_lov')
+        ->condition('lid', $lid, '=')
+        ->execute();
+    db_delete('hrm_lov_option')
+        ->condition('lid', $lid, '=')
+        ->execute();
+    drupal_set_message(t('Deleted LOV %name.', array('%name' => $form_state['lov']['e_name'])));
+    watchdog('hrm_administration', 'Deleted LOV %name.', array('%name' => $form_state['lov']['e_name']), WATCHDOG_NOTICE);
+    $form_state['redirect'] = 'admin/hrm-administration/lov';
+    return;
+  }
+  if ($form_state['triggering_element']['#value'] == t('Cancel')) {
+    $form_state['rebuild'] = TRUE;
+    $form_state['confirm_delete'] = FALSE;
+    return;
+  }
+
+  db_update('hrm_lov')
+      ->fields(array(
+        'key_name' => $form_state['values']['key_name'],
+        'key_value' => $form_state['values']['key_value'],
+        'e_name' => $form_state['values']['name'],
+        'a_name' => $form_state['values']['a_name'],
+        'description' => $form_state['values']['description'],
+        'weight' => $form_state['values']['weight'],
+      ))
+      ->condition('lid', $lid, '=')
+      ->execute();
+  drupal_set_message(t('Updated LOV %name.', array('%name' => $form_state['lov']['e_name'])));
+  watchdog('hrm_administration', 'Updated LOV %name.', array('%name' => $form_state['lov']['e_name']), WATCHDOG_NOTICE);
+  $form_state['redirect'] = 'admin/hrm-administration/lov';
+}
+
+/*
+ * LOV Add option functions
+ */
+
+function hrm_administration_lovs_lov_option_add_form($form, &$form_state, $lid) {
+  if (!isset($form_state['lov'])) {
+    $form_state['lov'] = hrm_administration_lovs_get_lovs_data(array(array('field' => 'lid', 'value' => $lid)), array(), TRUE);
+    if (empty($form_state['lov'])) {
+      drupal_set_message('LOV not found', 'error');
+      drupal_goto('admin/hrm-administration/lov');
+    }
+  }
+  $lov = $form_state['lov'];
+
+  drupal_set_title($lov['e_name'] . ' - Add options');
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Name',
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+  $form['key_name'] = array(
+    '#type' => 'machine_name',
+    '#maxlength' => 255,
+    '#machine_name' => array(
+      'exists' => 'hrm_administration_lovs_lov_option_add_form_validate',
+    ),
+    '#required' => FALSE,
+  );
+  $form['key_value'] = array(
+    '#title' => 'Key Value',
+    '#type' => 'textfield',
+    '#maxlength' => 11,
+    '#element_validate' => array('element_validate_integer'),
+    '#attributes' => array('class' => array(),),
+    '#required' => FALSE,
+  );
+  $form['a_name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Arabic Name',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+
+  $groups = hrm_basic_lov_get_lov_groups_list($lov['key_name']);
+  $form['group'] = array(
+    '#type' => 'select',
+    '#title' => 'Group',
+    '#options' => $groups,
+    '#required' => FALSE,
+    '#empty_option' => ' - None - ',
+    '#empty_value' => 0,
+  );
+  $form['abbrev'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Abbreviation',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['score'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Score',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['fa_icon'] = array(
+    '#type' => 'textfield',
+    '#title' => 'FA Icon',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['option_class'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Class',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['ref_1'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Reference 1',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['ref_2'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Reference 2',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Description'),
+  );
+  $form['weight'] = array(
+    '#title' => 'Weight',
+    '#type' => 'weight',
+    '#required' => TRUE,
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+
+  return $form;
+}
+
+function hrm_administration_lovs_lov_option_add_form_validate($form, &$form_state) {
+  if (isset($form_state['values']['key_name']) && !empty($form_state['values']['key_name'])) {
+    $lov = $form_state['lov'];
+
+    $key_name = $form_state['values']['key_name'];
+    $exists = db_select('hrm_lov_option')
+            ->fields('hrm_lov_option', array('key_name'))
+            ->condition('key_name', $key_name, '=')
+            ->condition('lid', $lov['lid'], '=')
+            ->execute()->fetchField(0);
+    if ($key_name == $exists) {
+      form_set_error('key_name', t('The machine-readable name already exists.'));
+    }
+  }
+}
+
+function hrm_administration_lovs_lov_option_add_form_submit($form, &$form_state) {
+  $lov = $form_state['lov'];
+
+  db_insert('hrm_lov_option')
+      ->fields(array(
+        'lid' => $lov['lid'],
+        'gid' => $form_state['values']['group'],
+        'key_name' => $form_state['values']['key_name'],
+        'key_value' => $form_state['values']['key_value'],
+        'e_name' => $form_state['values']['name'],
+        'a_name' => $form_state['values']['a_name'],
+        'abbrev' => $form_state['values']['abbrev'],
+        'score' => ($form_state['values']['score'] ? $form_state['values']['score'] : 0),
+        'fa_icon' => ($form_state['values']['fa_icon'] ? $form_state['values']['fa_icon'] : ''),
+        'class' => (!empty($form_state['values']['option_class']) ? $form_state['values']['option_class'] : ''),
+        'ref_1' => ($form_state['values']['ref_1'] ? $form_state['values']['ref_1'] : 0),
+        'ref_2' => ($form_state['values']['ref_2'] ? $form_state['values']['ref_2'] : 0),
+        'description' => $form_state['values']['description'],
+        'weight' => $form_state['values']['weight'],
+      ))
+      ->execute();
+  drupal_set_message(t('Created new LOV option %name.', array('%name' => $form_state['values']['name'])));
+  watchdog('hrm_administration', 'Created new LOV option %name.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE);
+  $form_state['redirect'] = 'admin/hrm-administration/lov/' . $lov['lid'];
+}
+
+function hrm_administration_lovs_lov_option_edit_form($form, &$form_state, $lid, $oid) {
+  if (!isset($form_state['lov'])) {
+    $lov = hrm_administration_lovs_get_lovs_data(array(array('field' => 'lid', 'value' => $lid)), array(), TRUE);
+    if (empty($form_state['lov']) && !isset($lov['options'][$oid])) {
+      drupal_set_message('LOV or LOV option not found', 'error');
+      drupal_goto('admin/hrm-administration/lov');
+    }
+    $form_state['lov'] = $lov;
+    $form_state['lov_option'] = $form_state['lov']['options'][$oid];
+  }
+  $lov = $form_state['lov'];
+  $option = $form_state['lov']['options'][$oid];
+
+  if (isset($form_state['confirm_delete']) && $form_state['confirm_delete'] && isset($form_state['lov']['lid'])) {
+    $question = t('Are you sure you want to delete the vocabulary %title?', array('%title' => $lov['e_name']));
+    drupal_set_title($question, PASS_THROUGH);
+
+    $confirm_message = '<p>' . t('Deleting LOV will delete all the options in it. This action cannot be undone.') . '</p>';
+
+    $form['#attributes']['class'][] = 'confirmation';
+    $form['description'] = array('#markup' => $confirm_message);
+
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['confirm'] = array('#type' => 'submit', '#value' => t('Confirm Delete'));
+    $form['actions']['cancel'] = array('#type' => 'submit', '#value' => t('Cancel'));
+
+    if (!isset($form['#theme'])) {
+      $form['#theme'] = 'confirm_form';
+    }
+
+    return $form;
+  }
+
+  $form['lid'] = array('#type' => 'value', '#value' => $lid);
+  $form['oid'] = array('#type' => 'value', '#value' => $oid);
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Name',
+    '#maxlength' => 255,
+    '#required' => TRUE,
+    '#default_value' => $option['e_name'],
+  );
+  $form['key_name'] = array(
+    '#type' => 'machine_name',
+    '#maxlength' => 255,
+    '#machine_name' => array(
+      'exists' => 'hrm_administration_lovs_lov_option_edit_form_validate',
+    ),
+    '#default_value' => $option['key_name'],
+    '#required' => FALSE,
+  );
+  $form['key_value'] = array(
+    '#title' => 'Key Value',
+    '#type' => 'textfield',
+    '#maxlength' => 11,
+    '#element_validate' => array('element_validate_integer'),
+    '#attributes' => array('class' => array(),),
+    '#default_value' => $option['key_value'],
+    '#required' => FALSE,
+  );
+
+  $groups = hrm_basic_lov_get_lov_groups_list($lov['key_name']);
+  $form['group'] = array(
+    '#type' => 'select',
+    '#title' => 'Group',
+    '#options' => $groups,
+    '#required' => FALSE,
+    '#empty_option' => ' - None - ',
+    '#empty_value' => 0,
+    '#default_value' => $option['gid'],
+  );
+
+  $form['a_name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Arabic Name',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $option['a_name'],
+  );
+  $form['abbrev'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Abbreviation',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $option['abbrev'],
+  );
+  $form['score'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Score',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $option['score'],
+  );
+  $form['fa_icon'] = array(
+    '#type' => 'textfield',
+    '#title' => 'FA Icon',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $option['fa_icon'],
+  );
+  $form['option_class'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Class',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $option['class'],
+  );
+  $form['ref_1'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Reference 1',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $option['ref_1'],
+  );
+  $form['ref_2'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Reference 2',
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $option['ref_2'],
+  );
+  $form['description'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Description',
+    '#default_value' => $option['description'],
+  );
+  $form['weight'] = array(
+    '#title' => 'Weight',
+    '#type' => 'weight',
+    '#required' => TRUE,
+    '#default_value' => $option['weight'],
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+  $form['actions']['delete'] = array('#type' => 'submit', '#value' => t('Delete'));
+
+  return $form;
+}
+
+function hrm_administration_lovs_lov_option_edit_form_validate($form, &$form_state) {
+  if (isset($form_state['values']['key_name']) && !empty($form_state['values']['key_name'])) {
+    $lov = $form_state['lov'];
+    $key_name = $form_state['values']['key_name'];
+    $exists = db_select('hrm_lov_option')
+            ->fields('hrm_lov_option', array('key_name'))
+            ->condition('key_name', $lov['lid'], '=')
+            ->condition('lid', $key_name, '=')
+            ->condition('oid', $form_state['values']['oid'], '<>')
+            ->execute()->fetchField(0);
+    if ($key_name == $exists) {
+      form_set_error('key_name', t('The machine-readable name already exists.'));
+    }
+  }
+}
+
+function hrm_administration_lovs_lov_option_edit_form_submit($form, &$form_state) {
+  $lid = $form_state['lov']['lid'];
+  $oid = $form_state['lov_option']['oid'];
+
+  if ($form_state['triggering_element']['#value'] == t('Delete')) {
+    $form_state['rebuild'] = TRUE;
+    $form_state['confirm_delete'] = TRUE;
+    return;
+  }
+  if ($form_state['triggering_element']['#value'] == t('Confirm Delete')) {
+    db_delete('hrm_lov_option')
+        ->condition('oid', $oid, '=')
+        ->execute();
+    drupal_set_message(t('Deleted LOV option %name.', array('%name' => $form_state['lov_option']['e_name'])));
+    watchdog('hrm_administration', 'Deleted LOV %name.', array('%name' => $form_state['lov_option']['e_name']), WATCHDOG_NOTICE);
+    $form_state['redirect'] = 'admin/hrm-administration/lov/' . $lid;
+    return;
+  }
+  if ($form_state['triggering_element']['#value'] == t('Cancel')) {
+    $form_state['rebuild'] = TRUE;
+    $form_state['confirm_delete'] = FALSE;
+    return;
+  }
+
+  db_update('hrm_lov_option')
+      ->fields(array(
+        'gid' => $form_state['values']['group'],
+        'key_name' => $form_state['values']['key_name'],
+        'key_value' => $form_state['values']['key_value'],
+        'e_name' => $form_state['values']['name'],
+        'a_name' => $form_state['values']['a_name'],
+        'abbrev' => $form_state['values']['abbrev'],
+        'score' => ($form_state['values']['score'] ? $form_state['values']['score'] : 0),
+        'fa_icon' => ($form_state['values']['fa_icon'] ? $form_state['values']['fa_icon'] : ''),
+        'class' => (!empty($form_state['values']['option_class']) ? $form_state['values']['option_class'] : ''),
+        'ref_1' => ($form_state['values']['ref_1'] ? $form_state['values']['ref_1'] : 0),
+        'ref_2' => ($form_state['values']['ref_2'] ? $form_state['values']['ref_2'] : 0),
+        'description' => $form_state['values']['description'],
+        'weight' => $form_state['values']['weight'],
+      ))
+      ->condition('oid', $oid, '=')
+      ->execute();
+  drupal_set_message(t('Updated LOV option %name.', array('%name' => $form_state['lov']['e_name'])));
+  watchdog('hrm_administration', 'Updated LOV option %name.', array('%name' => $form_state['lov']['e_name']), WATCHDOG_NOTICE);
+  $form_state['redirect'] = 'admin/hrm-administration/lov/' . $lid;
+}
+
+/*
+ * LOV Add group functions
+ */
+
+function hrm_administration_lovs_lov_group_add_form($form, &$form_state, $lid) {
+  if (!isset($form_state['lov'])) {
+    $form_state['lov'] = hrm_administration_lovs_get_lovs_data(array(array('field' => 'lid', 'value' => $lid)), array(), TRUE);
+    if (empty($form_state['lov'])) {
+      drupal_set_message('LOV not found', 'error');
+      drupal_goto('admin/hrm-administration/lov');
+    }
+  }
+  $lov = $form_state['lov'];
+
+  drupal_set_title($lov['e_name'] . ' - Add group');
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+  $form['key_name'] = array(
+    '#type' => 'machine_name',
+    '#maxlength' => 255,
+    '#machine_name' => array(
+      'exists' => 'hrm_administration_lovs_lov_group_add_form_validate',
+    ),
+    '#required' => FALSE,
+  );
+  $form['key_value'] = array(
+    '#title' => 'Key Value',
+    '#type' => 'textfield',
+    '#maxlength' => 11,
+    '#element_validate' => array('element_validate_integer'),
+    '#attributes' => array('class' => array(),),
+    '#required' => FALSE,
+  );
+  $form['a_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Arabic Name'),
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['abbrev'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Abbreviation'),
+    '#maxlength' => 255,
+    '#required' => FALSE,
+  );
+  $form['description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Description'),
+  );
+  $form['weight'] = array(
+    '#title' => 'Weight',
+    '#type' => 'weight',
+    '#required' => TRUE,
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+
+  return $form;
+}
+
+function hrm_administration_lovs_lov_group_add_form_validate($form, &$form_state) {
+  
+}
+
+function hrm_administration_lovs_lov_group_add_form_submit($form, &$form_state) {
+  $lov = $form_state['lov'];
+
+  db_insert('hrm_lov_group')
+      ->fields(array(
+        'lid' => $lov['lid'],
+        'key_name' => $form_state['values']['key_name'],
+        'key_value' => $form_state['values']['key_value'],
+        'e_name' => $form_state['values']['name'],
+        'a_name' => $form_state['values']['a_name'],
+        'abbrev' => $form_state['values']['abbrev'],
+        'description' => $form_state['values']['description'],
+        'weight' => $form_state['values']['weight'],
+      ))
+      ->execute();
+  drupal_set_message(t('Created new LOV group %name.', array('%name' => $form_state['values']['name'])));
+  watchdog('hrm_administration', 'Created new LOV group %name.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE);
+  $form_state['redirect'] = 'admin/hrm-administration/lov/' . $lov['lid'] . '/group';
+}
+
+function hrm_administration_lovs_lov_group_edit_form($form, &$form_state, $lid, $gid) {
+  if (!isset($form_state['lov'])) {
+    $lov = hrm_administration_lovs_get_lovs_data(array(array('field' => 'lid', 'value' => $lid)), array(), TRUE);
+    if (empty($form_state['lov']) && !isset($lov['groups'][$gid])) {
+      drupal_set_message('LOV or LOV group not found', 'error');
+      drupal_goto('admin/hrm-administration/lov');
+    }
+    $form_state['lov'] = $lov;
+    $form_state['lov_group'] = $form_state['lov']['groups'][$gid];
+  }
+  $lov = $form_state['lov'];
+  $group = $form_state['lov']['groups'][$gid];
+
+  if (isset($form_state['confirm_delete']) && $form_state['confirm_delete'] && isset($form_state['lov']['lid'])) {
+    $question = t('Are you sure you want to delete the vocabulary %title?', array('%title' => $lov['e_name']));
+    drupal_set_title($question, PASS_THROUGH);
+
+    $confirm_message = '<p>' . t('Deleting LOV will delete all the groups in it. This action cannot be undone.') . '</p>';
+
+    $form['#attributes']['class'][] = 'confirmation';
+    $form['description'] = array('#markup' => $confirm_message);
+
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['confirm'] = array('#type' => 'submit', '#value' => t('Confirm Delete'));
+    $form['actions']['cancel'] = array('#type' => 'submit', '#value' => t('Cancel'));
+
+    if (!isset($form['#theme'])) {
+      $form['#theme'] = 'confirm_form';
+    }
+
+    return $form;
+  }
+
+  $form['lid'] = array('#type' => 'value', '#value' => $lid);
+  $form['gid'] = array('#type' => 'value', '#value' => $gid);
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+    '#default_value' => $group['e_name'],
+  );
+  $form['key_name'] = array(
+    '#type' => 'machine_name',
+    '#maxlength' => 255,
+    '#machine_name' => array(
+      'exists' => 'hrm_administration_lovs_lov_group_edit_form_validate',
+    ),
+    '#default_value' => $group['key_name'],
+    '#required' => FALSE,
+  );
+  $form['key_value'] = array(
+    '#title' => 'Key Value',
+    '#type' => 'textfield',
+    '#maxlength' => 11,
+    '#element_validate' => array('element_validate_integer'),
+    '#attributes' => array('class' => array(),),
+    '#default_value' => $group['key_value'],
+    '#required' => FALSE,
+  );
+  $form['a_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Arabic Name'),
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $group['a_name'],
+  );
+  $form['abbrev'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Abbreviation'),
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#default_value' => $group['abbrev'],
+  );
+  $form['description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#default_value' => $lov['description'],
+  );
+  $form['weight'] = array(
+    '#title' => 'Weight',
+    '#type' => 'weight',
+    '#required' => TRUE,
+    '#default_value' => $lov['weight'],
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+  $form['actions']['delete'] = array('#type' => 'submit', '#value' => t('Delete'));
+
+  return $form;
+}
+
+function hrm_administration_lovs_lov_group_edit_form_validate($form, &$form_state) {
+  if (isset($form_state['values']['key_name']) && !empty($form_state['values']['key_name'])) {
+    $key_name = $form_state['values']['key_name'];
+    $exists = db_select('hrm_lov_group')
+            ->fields('hrm_lov_group', array('key_name'))
+            ->condition('key_name', $key_name, '=')
+            ->condition('gid', $form_state['values']['gid'], '<>')
+            ->execute()->fetchField(0);
+    if ($key_name == $exists) {
+      form_set_error('key_name', t('The machine-readable name already exists.'));
+    }
+  }
+}
+
+function hrm_administration_lovs_lov_group_edit_form_submit($form, &$form_state) {
+  $lid = $form_state['lov']['lid'];
+  $gid = $form_state['lov_group']['gid'];
+
+  if ($form_state['triggering_element']['#value'] == t('Delete')) {
+    $form_state['rebuild'] = TRUE;
+    $form_state['confirm_delete'] = TRUE;
+    return;
+  }
+  if ($form_state['triggering_element']['#value'] == t('Confirm Delete')) {
+    db_delete('hrm_lov_group')
+        ->condition('gid', $gid, '=')
+        ->execute();
+    db_update('hrm_lov_option')
+        ->fields(array('gid' => 0))
+        ->condition('gid', $gid, '=')
+        ->execute();
+    drupal_set_message(t('Deleted LOV group %name.', array('%name' => $form_state['lov_group']['e_name'])));
+    watchdog('hrm_administration', 'Deleted LOV %name.', array('%name' => $form_state['lov_group']['e_name']), WATCHDOG_NOTICE);
+    $form_state['redirect'] = 'admin/hrm-administration/lov/' . $lid;
+    return;
+  }
+  if ($form_state['triggering_element']['#value'] == t('Cancel')) {
+    $form_state['rebuild'] = TRUE;
+    $form_state['confirm_delete'] = FALSE;
+    return;
+  }
+
+  db_update('hrm_lov_group')
+      ->fields(array(
+        'key_name' => $form_state['values']['key_name'],
+        'key_value' => $form_state['values']['key_value'],
+        'e_name' => $form_state['values']['name'],
+        'a_name' => $form_state['values']['a_name'],
+        'abbrev' => $form_state['values']['abbrev'],
+        'description' => $form_state['values']['description'],
+        'weight' => $form_state['values']['weight'],
+      ))
+      ->condition('gid', $gid, '=')
+      ->execute();
+  drupal_set_message(t('Updated LOV group %name.', array('%name' => $form_state['lov']['e_name'])));
+  watchdog('hrm_administration', 'Updated LOV group %name.', array('%name' => $form_state['lov']['e_name']), WATCHDOG_NOTICE);
+  $form_state['redirect'] = 'admin/hrm-administration/lov/' . $lid;
+}
+
+/*
+ * Finance
+ */
+
+function hrm_administration_finance_configuration_page() {
+  return drupal_get_form('hrm_administration_finance_configuration_form');
+}
+
+function hrm_administration_finance_configuration_form($form, &$form_state) {
+  $form['finance'] = array('#markup' => 'Finance configuration');
+
+  $form['#submit'][] = 'hrm_administration_finance_configuration_form_submit';
+  return system_settings_form($form);
+}
+
+function hrm_administration_finance_configuration_form_submit($form, &$form_state) {
+  
+}
+
+/*
+ * Interface Images
+ */
+
+function hrm_administration_interface_images_configuration_page() {
+  return drupal_get_form('hrm_administration_interface_images_configuration_form');
+}
+
+function hrm_administration_interface_images_configuration_form($form, &$form_state) {
+  $form['interface_images'] = array('#markup' => 'Interface images configuration');
+
+  $form['#submit'][] = 'hrm_administration_interface_images_configuration_form_submit';
+  return system_settings_form($form);
+}
+
+function hrm_administration_interface_images_configuration_form_submit($form, &$form_state) {
+  
+}
+
+/*
+ * Cron configuration
+ */
+
+function hrm_administration_cron_configuration_page() {
+  return drupal_get_form('hrm_administration_cron_configuration_form');
+}
+
+function hrm_administration_cron_configuration_form($form, &$form_state) {
+  $form['cron'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Cron configurations',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+
+  $form['cron'][HRM_VAR_ADMIN_CRON_TASKS_LIMIT] = array(
+    '#type' => 'textfield',
+    '#title' => t('Cron job tasks limit'),
+    '#default_value' => variable_get(HRM_VAR_ADMIN_CRON_TASKS_LIMIT, 5),
+    '#required' => TRUE,
+  );
+
+  $form['cron_job'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Add Cron job',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+
+  $defined_contants = get_defined_constants(TRUE);
+  $defined_user_contants = $defined_contants['user'];
+  $cron_tasks = array();
+  $modules_list = array();
+
+  foreach ($defined_user_contants as $key => $value) {
+    if (strncmp($key, 'HRM_CRON_', strlen('HRM_CRON_')) == 0) {
+      $cron_task_name = ucfirst(str_replace('_', ' ', $value));
+      $cron_tasks[$value] = $cron_task_name;
+    }
+    elseif (strncmp($key, 'HRM_MODULE_', strlen('HRM_MODULE_')) == 0) {
+      $modules_list[$value] = strtoupper(str_replace('_', ' ', $value));
+    }
+  }
+
+  $form['cron_job']['insert_task'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Insert new cron job task',
+    '#default_value' => 0,
+  );
+  $form['cron_job']['module'] = array(
+    '#type' => 'select',
+    '#title' => 'Module',
+    '#options' => $modules_list,
+    '#required' => FALSE,
+  );
+  $form['cron_job']['task'] = array(
+    '#type' => 'select',
+    '#title' => 'Task',
+    '#options' => $cron_tasks,
+    '#required' => FALSE,
+  );
+  $form['cron_job']['data'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Data',
+    '#required' => FALSE,
+  );
+
+  $form['#submit'][] = 'hrm_administration_cron_configuration_form_submit';
+
+  return system_settings_form($form);
+}
+
+function hrm_administration_cron_configuration_form_submit($form, &$form_state) {
+  if ($form_state['values']['insert_task']) {
+    //hrm_basic_here
+    //hrm_basic_cron_add_task($form_state['values']['module'], $form_state['values']['task'], $form_state['values']['data']);
+  }
+}
+
+/*
+ * Functions configuration
+ */
+
+function hrm_administration_functions_configuration_page() {
+  return drupal_get_form('hrm_administration_functions_configuration_form');
+}
+
+function hrm_administration_functions_configuration_form($form, &$form_state) {
+  $form['functions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Functions'),
+    '#collapsible' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+
+  $form['#submit'][] = 'hrm_administration_functions_configuration_form_submit';
+
+  return system_settings_form($form);
+}
+
+function hrm_administration_functions_configuration_form_submit($form, &$form_state) {
+  
+}
+
+/*
+ * Files configuration
+ */
+
+function hrm_administration_files_configuration_page() {
+  return drupal_get_form('hrm_administration_files_configuration_form');
+}
+
+function hrm_administration_files_configuration_form($form, &$form_state) {
+  //Pictures
+  $form['pictures'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Pictures Configuration',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  $form['pictures'][HRM_VAR_ADMIN_FILES_PLUPLOAD_PICTURE_MAX_SIZE] = array(
+    '#type' => 'textfield',
+    '#title' => 'Plupload pictures maximum size in KB',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_FILES_PLUPLOAD_PICTURE_MAX_SIZE, 0),
+    '#required' => TRUE,
+  );
+
+  //Documents
+  $form['documents'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Documents Configuration',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  $form['documents'][HRM_VAR_ADMIN_FILES_PLUPLOAD_DOCUMENT_MAX_SIZE] = array(
+    '#type' => 'textfield',
+    '#title' => 'Plupload documents maximum size in KB',
+    '#default_value' => variable_get(HRM_VAR_ADMIN_FILES_PLUPLOAD_DOCUMENT_MAX_SIZE, 0),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+/*
+ * Other configuration
+ */
+
+function hrm_administration_other_configuration_page() {
+  return drupal_get_form('hrm_administration_other_configuration_form');
+}
+
+function hrm_administration_other_configuration_form($form, &$form_state) {
+  $form['response'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Response Tech',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+  $form['response'][HRM_VAR_ADMIN_OTHER_RESPONSE_FOOTER_LOGO] = array(
+    '#type' => 'managed_file',
+    '#title' => 'Response footer logo',
+    '#description' => HRM_FILE_EXT_DESC_PICTURE_PNG,
+    '#default_value' => variable_get(HRM_VAR_ADMIN_OTHER_RESPONSE_FOOTER_LOGO, 0),
+    '#upload_location' => strtr(HRM_DIR_ADMIN, array('%type' => 'other')),
+    '#upload_validators' => array('file_validate_extensions' => array(HRM_FILE_EXT_PICTURE_PNG),),
+    '#required' => TRUE,
+  );
+
+  $form['#submit'][] = 'hrm_administration_other_configuration_form_submit';
+  return system_settings_form($form);
+}
+
+function hrm_administration_other_configuration_form_submit($form, &$form_state) {
+  global $user;
+  
+  $old_footer_logo = variable_get(HRM_VAR_ADMIN_OTHER_RESPONSE_FOOTER_LOGO, 0);
+  $footer_logo = file_load($form_state['values'][HRM_VAR_ADMIN_OTHER_RESPONSE_FOOTER_LOGO]);
+  if ($old_footer_logo != $footer_logo->fid) {
+    if ($footer_logo) {
+      $footer_logo->status = FILE_STATUS_PERMANENT;
+      file_save($footer_logo);
+      file_usage_add($footer_logo, HRM_MODULE_ADMINISTRATION, 'response_footer_logo', $user->uid);
+    }       
+
+    if ($old_footer_logo) {
+      $file = file_load($old_footer_logo);
+      if ($file) {
+        file_usage_delete($file, HRM_MODULE_ADMINISTRATION);
+        file_delete($file);
+      }
+    }
+  }
+  variable_set(HRM_VAR_ADMIN_OTHER_RESPONSE_FOOTER_LOGO, $form_state['values'][HRM_VAR_ADMIN_OTHER_RESPONSE_FOOTER_LOGO]);
+}
+
+/*
+ * 
+ */
+function hrm_administration_generate_output_detials($items, $title = NULL){
+  $output = '<div class="admin-panel">';
+  if($title){
+    $output .= '<h3>Organization Details</h3>';
+  }
+  $output .= '<div class="body">';  
+  $output .= '<ul class="admin-list">';
+  foreach($items as $item){
+    $output .= '<li><div class="description">' . $item['label'] . '</div>' . $item['value'] . '</li>';  
+  }  
+  $output .= '</ul>';
+  $output .= '</div>';
+  $output .= '</div>';
+  
+  return $output;
+}

@@ -1,0 +1,3034 @@
+<?php
+
+/*
+ * Assets
+ */
+
+function hrm_backend_assets() {
+  $account = hrm_basic_account_get_info();
+  $org_filters = array(array('field' => 'oid', 'value' => $account['oid']));
+  if (empty($account) || !isset($account['oid']) || !$account['oid']) {
+    drupal_access_denied();
+    exit();
+  }
+
+  $assets = hrm_basic_asset_get_data($org_filters);
+
+  $access_details_permission = user_access(HRM_PERM_ASSET_ACCESS_DETAILS);
+
+  $rows = array();
+  $status = hrm_basic_lov_get_terms(HRM_LOV_STATUS);
+  $vendors = hrm_basic_asset_vendor_names($org_filters);
+  $categories = hrm_basic_asset_category_names($org_filters);
+  $brands = hrm_basic_asset_brand_names($org_filters);
+  $employees = array();
+
+  foreach ($assets as $aid => $asset) {
+    $assign_to = '';
+    if ($asset['status'] == HRM_STATUS_ASSIGNED) {
+      $assignment = $asset['assignment'];
+      $assigned_to_empid = $assignment['empid'];
+
+      if (!isset($employees[$assigned_to_empid])) {
+        $employees[$assigned_to_empid] = hrm_basic_employee_get_name($assigned_to_empid);
+      }
+      $assign_to = $employees[$assigned_to_empid];
+    }
+
+    if (!isset($brands[$asset['brand']])) {
+      $brands[$asset['brand']] = $brands[$asset['brand']];
+    }
+    $row_classes = array();
+    $row_classes[] = ($access_details_permission ? 'table-tr-link' : '');
+    $tr_data_url = ($access_details_permission ? url('asset/details/' . $aid) : '');
+    $rows[$aid] = array(
+      'data' => array(
+        array('data' => ''),
+        array('data' => $asset['asset_no']),
+        array('data' => $asset['serial_no']),
+        array('data' => (isset($asset['vendor']) && isset($vendors[$asset['vendor']]) ? $vendors[$asset['vendor']] : '')),
+        array('data' => (isset($asset['category']) && isset($categories[$asset['category']]) ? $categories[$asset['category']] : '')),
+        array('data' => (isset($asset['brand']) && isset($brands[$asset['brand']]) ? $brands[$asset['brand']] : '')),
+        array('data' => (isset($asset['model']) ? $asset['model'] : '')),
+        array('data' => (isset($asset['current_value'])) ? $asset['current_value'] : ''),
+        array('data' => $status[$asset['status']]),
+        array('data' => $assign_to),
+      ),
+      'class' => $row_classes,
+      'data-url' => $tr_data_url,
+    );
+  }
+
+  $header = array(
+    array('data' => '#', 'class' => array('nosort', 'nosearch', 'noexport')),
+    array('data' => 'Asset NO'),
+    array('data' => 'Serial NO'),
+    array('data' => 'Vendor'),
+    array('data' => 'Category'),
+    array('data' => 'Brand'),
+    array('data' => 'Model'),
+    array('data' => 'Current Value'),
+    array('data' => 'Status'),
+    array('data' => 'Assigned To'),
+  );
+
+  $list = array(
+    'attributes' => array('class' => array('table-hover', 'table-vcenter')),
+    'rows' => $rows,
+    'header' => $header
+  );
+  $list['attributes']['class'][] = (!empty($rows) ? 'datatable-all-index' : 'empty-datatable');
+
+  $variables = array(
+    'list' => $list,
+  );
+  return theme('page_wrapper_entity_list_no_header', $variables);
+}
+
+/*
+ * asset permission
+ */
+
+function hrm_backend_asset_permissions($action, $account = array(), $data = array()) {
+  if (empty($account)) {
+    $account = hrm_basic_account_get_info();
+  }
+
+  $permissions = (isset($data['permissions']) && !empty($data['permissions']) ? $data['permissions'] : hrm_basic_role_permissions($account['role']));
+
+  if (!isset($account['oid']) || !$account['oid']) {
+    return FALSE;
+  }
+  switch ($action) {
+    /* Assets */
+
+    case HRM_PERM_ASSET_ACCESS_DETAILS:
+      if (isset($permissions[HRM_PERM_ASSET_ACCESS_DETAILS]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_EDIT:
+      if (isset($permissions[HRM_PERM_ASSET_EDIT]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_DELETE:
+      if (isset($permissions[HRM_PERM_ASSET_DELETE]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_ASSIGN:
+      if (isset($permissions[HRM_PERM_ASSET_ASSIGN]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_TRACKING_ACCESS:
+      if (isset($permissions[HRM_PERM_ASSET_TRACKING_ACCESS]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+
+    case HRM_PERM_ASSET_UPDATE_STATUS:
+      if (isset($permissions[HRM_PERM_ASSET_UPDATE_STATUS]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_RETURN:
+      if (isset($permissions[HRM_PERM_ASSET_RETURN]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_DOCUMENT_ACCES:
+      if (isset($permissions[HRM_PERM_ASSET_DOCUMENT_ACCES]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_DOCUMENT_ADD:
+      if (isset($permissions[HRM_PERM_ASSET_DOCUMENT_ADD]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_DOCUMENT_EDIT:
+      if (isset($permissions[HRM_PERM_ASSET_DOCUMENT_EDIT]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_DOCUMENT_DELETE:
+      if (isset($permissions[HRM_PERM_ASSET_DOCUMENT_DELETE]) &&
+        $data['asset']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+
+    /* brands */
+    case HRM_PERM_ASSET_BRAND_ACCESS_DETAILS:
+      if (isset($permissions[HRM_PERM_ASSET_BRAND_ACCESS_DETAILS]) &&
+        $data['brand']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_BRAND_EDIT:
+      if (isset($permissions[HRM_PERM_ASSET_BRAND_EDIT]) &&
+        $data['brand']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_BRAND_DELETE:
+      if (isset($permissions[HRM_PERM_ASSET_BRAND_DELETE]) &&
+        $data['brand']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+
+    /* Categories */
+    case HRM_PERM_ASSET_CATEGORY_ACCESS_DETAILS:
+      if (isset($permissions[HRM_PERM_ASSET_CATEGORY_ACCESS_DETAILS]) &&
+        $data['category']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_CATEGORY_EDIT:
+      if (isset($permissions[HRM_PERM_ASSET_CATEGORY_EDIT]) &&
+        $data['category']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_CATEGORY_DELETE:
+      if (isset($permissions[HRM_PERM_ASSET_CATEGORY_DELETE]) &&
+        $data['category']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+
+    /* Vendors */
+    case HRM_PERM_ASSET_VENDOR_ACCESS_DETAILS:
+      if (isset($permissions[HRM_PERM_ASSET_VENDOR_ACCESS_DETAILS]) &&
+        $data['vendor']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_VENDOR_EDIT:
+      if (isset($permissions[HRM_PERM_ASSET_VENDOR_EDIT]) &&
+        $data['vendor']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+    case HRM_PERM_ASSET_VENDOR_DELETE:
+      if (isset($permissions[HRM_PERM_ASSET_VENDOR_DELETE]) &&
+        $data['vendor']['oid'] == $account['oid']) {
+        return TRUE;
+      }
+      break;
+  }
+  return FALSE;
+}
+
+/*
+ * Asset Details
+ */
+
+function hrm_backend_asset_details($aid) {
+  if ($aid && is_numeric($aid)) {
+    $asset = hrm_basic_asset_get_data(array(array('field' => 'aid', 'value' => $aid)), TRUE);
+    if (!empty($asset)) {
+      $account = hrm_basic_account_get_info();
+      $role_permissions = hrm_basic_role_permissions($account['role']);
+      $permission_data = array('asset' => $asset, 'permissions' => $role_permissions);
+      $tabs = array();
+      $variables = array();
+
+      if (hrm_backend_asset_permissions(HRM_PERM_ASSET_ACCESS_DETAILS, $account, $permission_data)) {
+
+        $tabs['details'] = array(
+          'title' => 'Details',
+          'content' => hrm_backend_asset_display_details($asset, $account, $permission_data)
+        );
+
+
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_ASSIGN, $account, $permission_data)) {
+
+          $tabs['assignment'] = array(
+            'title' => 'Assignment',
+            'content' => hrm_backend_asset_display_assignment_data($asset, $account)
+          );
+        }
+
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_TRACKING_ACCESS, $account, $permission_data)) {
+          $tabs['tracking'] = array(
+            'title' => 'Tracking',
+            'content' => hrm_backend_asset_tracking($asset, $account)
+          );
+        }
+
+        /*
+         * History
+         */
+        $entity_filters = array(
+          array('field' => 'entity', 'value' => HRM_ENTITY_ASSET),
+          array('field' => 'entity_id', 'value' => $aid),
+        );
+
+        $history_sort = array(array('field' => 'created', 'direction' => 'DESC'));
+        $history_logs = hrm_backend_entity_history_get_history($entity_filters, $history_sort);
+
+        $asset_history = theme('section_entity_history', array('history' => $history_logs, 'title' => 'Asset log history'));
+        $tabs['history'] = array(
+          'title' => 'History',
+          'content' => $asset_history
+        );
+
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_DOCUMENT_ACCES, $account, $permission_data)) {
+          $edit_documents = hrm_backend_asset_permissions(HRM_PERM_ASSET_DOCUMENT_EDIT, $account, $permission_data);
+          $delete_documents = hrm_backend_asset_permissions(HRM_PERM_ASSET_DOCUMENT_DELETE, $account, $permission_data);
+
+          $documents_filters = array(
+            array('field' => 'entity', 'value' => HRM_ENTITY_ASSET),
+            array('field' => 'entity_id', 'value' => $asset['aid']),
+          );
+          $documents_list = hrm_backend_entity_document_get_documents_list($documents_filters, $edit_documents, $delete_documents);
+          $documets_fields = array();
+          $documets_fields[] = array('type' => 'table', 'row_class' => array('noborder'),
+            'value' => $documents_list, 'responsive' => TRUE);
+          $documnts_content = theme('section_entity_details', array('fields' => $documets_fields));
+
+          $tabs['documents'] = array(
+            'title' => 'Documents',
+            'content' => $documnts_content
+          );
+        }
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_DOCUMENT_ACCES, $account, $permission_data)) {
+          $edit_pictures = hrm_backend_asset_permissions(HRM_PERM_ASSET_DOCUMENT_EDIT, $account, $permission_data);
+          $delete_pictures = hrm_backend_asset_permissions(HRM_PERM_ASSET_DOCUMENT_DELETE, $account, $permission_data);
+
+          $pictures_filters = array(
+            array('field' => 'entity', 'value' => HRM_ENTITY_ASSET),
+            array('field' => 'entity_id', 'value' => $asset['aid']),
+          );
+          $pictures_list = hrm_backend_entity_picture_display_pictures($pictures_filters, $edit_pictures, $delete_pictures);
+
+          $tabs['pictures'] = array(
+            'title' => 'Pictures',
+            'content' => $pictures_list
+          );
+        }
+
+
+        $variables = array(
+          'tabs' => $tabs,
+          'actions' => hrm_backend_asset_actions($asset, $account, $permission_data),
+        );
+
+        return theme('page_wrapper_entity_tabs_js', $variables);
+      }
+      else {
+        drupal_access_denied();
+        exit();
+      }
+    }
+    else {
+      drupal_not_found();
+      exit();
+    }
+  }
+  else {
+    drupal_not_found();
+    exit();
+  }
+}
+
+function hrm_backend_asset_display_details($asset, $account, $permission_data) {
+  $status_options = hrm_basic_lov_get_terms(HRM_LOV_STATUS);
+
+  $fields = array();
+
+
+  $asset_pic = '
+    <div class="gallery custom-gallery widget text-center" data-toggle="lightbox-gallery">
+        <a href="' . $asset['picture_url'] . '" class="gallery-link" title="' . $asset['asset_no'] . '">
+          ' . $asset['picture'] . '
+        </a>
+    </div>';
+
+  $fields[] = array('type' => 'raw', 'wrapper_class' => array('col-sm-12', 'photos-row', 'text-center', 'strong'),
+    'value' => $asset_pic, 'row_class' => array('no-border'));
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Asset #', 'value_class' => array(),
+    'value' => $asset['asset_no'], 'value_class' => array());
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Serial #', 'value_class' => array(),
+    'value' => $asset['serial_no'], 'value_class' => array());
+
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Model', 'value_class' => array(),
+    'value' => isset($asset['model']) ? $asset['model'] : '', 'value_class' => array());
+
+  $brand_link = '';
+  if (!empty($asset['brand'])) {
+    $brand = hrm_basic_asset_brand_get_name($asset['brand']);
+    $brand_link = l($brand, 'asset/brand/details/' . $asset['brand']);
+  }
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Brand', 'value_class' => array(),
+    'value' => $brand_link, 'value_class' => array());
+
+  $vendor_link = '';
+  if (!empty($asset['vendor'])) {
+    $vendor = hrm_basic_asset_vendor_get_name($asset['vendor']);
+    $vendor_link = l($vendor, 'asset/vendor/details/' . $asset['vendor']);
+  }
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Vendor', 'value_class' => array(),
+    'value' => $vendor_link, 'value_class' => array());
+
+  $category_link = '';
+  if (!empty($asset['category'])) {
+    $category = hrm_basic_asset_category_get_name($asset['category']);
+    $category_link = l($category, 'asset/category/details/' . $asset['category']);
+  }
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Category', 'value_class' => array(),
+    'value' => $category_link, 'value_class' => array());
+
+  if ($asset['status'] == HRM_STATUS_ASSIGNED) {
+
+    $fields['status'] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+      'label' => 'Status', 'value_class' => array(),
+      'value' => $status_options[$asset['status']], 'value_class' => array());
+    $assign_to = hrm_basic_employee_get_name($asset['assignment']['empid']);
+    $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+      'label' => 'Assigned to', 'value_class' => array(),
+      'value' => $assign_to, 'value_class' => array());
+
+    $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+      'label' => 'From', 'value_class' => array(),
+      'value' => date(HRM_DATE_LONG), 'value_class' => array());
+
+    if (!empty($asset['assignment']['assign_comment'])) {
+      $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+        'label' => 'Assign comments', 'value_class' => array(),
+        'value' => check_markup($asset['assignment']['assign_comment']), 'value_class' => array());
+    }
+  }
+
+  if ($asset['status'] == HRM_STATUS_IN_STOCK) {
+    $fields['status'] = array('type' => 'row', 'wrapper_class' => array('col-sm-6'), 'row_class' => array(),
+      'label' => 'Status', 'value_class' => array(),
+      'value' => $status_options[$asset['status']], 'value_class' => array());
+  }
+
+  if ($asset['status'] == HRM_STATUS_DECOMMISSIONED || $asset['status'] == HRM_STATUS_STOLEN) {
+
+    $fields['status'] = array('type' => 'row', 'wrapper_class' => array('col-sm-6'), 'row_class' => array(),
+      'label' => 'Status', 'value_class' => array(),
+      'value' => $status_options[$asset['status']], 'value_class' => array());
+  }
+
+  $location = '';
+  if ($asset['location']) {
+    $location = hrm_basic_location_get_name($asset['location']);
+  }
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Location', 'value_class' => array(),
+    'value' => $location, 'value_class' => array());
+
+  $acquired = '';
+  if ($asset['acquired']) {
+    $acquired = date(HRM_DATE_LONG, $asset['acquired']);
+  }
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Acquired', 'value_class' => array(),
+    'value' => $acquired, 'value_class' => array());
+
+  $warranty_start = '';
+  if ($asset['warranty_start']) {
+    $warranty_start = date(HRM_DATE_LONG, $asset['warranty_start']);
+  }
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Warranty starts', 'value_class' => array(),
+    'value' => $warranty_start, 'value_class' => array());
+
+  $warranty_end = '';
+  if ($asset['warranty_end']) {
+    $warranty_end = date(HRM_DATE_LONG, $asset['warranty_end']);
+  }
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Warranty ends', 'value_class' => array(),
+    'value' => $warranty_end, 'value_class' => array());
+
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Cost', 'value_class' => array(),
+    'value' => number_format($asset['cost'], 2), 'value_class' => array());
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+    'label' => 'Current value', 'value_class' => array(),
+    'value' => number_format($asset['current_value'], 2), 'value_class' => array());
+
+  if (!empty($asset['qr_code_fid'])) {
+
+    $qr_code_uri = hrm_basic_file_get_managed_file_uri($asset['qr_code_fid']);
+    $qr_code_url = file_create_url($qr_code_uri);
+    $qr_code_picture = theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $qr_code_uri, 'alt' => $asset['aid'], 'title' => $asset['aid'], 'attributes' => array('class' => array('img-circle'))));
+
+    $qr_code = '<div class="clearfix">';
+    $qr_code .= '<div class="gallery custom-gallery" data-toggle="lightbox-gallery">
+          <a href="' . $qr_code_url . '" class="gallery-link" title="' . $asset['aid'] . '"> <div class="img-48">' .
+      $qr_code_picture . '</div> </a> </div>';
+    $qr_code .= '</div>';
+
+
+    $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+      'label' => '', 'value_class' => array(),
+      'value' => $qr_code, 'value_class' => array());
+  }
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+    'label' => 'Description', 'value_class' => array(),
+    'value' => check_markup($asset['description'], 'filtered_html'), 'value_class' => array());
+
+  $details = theme('section_entity_details', array('fields' => $fields));
+
+  return $details;
+}
+
+function hrm_backend_asset_actions($asset, $account, $permission_data) {
+  $actions = array();
+  $aid = $asset['aid'];
+
+  if (hrm_backend_asset_permissions(HRM_PERM_ASSET_EDIT, $account, $permission_data)) {
+    $actions[] = l(HRM_FA_PENCIL_YELLOW . 'Edit Asset', 'asset/edit/' . $aid, array('html' => TRUE));
+  }
+  if (hrm_backend_asset_permissions(HRM_PERM_ASSET_DELETE, $account, $permission_data)) {
+    $actions[] = l(HRM_FA_TRASH_RED . 'Delete Assets', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_DELETE, 'aid' => $asset['aid']), 'html' => TRUE));
+  }
+  if (hrm_backend_asset_permissions(HRM_PERM_ASSET_UPDATE_STATUS, $account, $permission_data)) {
+    $actions[] = l(HRM_FA_INFO_CIRCLE_GREEN . 'Update status Asset', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_UPDATE_STATUS, 'aid' => $asset['aid']), 'html' => TRUE));
+  }
+
+  if (hrm_backend_asset_permissions(HRM_PERM_ASSET_ASSIGN, $account, $permission_data) && $asset['status'] == HRM_STATUS_IN_STOCK) {
+    $actions[] = l(HRM_FA_ARROW_LEFT . 'Assign asset', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_ASSIGN, 'aid' => $asset['aid']), 'html' => TRUE));
+  }
+  if (hrm_backend_asset_permissions(HRM_PERM_ASSET_RETURN, $account, array('asset' => $asset)) && $asset['status'] == HRM_STATUS_ASSIGNED) {
+    $actions[] = l('<i class="fa fa-arrow-right"></i> Return asset', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_RETURN, 'aid' => $asset['aid']), 'html' => TRUE));
+  }
+
+  $assign_asset = hrm_backend_asset_permissions(HRM_PERM_ASSET_ASSIGN, $account, array('asset' => $asset));
+  $generate_assign_receipt = variable_get(HRM_VAR_ORG_ASSET_GENERATE_ASSIGN_RECIEPT . $account['oid'], 0);
+  $generate_asset_return = variable_get(HRM_VAR_ORG_ASSET_GENERATE_RETURN_RECIEPT . $account['oid'], 0);
+  if ($generate_assign_receipt && $assign_asset && $asset['status'] == HRM_STATUS_IN_STOCK) {
+
+    $actions[] = l(HRM_FA_RETWEET . ' Regenerate Assign Receipt PDF', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_GENERATE_FORMS, 'aid' => $asset['aid'],), 'html' => TRUE));
+  }
+
+  if ($generate_asset_return && $assign_asset && $asset['status'] == HRM_STATUS_ASSIGNED) {
+    $actions[] = l(HRM_FA_RETWEET . ' Regenerate Return Receipt PDF', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_GENERATE_FORMS, 'aid' => $asset['aid']), 'html' => TRUE));
+  }
+
+  if (hrm_backend_asset_permissions(HRM_PERM_ASSET_DOCUMENT_ADD, $account, $permission_data)) {
+    $actions[] = l(HRM_FA_PLUS_BLUE . ' Add Document', 'hrm-modal', array('query' => array('action' => HRM_MODAL_EN_DOCUMENT_ADD, 'entity' => HRM_ENTITY_ASSET, 'entity_id' => $asset['aid'], 'oid' => $asset['oid']), 'html' => TRUE));
+  }
+
+  if (hrm_backend_asset_permissions(HRM_PERM_ASSET_DOCUMENT_ADD, $account, $permission_data)) {
+    $actions[] = l(HRM_FA_PLUS_BLUE . ' Add Picture', 'hrm-modal', array('query' => array('action' => HRM_MODAL_EN_PICTURE_ADD, 'entity' => HRM_ENTITY_ASSET, 'entity_id' => $asset['aid'], 'oid' => $asset['oid']), 'html' => TRUE));
+  }
+
+
+  return $actions;
+}
+
+/*
+ * Asset forms
+ */
+
+function hrm_backend_asset_form_page($aid) {
+
+  $account = hrm_basic_account_get_info();
+
+  $asset = array();
+  if ($aid) {
+    $asset = hrm_basic_asset_get_data(array(array('field' => 'aid', 'value' => $aid)), TRUE);
+    if (empty($asset)) {
+      drupal_not_found();
+      exit();
+    }
+    $edit_asset_permission = hrm_backend_asset_permissions(HRM_PERM_ASSET_EDIT, $account, array('asset' => $asset));
+    if (!$edit_asset_permission) {
+      drupal_access_denied();
+      exit();
+    }
+    drupal_set_title('Edit Asset ');
+  }
+  else {
+    if (!user_access(HRM_PERM_ASSET_ADD) || !isset($account['oid']) || !$account['oid']) {
+      drupal_access_denied();
+      exit();
+    }
+    drupal_set_title('Add Asset');
+  }
+
+  $asset_form = drupal_get_form('hrm_backend_asset_form', $asset, $account);
+
+  $variables = array(
+    'entity' => HRM_ENTITY_ASSET,
+    'title' => 'Asset information',
+    'form' => $asset_form,
+  );
+  return theme('page_wrapper_entity_form', $variables);
+}
+
+function hrm_backend_asset_form($form, &$form_state, $asset, $account) {
+  $oid = $account['oid'];
+  $org_filters = array(array('field' => 'oid', 'value' => $oid));
+
+  $locations = hrm_basic_location_names($org_filters);
+  $brands = hrm_basic_asset_brand_names($org_filters);
+  $categories = hrm_basic_asset_category_names($org_filters);
+  $vendors = hrm_basic_asset_vendor_names($org_filters);
+
+
+  $asset_no = variable_get('organization_asset_no_' . $oid, '0001');
+  $form['asset_no'] = array('#title' => 'Asset No.',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($asset['asset_no']) ? $asset['asset_no'] : $asset_no),
+    '#disabled' => TRUE,
+    '#attributes' => array('class' => array()));
+
+  $form['serial_no'] = array('#title' => 'Serial Number',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($asset['serial_no']) ? $asset['serial_no'] : ''),
+    '#attributes' => array('class' => array())
+  );
+
+  $form['location'] = array('#title' => 'Location',
+    '#type' => 'select',
+    '#options' => $locations,
+    '#required' => TRUE,
+    '#default_value' => (isset($asset['location']) ? $asset['location'] : ''),
+    '#empty_option' => '',
+    '#attributes' => array('class' => array('select-chosen'))
+  );
+
+  $form['brand'] = array(
+    '#title' => 'Brand',
+    '#type' => 'select',
+    '#options' => $brands,
+    '#required' => FALSE,
+    '#empty_option' => '',
+    '#default_value' => (isset($asset['brand']) ? $asset['brand'] : ''),
+    '#attributes' => array('class' => array('select-chosen'))
+  );
+
+  $form['vendor'] = array(
+    '#title' => 'Vendor',
+    '#type' => 'select',
+    '#options' => $vendors,
+    '#required' => FALSE,
+    '#empty_option' => '',
+    '#default_value' => (isset($asset['vendor']) ? $asset['vendor'] : ''),
+    '#attributes' => array('class' => array('select-chosen'))
+  );
+
+  $form['category'] = array(
+    '#title' => 'Category',
+    '#type' => 'select',
+    '#options' => $categories,
+    '#required' => FALSE,
+    '#default_value' => (isset($asset['category']) ? $asset['category'] : ''),
+    '#empty_option' => '',
+    '#attributes' => array('class' => array('select-chosen'))
+  );
+
+  $form['model'] = array(
+    '#title' => 'Model',
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($asset['model']) ? $asset['model'] : ''),
+    '#attributes' => array('class' => array())
+  );
+
+  $form['cost'] = array(
+    '#title' => 'Cost',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($asset['cost']) ? $asset['cost'] : ''),
+    '#element_validate' => array('element_validate_number'),);
+
+  $form['current_value'] = array(
+    '#title' => 'Current Value',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($asset['current_value']) ? $asset['current_value'] : ''),
+    '#element_validate' => array('element_validate_number'),);
+
+  $form['picture'] = array(
+    '#title' => 'Picture',
+    '#type' => 'managed_file',
+    '#required' => TRUE,
+    '#upload_validators' => array('file_validate_extensions' => array(HRM_FILE_EXT_PICTURE),),
+    '#upload_location' => HRM_DIR_TMP,
+    '#default_value' => (isset($asset['picture_fid']) ? $asset['picture_fid'] : ''),
+  );
+
+  if (isset($asset['aid']) && $asset['aid']) {
+    $default_acquired_date = isset($asset['acquired']) ? date(HRM_DATE_LONG, $asset['acquired']) : '';
+    $default_start_date = isset($asset['warranty_start']) ? date(HRM_DATE_LONG, $asset['warranty_start']) : '';
+    $default_end_date = isset($asset['warranty_end']) ? date(HRM_DATE_LONG, $asset['warranty_end']) : '';
+  }
+  $form['acquired'] = array(
+    '#title' => 'Acquired',
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#empty_option' => '',
+    '#default_value' => (isset($default_acquired_date) ? $default_acquired_date : ''),
+    '#attributes' => array(
+      'class' => array('custom-datepicker'),
+      'data-date-format' => 'dd/mm/yyyy',
+      'placeholder' => 'dd/mm/yyyy'),
+  );
+
+
+  $form['warranty_start'] = array(
+    '#title' => 'Warranty Starts',
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#empty_option' => '',
+    '#default_value' => (isset($default_start_date) ? $default_start_date : ''),
+    '#attributes' => array(
+      'class' => array('custom-datepicker'),
+      'data-date-format' => 'dd/mm/yyyy',
+      'placeholder' => 'dd/mm/yyyy'),
+  );
+  $form['warranty_end'] = array(
+    '#title' => 'Warranty Ends',
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#empty_option' => '',
+    '#default_value' => (isset($default_end_date) ? $default_end_date : ''),
+    '#attributes' => array(
+      'class' => array('custom-datepicker'),
+      'data-date-format' => 'dd/mm/yyyy',
+      'placeholder' => 'dd/mm/yyyy'),
+  );
+
+  $form['description'] = array(
+    '#title' => 'Description',
+    '#type' => 'textarea',
+    '#required' => FALSE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+    '#default_value' => (isset($asset['description']) ? $asset['description'] : ''),
+    '#attributes' => array('class' => array(''))
+  );
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => ' Save',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+
+  $form['#attributes']['class'][] = 'form-bordered';
+  $form['#attributes']['class'][] = 'asset-form';
+
+  return $form;
+}
+
+function hrm_backend_asset_form_validate(&$form, &$form_state) {
+
+  $asset = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+  if (isset($asset['aid']) && $asset['aid']) {
+
+    if (!empty($form_state['values']['serial_no'])) {
+      $serial_exist = db_query('SELECT COUNT(*) FROM {hrm_asset} WHERE oid = :oid AND serial_no = :serial_no AND aid <> :aid', array(':oid' => $oid, ':serial_no' => $form_state['values']['serial_no'], ':aid' => $asset['aid']))->fetchField(0);
+      if ($serial_exist) {
+        form_set_error('serial', 'Serial already exists');
+      }
+    }
+    if (!empty($form_state['values']['asset_no'])) {
+      $asset_no_exist = db_query('SELECT COUNT(*) FROM {hrm_asset} WHERE oid = :oid AND asset_no = :asset_no AND aid <> :aid', array(':oid' => $oid, ':asset_no' => $form_state['values']['asset_no'], ':aid' => $asset['aid']))->fetchField(0);
+      if ($asset_no_exist) {
+        form_set_error('asset_no', 'Asset number already exists');
+      }
+    }
+  }
+  else {
+    if (!empty($form_state['values']['serial_no'])) {
+      $serial_exist = db_query('SELECT COUNT(*) FROM {hrm_asset} WHERE oid = :oid AND serial_no = :serial_no', array(':oid' => $oid, ':serial_no' => $form_state['values']['serial_no']))->fetchField(0);
+      if ($serial_exist) {
+        form_set_error('serial', 'Serial already exists');
+      }
+    }
+
+    if (!empty($form_state['values']['asset_no'])) {
+      $asset_no_exist = db_query('SELECT COUNT(*) FROM {hrm_asset} WHERE oid = :oid AND asset_no = :asset_no', array(':oid' => $oid, ':asset_no' => $form_state['values']['asset_no']))->fetchField(0);
+      if ($asset_no_exist) {
+        form_set_error('asset_no', 'Asset number already exists');
+      }
+    }
+  }
+}
+
+function hrm_backend_asset_form_submit(&$form, &$form_state) {
+  $asset = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+  if (isset($asset['aid']) && $asset['aid']) {
+    $fields = array(
+      'cost' => $form_state['values']['cost'],
+      'current_value' => $form_state['values']['current_value'],
+      'serial_no' => $form_state['values']['serial_no'],
+      'changed' => time(),
+    );
+
+    if (!empty($form_state['values']['location'])) {
+      $fields['location'] = $form_state['values']['location'];
+    }
+    if (!empty($form_state['values']['brand'])) {
+      $fields['brand'] = $form_state['values']['brand'];
+    }
+    if (!empty($form_state['values']['vendor'])) {
+      $fields['vendor'] = $form_state['values']['vendor'];
+    }
+    if (!empty($form_state['values']['model'])) {
+      $fields['model'] = $form_state['values']['model'];
+    }
+    if (!empty($form_state['values']['category'])) {
+      $fields['category'] = $form_state['values']['category'];
+    }
+    if (!empty($form_state['values']['description'])) {
+      $fields['description'] = $form_state['values']['description'];
+    }
+    if (!empty($form_state['values']['picture'])) {
+      $fields['picture_fid'] = $form_state['values']['picture'];
+    }
+    if (!empty($form_state['values']['acquired'])) {
+      $acquired = strtotime(str_replace('/', '-', $form_state['values']['acquired']));
+      $fields['acquired'] = $acquired;
+    }
+    if (!empty($form_state['values']['warranty_start'])) {
+      $warranty_start = strtotime(str_replace('/', '-', $form_state['values']['warranty_start']));
+      $fields['warranty_start'] = $warranty_start;
+    }
+    if (!empty($form_state['values']['warranty_end'])) {
+      $warranty_end = strtotime(str_replace('/', '-', $form_state['values']['warranty_end']));
+      $fields['warranty_end'] = $warranty_end;
+    }
+    $aid = db_update('hrm_asset')
+      ->fields($fields)
+      ->condition('aid', $asset['aid'], '=')
+      ->execute();
+
+    if (!empty($form_state['values']['picture']) && $form_state['values']['picture'] != $asset['picture']) {
+      $picture_file = file_load($form_state['values']['picture']);
+
+      $dest_location_pic = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $aid)) . '/picture';
+      file_prepare_directory($dest_location_pic, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+      file_move($picture_file, $dest_location_pic, FILE_EXISTS_RENAME);
+      hrm_basic_file_save_file_data($form_state['values']['picture'], HRM_MODULE_BACKEND, 'asset_picture', $aid);
+      hrm_basic_file_delete_file_data($asset['picture_fid'], HRM_MODULE_BACKEND);
+    }
+  }
+  else {
+
+    $fields = array(
+      'oid' => $oid,
+      'asset_no' => $form_state['values']['asset_no'],
+      'serial_no' => $form_state['values']['serial_no'],
+      'cost' => $form_state['values']['cost'],
+      'current_value' => $form_state['values']['current_value'],
+      'status' => HRM_STATUS_IN_STOCK,
+      'uid' => $account['uid'],
+      'created' => time(),
+      'changed' => time(),
+    );
+
+    if (!empty($form_state['values']['location'])) {
+      $fields['location'] = $form_state['values']['location'];
+    }
+    if (!empty($form_state['values']['brand'])) {
+      $fields['brand'] = $form_state['values']['brand'];
+    }
+    if (!empty($form_state['values']['vendor'])) {
+      $fields['vendor'] = $form_state['values']['vendor'];
+    }
+    if (!empty($form_state['values']['model'])) {
+      $fields['model'] = $form_state['values']['model'];
+    }
+    if (!empty($form_state['values']['category'])) {
+      $fields['category'] = $form_state['values']['category'];
+    }
+    if (!empty($form_state['values']['description'])) {
+      $fields['description'] = $form_state['values']['description'];
+    }
+    if (!empty($form_state['values']['picture'])) {
+      $fields['picture_fid'] = $form_state['values']['picture'];
+    }
+    if (!empty($form_state['values']['acquired'])) {
+      $acquired = strtotime(str_replace('/', '-', $form_state['values']['acquired']));
+      $fields['acquired'] = $acquired;
+    }
+    if (!empty($form_state['values']['warranty_start'])) {
+      $warranty_start = strtotime(str_replace('/', '-', $form_state['values']['warranty_start']));
+      $fields['warranty_start'] = $warranty_start;
+    }
+    if (!empty($form_state['values']['warranty_end'])) {
+      $warranty_end = strtotime(str_replace('/', '-', $form_state['values']['warranty_end']));
+      $fields['warranty_end'] = $warranty_end;
+    }
+
+    $aid = db_insert('hrm_asset')
+      ->fields($fields)
+      ->execute();
+
+    if ($form_state['values']['picture']) {
+      $picture_file = file_load($form_state['values']['picture']);
+
+      $dest_location_pic = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $aid)) . '/picture';
+      file_prepare_directory($dest_location_pic, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+      file_move($picture_file, $dest_location_pic, FILE_EXISTS_RENAME);
+      hrm_basic_file_save_file_data($form_state['values']['picture'], HRM_MODULE_BACKEND, 'asset_picture', $aid);
+    }
+
+    $asset_no = db_query('SELECT MAX(asset_no) FROM {hrm_asset} WHERE oid = :oid', array(':oid' => $oid))->fetchField(0);
+    $asset_no += 1;
+    variable_set('organization_asset_no_' . $oid, str_pad($asset_no, 4, "0", STR_PAD_LEFT));
+
+    $qr_code_content_array = array('aid' => $aid, 'oid' => $oid);
+    $qr_code_content = json_encode($qr_code_content_array);
+    $dest = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $aid)) . '/qr_code';
+    $filename = 'qr_code_' . $aid . '.png';
+    hrm_basic_qr_code_generate_qr_code($qr_code_content, $dest, $filename);
+
+    $qr_code_path = $dest . '/' . $filename;
+    $qr_code_fid = hrm_basic_file_save_unmanged_file($qr_code_path, $filename, HRM_MODULE_BACKEND, 'asset_qr_code', $aid, $account['uid']);
+    if ($qr_code_fid) {
+      db_update('hrm_asset')
+        ->fields(array('qr_code_fid' => $qr_code_fid))
+        ->condition('aid', $aid, '=')
+        ->execute();
+    }
+  }
+
+
+  drupal_set_message('Asset has been saved successfully***');
+  drupal_goto('asset');
+}
+
+function hrm_backend_asset_delete_form($form, &$form_state, $asset) {
+  drupal_set_title('Delete Asset');
+  $account = hrm_basic_account_get_info();
+  $role_permissions = hrm_basic_role_permissions($account['role']);
+  $permission_data = array('asset' => $asset, 'permissions' => $role_permissions);
+
+  $aid = $asset['aid'];
+
+  $delete_permission = hrm_backend_asset_permissions(HRM_PERM_ASSET_DELETE, $account, $permission_data);
+  if (!$delete_permission) {
+    hrm_backend_modal_access_denied();
+  }
+
+  $form['description'] = array('#markup' => '<div class="form-item form-group">Are you sure to delete asset ?***</div>');
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Delete',
+    '#attributes' => array('class' => array('btn-danger', 'btn-sm')),
+    '#prefix' => '<div class="form-group form-actions">',
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+  $form['#attributes']['class'][] = 'form-bordered';
+
+  return $form;
+}
+
+function hrm_backend_asset_delete_form_submit($form, &$form_state) {
+
+  $asset = $form_state['build_info']['args'][0];
+  $aid = $asset['aid'];
+
+  db_delete('hrm_asset')
+    ->condition('aid', $aid, '=')
+    ->execute();
+  db_delete('hrm_asset_assignment')
+    ->condition('aid', $aid, '=')
+    ->execute();
+  db_delete('hrm_asset_assignment_history')
+    ->condition('aid', $aid, '=')
+    ->execute();
+
+  $asset_photo_filters = array(
+    array('field' => 'entity', 'value' => HRM_ENTITY_ASSET, 'operator' => '='),
+    array('field' => 'entity_id', 'value' => $aid, 'operator' => '=')
+  );
+  $asset_photos = hrm_backend_get_entity_picture_data($asset_photo_filters);
+  $deleted_photos = array();
+  if (!empty($asset_photos)) {
+    foreach ($asset_photos as $asset_photo) {
+      hrm_basic_file_delete_file_data($asset_photo['picture_fid'], HRM_MODULE_BACKEND);
+      $deleted_photos[] = $asset_photo['id'];
+    }
+  }
+  if (!empty($deleted_photos)) {
+    db_delete('hrm_entity_picture')
+      ->condition('id', $deleted_photos, 'IN')
+      ->execute();
+  }
+
+  drupal_set_message('Deleted successfully***');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/details/');
+  print ajax_render($commands);
+  exit;
+}
+
+/*
+ * Display Assignment History and details
+ */
+
+function hrm_backend_asset_display_assignment_data($asset, $account) {
+
+  $current_assignment_fields = array();
+  $users = array();
+  $fields = array();
+
+  if ($asset['status'] == HRM_STATUS_ASSIGNED) {
+    $current_assignment_fields = hrm_backend_asset_display_current_assignment($asset);
+  }
+
+
+  if (!empty($asset['assign_template']) || !empty($asset['return_template'])) {
+    if (isset($asset['assign_template']) && !empty($asset['assign_template'])) {
+      $assign_template_file = file_load($asset['assign_template']);
+      $assign_template_uri = file_create_url($assign_template_file->uri);
+      $assign_template = l('Assign Receipt template', $assign_template_uri, array('attributes' => array('target' => '_blank')));
+    }
+    else {
+      $assign_template = '';
+    }
+    $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+      'label' => 'Assign Receipt PDF', 'value_class' => array(),
+      'value' => $assign_template, 'value_class' => array());
+
+    if (isset($asset['return_template']) && !empty($asset['return_template'])) {
+      $return_template_file = file_load($asset['return_template']);
+      $return_template_uri = file_create_url($return_template_file->uri);
+      $return_template = l('Return Receipt template', $return_template_uri, array('attributes' => array('target' => '_blank')));
+    }
+    else {
+      $return_template = '';
+    }
+
+
+
+    $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-4'), 'row_class' => array(),
+      'label' => 'Return Receipt PDF', 'value_class' => array(),
+      'value' => $return_template, 'value_class' => array());
+  }
+
+
+
+  $rows = array();
+
+  foreach ($asset['assignment_history'] as $id => $assignment) {
+    if (!isset($users[$assignment['assign_uid']])) {
+      $users[$assignment['assign_uid']] = hrm_basic_account_get_name($assignment['assign_uid']);
+    }
+    if (!isset($users[$assignment['return_uid']])) {
+      $users[$assignment['return_uid']] = hrm_basic_account_get_name($assignment['return_uid']);
+    }
+    $assigned_to_empid = $assignment['empid'];
+    if (!isset($employees[$assigned_to_empid])) {
+      $employees[$assigned_to_empid] = hrm_basic_employee_get_name($assigned_to_empid);
+    }
+    $assign_to = $employees[$assigned_to_empid];
+    $current_value = number_format($assignment['current_value'], 2);
+    $assign_date = date(HRM_DATE_LONG, $assignment['assign_date']);
+    $return_date = date(HRM_DATE_LONG, $assignment['return_date']);
+
+    $assign_pdf = '';
+    $assign_file = file_load($assignment['assign_receipt_fid']);
+    if ($assign_file) {
+      $assign_url = file_create_url($assign_file->uri);
+      $assign_pdf = l($assign_file->filename, $assign_url, array('attributes' => array('target' => '_blank'), 'html' => TRUE));
+    }
+
+
+    $return_pdf = '';
+    $return_file = file_load($assignment['return_receipt_fid']);
+    if ($return_file) {
+      $return_url = file_create_url($return_file->uri);
+      $return_pdf = l($return_file->filename, $return_url, array('attributes' => array('target' => '_blank'), 'html' => TRUE));
+    }
+
+    $rows[] = array(
+      'data' => array(
+        array('data' => $users[$assignment['assign_uid']]),
+        array('data' => $current_value),
+        array('data' => $assign_date),
+        array('data' => $return_date),
+        array('data' => $assignment['assign_condition']),
+        array('data' => $assignment['return_condition']),
+        array('data' => $assignment['return_comment']),
+        array('data' => $assign_to),
+        array('data' => $users[$assignment['return_uid']]),
+        array('data' => $assign_pdf),
+        array('data' => $return_pdf),
+      ),
+      'class' => array()
+    );
+  }
+
+  $header = array(
+    array('data' => 'Assigned By'),
+    array('data' => 'Current Value'),
+    array('data' => 'Assign Date'),
+    array('data' => 'Return Date'),
+    array('data' => 'Assign Condition'),
+    array('data' => 'Return Condition'),
+    array('data' => 'Return Comment'),
+    array('data' => 'Assigned To'),
+    array('data' => 'Returned By'),
+    array('data' => 'Assign PDF', 'class' => array('nosort', 'nosearch', 'noexport')),
+    array('data' => 'Return PDF', 'class' => array('nosort', 'nosearch', 'noexport')),
+  );
+  $list = array(
+    'attributes' => array('class' => array('table-hover', 'table-vcenter')),
+    'rows' => $rows,
+    'header' => $header,
+  );
+
+
+  $list['attributes']['class'][] = (!empty($rows) ? 'datatable-sort-export' : 'empty-datatable');
+
+  $fields = array_merge($fields, $current_assignment_fields);
+
+  $fields[] = array('type' => 'block_header', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+    'value' => '<strong>Assignment </strong> list', 'value_class' => array());
+  $fields[] = array('type' => 'table', 'wrapper_class' => array(), 'row_class' => array('noborder'),
+    'value' => $list, 'value_class' => array(), 'responsive' => TRUE);
+  $fields[] = array('type' => 'block_footer');
+
+
+  return theme('section_entity_details', array('fields' => $fields));
+}
+
+function hrm_backend_asset_display_current_assignment($asset) {
+  $employees = array();
+  $assignment = $asset['assignment'];
+  $oid = $asset['oid'];
+  if (!isset($employees[$assignment['empid']])) {
+    $employees[$assignment['empid']] = hrm_basic_employee_get_name($assignment['empid']);
+  }
+
+  if (!isset($users[$assignment['uid']])) {
+    $users[$assignment['uid']] = hrm_basic_account_get_name($assignment['uid']);
+  }
+  $fields['actions'] = array('type' => 'controls', 'wrapper_class' => array('pull-right'), 'row_class' => array(),
+    'value' => array(), 'controls_class' => array('col-sm-12', 'remove-padding'));
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-6'), 'row_class' => array(),
+    'label' => 'Assigned To', 'value_class' => array(),
+    'value' => $employees[$assignment['empid']], 'value_class' => array());
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-6'), 'row_class' => array(),
+    'label' => 'Assign date', 'value_class' => array(),
+    'value' => date(HRM_DATE_LONG, $assignment['assign_date']), 'value_class' => array());
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-6'), 'row_class' => array(),
+    'label' => 'Current value', 'value_class' => array(),
+    'value' => number_format($assignment['current_value'], 2), 'value_class' => array());
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-6'), 'row_class' => array(),
+    'label' => 'Condition', 'value_class' => array(),
+    'value' => check_markup($assignment['assign_condition'], 'filtered_html'), 'value_class' => array());
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-6'), 'row_class' => array(),
+    'label' => 'Assigned by', 'value_class' => array(),
+    'value' => $users[$assignment['uid']], 'value_class' => array());
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-6'), 'row_class' => array(),
+    'label' => 'Assigned on', 'value_class' => array(),
+    'value' => date(HRM_DATE_LONG, $assignment['created']), 'value_class' => array());
+
+  $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+    'label' => 'Comments', 'value_class' => array(),
+    'value' => check_markup($assignment['comment'], 'filtered_html'), 'value_class' => array());
+
+  $fields[] = array('type' => 'footer');
+  return $fields;
+}
+
+function hrm_backend_asset_tracking($asset, $account) {
+
+  $rows = array();
+  $fields = array();
+  if (!empty($asset['tracking'])) {
+    foreach ($asset['tracking'] as $tracking) {
+
+      $buttons = array();
+      $buttons[] = l(HRM_FA_MAP_MARKER, 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_COORDINATES, 'aid' => $asset['aid'], 'id' => $tracking['id'], 'oid' => $account['oid']), 'attributes' => array('class' => array('btn', 'btn-sm', 'btn-info'), 'title' => 'View Asset Location Map'), 'html' => TRUE));
+
+      $asset_pic = '<div class="cell-photo-circle cell-photo clearfix">';
+      $asset_pic .= '<div data-toggle="lightbox-gallery">
+          <a href="' . $tracking['img_url'] . '" class="gallery-link" title="' . hrm_basic_account_get_name($tracking['uid']) . '">' .
+        $tracking['img'] . '</a> </div>';
+      $asset_pic .= '</div>';
+
+      $rows[] = array(
+        'data' => array(
+          array('data' => hrm_basic_account_get_name($tracking['uid'])),
+          array('data' => implode('', $buttons)),
+          array('data' => isset($tracking['note']) ? $tracking['note'] : ''),
+          array('data' => date(HRM_DATE_LONG, $tracking['created'])),
+          array('data' => !empty($tracking['picture_fid']) ? $asset_pic : ''),
+        ),
+        'class' => array(),
+      );
+    }
+  }
+
+  $header = array(
+    array('data' => 'User'),
+    array('data' => 'Location', 'class' => array('nosort', 'nosearch', 'noexport')),
+    array('data' => 'Notes', 'class' => array('nosort', 'nosearch', 'noexport')),
+    array('data' => 'Last Seen'),
+    array('data' => HRM_FA_PICTURE, 'class' => array('nosort', 'nosearch', 'noexport')),
+  );
+
+  $list = array(
+    'attributes' => array('class' => array('table-hover', 'table-vcenter')),
+    'rows' => $rows,
+    'header' => $header,
+  );
+
+  $list['attributes']['class'][] = (!empty($rows) ? 'datatable-sort-export' : 'empty-datatable');
+
+  $fields[] = array('type' => 'table', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+    'value_class' => array(),
+    'value' => $list, 'value_class' => array());
+
+  $fields[] = array('type' => 'raw', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+    'value' => hrm_backend_asset_display_all_coordinates($asset, $account), 'value_class' => array());
+
+
+  return theme('section_entity_details', array('fields' => $fields));
+}
+
+/*
+ * Assign assets
+ */
+
+function hrm_backend_asset_assign_asset_form($form, &$form_state, $asset, $account) {
+  form_load_include($form_state, 'inc', 'hrm_backend', 'includes/asset/backend_asset');
+  drupal_set_title('Assign Asset');
+
+  $emp_filters = array(
+    array('field' => 'oid', 'value' => $account['oid'], 'operator' => ' = '),
+    array('field' => 'status', 'value' => HRM_STATUS_ACTIVE, 'operator' => ' = '),
+  );
+  $employees = hrm_basic_employee_names($emp_filters);
+
+  $form['employee'] = array(
+    '#title' => 'Employee',
+    '#type' => 'select',
+    '#options' => $employees,
+    '#required' => TRUE,
+    '#empty_option' => '',
+    '#attributes' => array(
+      'class' => array('select-chosen')),
+  );
+
+  $form['assign_date'] = array(
+    '#title' => 'Assign date',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#empty_option' => '',
+    '#attributes' => array(
+      'class' => array('custom-datepicker'),
+      'data-date-format' => 'dd/mm/yyyy',
+      'placeholder' => 'dd/mm/yyyy'),
+  );
+
+  $form['assign_condition'] = array(
+    '#title' => 'Assign condition',
+    '#type' => 'textarea',
+    '#required' => TRUE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+    '#attributes' => array('class' => array(''),)
+  );
+
+  $form['receipt'] = array(
+    '#title' => 'Signed Receipt',
+    '#type' => 'managed_file',
+    '#required' => TRUE,
+    '#upload_validators' => array('file_validate_extensions' => array(HRM_FILE_EXT_DOCUMENT),),
+    '#upload_location' => HRM_DIR_TMP
+  );
+
+  $form['picture'] = array(
+    '#title' => 'Receiving Picture',
+    '#type' => 'managed_file',
+    '#required' => TRUE,
+    '#upload_validators' => array('file_validate_extensions' => array(HRM_FILE_EXT_PICTURE),),
+    '#upload_location' => HRM_DIR_TMP
+  );
+
+  $form['assign_comment'] = array(
+    '#title' => 'Comments',
+    '#type' => 'textarea',
+    '#required' => FALSE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+    '#attributes' => array('class' => array('ckeditor')),
+  );
+  ;
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['assign'] = array(
+    '#type' => 'submit',
+    '#value' => 'Assign asset',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+
+  $form['#attributes']['class'][] = 'form-bordered';
+  $form['#attributes']['class'][] = 'asset-form';
+
+  return $form;
+}
+
+function hrm_backend_asset_assign_asset_form_validate(&$form, &$form_state) {
+  
+}
+
+function hrm_backend_asset_assign_asset_form_submit(&$form, &$form_state) {
+
+  $asset = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+  $fields = array(
+    'oid' => $oid,
+    'aid' => $asset['aid'],
+    'empid' => $form_state['values']['employee'],
+    'current_value' => isset($asset['current_value']) ? $asset['current_value'] : 0,
+    'assign_date' => strtotime(str_replace('/', '-', $form_state['values']['assign_date'])),
+    'assign_condition' => $form_state['values']['assign_condition'],
+    'photo_fid' => $form_state['values']['picture'],
+    'receipt_fid' => $form_state['values']['receipt'],
+    'comment' => $form_state['values']['assign_comment'],
+    'uid' => $account['uid'],
+    'created' => time(),
+    'changed' => time(),
+  );
+
+  $aid = db_insert('hrm_asset_assignment')
+    ->fields($fields)
+    ->execute();
+
+  db_update('hrm_asset')
+    ->fields(array(
+      'status' => HRM_STATUS_ASSIGNED,
+      'changed' => time(),
+      'assign_template' => $form_state['values']['receipt'],
+    ))
+    ->condition('aid', $asset['aid'], '=')
+    ->execute();
+
+  if (!empty($form_state['values']['receipt'])) {
+    $receipt_file = file_load($form_state['values']['receipt']);
+    $dest_location_receipt = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $asset['aid'])) . '/assignment';
+
+    file_prepare_directory($dest_location_receipt, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+    file_move($receipt_file, $dest_location_receipt, FILE_EXISTS_RENAME);
+    hrm_basic_file_save_file_data($form_state['values']['receipt'], HRM_MODULE_BACKEND, 'assignment_receipt', $aid);
+
+//    if ($asset['assign_template']) {
+//      hrm_basic_file_delete_file_data($asset['assign_template'], HRM_MODULE_BACKEND);
+//    }
+    // CHEK AGIAN DELETE FILE
+  }
+  if (!empty($form_state['values']['picture'])) {
+    $picture_file = file_load($form_state['values']['picture']);
+    $dest_location_pic = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $asset['aid'])) . '/assignment';
+
+    file_prepare_directory($dest_location_pic, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+    file_move($picture_file, $dest_location_pic, FILE_EXISTS_RENAME);
+    hrm_basic_file_save_file_data($form_state['values']['picture'], HRM_MODULE_BACKEND, 'assignment_picture', $aid);
+  }
+
+  $asset_data = array(
+    'assignment_id' => $aid,
+    'empid' => $form_state['values']['employee'],
+    'assigned_to_name' => hrm_basic_employee_get_name($form_state['values']['employee']),
+    'assigned_by_name' => hrm_basic_account_get_name($account['uid']),
+    'assign_date' => date(HRM_DATE_LONG, strtotime(str_replace('/', '-', $form_state['values']['assign_date']))),
+    'next_year_assign_date' => date(HRM_DATE_LONG, strtotime("+1 year", strtotime(str_replace('/', '-', $form_state['values']['assign_date'])))),
+    'category' => hrm_basic_asset_category_get_name($asset['category']),
+    'brand' => hrm_basic_asset_brand_get_name($asset['brand']),
+    'model' => $asset['model'],
+    'asset_no' => $asset['asset_no'],
+    'serial_number' => $asset['serial_no'],
+    'quatity' => 1,
+    'condition' => $form_state['values']['assign_condition'],
+    'now' => date(HRM_DATE_LONG, time())
+  );
+
+  // CHECK AGAIN // EMAIL
+//  hrm_emails_notification_asset_notifications($asset, HRM_EMAIL_NOTIF_ASSET_ASSIGNED, $asset_data);
+  $log_data = array(
+    'title' => $asset['asset_no'],
+    'assigned_to' => $form_state['values']['employee'],
+    'assigned_by' => $account['uid'],
+    'assigned_date' => $form_state['values']['assign_date'],
+    'justification' => $form_state['values']['assign_comment'],
+  );
+  hrm_backend_entity_history_log_action(HRM_ENTITY_ASSET, $asset['aid'], HRM_ACTION_ASSIGN, $account['uid'], $log_data);
+
+  drupal_set_message('Asset has been assigned successfully***');
+  ctools_include('ajax');
+  ctools_add_js('ajax-responder');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/details/' . $asset['aid'], 0, array('query' => array('tab' => HRM_TAB_ASSIGNMENT)));
+  print ajax_render($commands);
+  exit;
+}
+
+/*
+ * Return asset
+ */
+
+function hrm_backend_asset_return_asset_form($form, &$form_state, $asset, $account) {
+  form_load_include($form_state, 'inc', 'hrm_backend', 'includes/asset/backend_asset');
+
+  drupal_set_title('Return Asset');
+
+  $form['return_date'] = array(
+    '#title' => 'Returned date',
+    '#type' => 'textfield', '#required' => TRUE,
+    '#empty_option' => '',
+    '#attributes' => array('class' => array('custom-datepicker'),
+      'data-date-format' => 'dd/mm/yyyy',
+      'placeholder' => 'dd/mm/yyyy'),
+  );
+
+  $form['return_condition'] = array(
+    '#title' => 'Return condition',
+    '#type' => 'textarea',
+    '#required' => TRUE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+  );
+
+  $form['current_value'] = array(
+    '#title' => 'Current Value',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#description' => 'cost is ' . $asset['current_value'],
+    '#element_validate' => array('element_validate_number'),
+  );
+
+
+  $form['return_receipt'] = array(
+    '#title' => 'Signed Return Receipt',
+    '#type' => 'managed_file',
+    '#required' => TRUE,
+    '#upload_validators' => array('file_validate_extensions' => array(HRM_FILE_EXT_DOCUMENT),),
+    '#upload_location' => HRM_DIR_TMP
+  );
+
+  $form['return_picture'] = array(
+    '#title' => 'Receiving Picture',
+    '#type' => 'managed_file',
+    '#required' => TRUE,
+    '#upload_validators' => array('file_validate_extensions' => array(HRM_FILE_EXT_PICTURE),),
+    '#upload_location' => HRM_DIR_TMP
+  );
+
+  $form['return_comment'] = array(
+    '#title' => 'Comments',
+    '#type' => 'textarea',
+    '#required' => FALSE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+    '#attributes' => array('class' => array('ckeditor')),
+  );
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['return'] = array(
+    '#type' => 'submit',
+    '#value' => 'Return asset',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+
+  $form['#attributes']['class'][] = 'form-bordered';
+  $form['#attributes']['class'][] = 'asset-form';
+
+  return $form;
+}
+
+function hrm_backend_asset_return_asset_form_validate(&$form, &$form_state) {
+  $asset = $form_state['build_info']['args'][0];
+  $return_date = strtotime(str_replace('/', '-', $form_state['values']['return_date']));
+
+  if ($asset['assignment']['assign_date'] > $return_date) {
+    form_set_error('return_date', 'Return date should be after assigned date');
+  }
+}
+
+function hrm_backend_asset_return_asset_form_submit(&$form, &$form_state) {
+  $asset = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+  $return_date = strtotime(str_replace('/', '-', $form_state['values']['return_date']));
+  $return_picture = $form_state['values']['return_picture'];
+  $return_receipt = $form_state['values']['return_receipt'];
+
+  $fields = array(
+    'oid' => $oid,
+    'aid' => $asset['assignment']['aid'],
+    'empid' => $asset['assignment']['empid'],
+    'current_value' => $form_state['values']['current_value'],
+    'assign_date' => $asset['assignment']['assign_date'],
+    'assign_condition' => $asset['assignment']['assign_condition'],
+    'assign_photo_fid' => $asset['assignment']['photo_fid'],
+    'assign_receipt_fid' => $asset['assignment']['receipt_fid'],
+    'assign_comment' => $asset['assignment']['comment'],
+    'assign_uid' => $asset['assignment']['uid'],
+    'assign_created' => $asset['assignment']['created'],
+    'assign_changed' => $asset['assignment']['changed'],
+    'return_date' => $return_date,
+    'return_condition' => $form_state['values']['return_condition'],
+    'return_photo_fid' => $return_picture,
+    'return_receipt_fid' => $return_receipt,
+    'return_created' => time(),
+    'return_changed' => time(),
+    'return_comment' => $form_state['values']['return_comment'],
+    'return_uid' => $account['uid'],
+  );
+  $assign_history_id = db_insert('hrm_asset_assignment_history')
+    ->fields($fields)
+    ->execute();
+
+  db_delete('hrm_asset_assignment')
+    ->condition('aid', $asset['aid'], '=')
+    ->execute();
+
+  db_update('hrm_asset')
+    ->fields(array(
+      'status' => HRM_STATUS_IN_STOCK,
+      'current_value' => $form_state['values']['current_value'],
+      'return_template' => $return_receipt,
+      'changed' => time(),
+    ))
+    ->condition('aid', $asset['aid'], '=')
+    ->execute();  
+  
+  if (!empty($form_state['values']['return_picture'])) {
+    $receipt_file = file_load($form_state['values']['return_picture']);
+    $dest_location_receipt = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $asset['aid'])) . '/return';
+
+    file_prepare_directory($dest_location_receipt, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+    file_move($receipt_file, $dest_location_receipt, FILE_EXISTS_RENAME);
+    hrm_basic_file_save_file_data($form_state['values']['return_picture'], HRM_MODULE_BACKEND, 'return_picture', $assign_history_id);
+  }
+  if (!empty($form_state['values']['return_receipt'])) {
+    $receipt_file = file_load($form_state['values']['return_receipt']);
+    $dest_location_receipt = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $asset['aid'])) . '/return';
+
+    file_prepare_directory($dest_location_receipt, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+    file_move($receipt_file, $dest_location_receipt, FILE_EXISTS_RENAME);
+    hrm_basic_file_save_file_data($form_state['values']['return_receipt'], HRM_MODULE_BACKEND, 'return_receipt', $assign_history_id);
+
+//    if ($asset['return_template']) {
+//      hrm_basic_file_delete_file_data($asset['return_template'], HRM_MODULE_BACKEND);
+//    }
+    // CHECK AGIAN DELETE FILE
+  }
+  $log_data = array(
+    'title' => $asset['asset_no'],
+    'return_by' => $account['uid'],
+    'return_date' => $form_state['values']['return_date'],
+    'assign_date' => $asset['assignment']['created'],
+    'justification' => $form_state['values']['return_comment'],
+  );
+  hrm_backend_entity_history_log_action(HRM_ENTITY_ASSET, $asset['aid'], HRM_ACTION_RETURN, $account['uid'], $log_data);
+
+  drupal_set_message('Asset has been returned successfully***');
+  ctools_include('ajax');
+  ctools_add_js('ajax-responder');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/details/' . $asset['aid'], 0, array('query' => array('tab' => HRM_TAB_ASSIGNMENT)));
+  print ajax_render($commands);
+  exit;
+}
+
+/*
+ * Generate Forms
+ */
+
+function hrm_backend_asset_generate_assign_receipt_form($form, &$form_state, $asset, $account) {
+
+  form_load_include($form_state, 'inc', 'hrm_backend', 'includes/asset/backend_asset');
+  drupal_set_title('Generate Receipt PDF form');
+
+  $emp_filters = array(
+    array('field' => 'oid', 'value' => $account['oid'], 'operator' => '='),
+    array('field' => 'status', 'value' => HRM_STATUS_ACTIVE, 'operator' => '='),
+  );
+  $employees = hrm_basic_employee_names($emp_filters);
+
+  $form['employee'] = array(
+    '#title' => 'Employee',
+    '#type' => 'select',
+    '#options' => $employees,
+    '#required' => TRUE,
+    '#empty_option' => '',
+    '#attributes' => array(
+      'class' => array('select-chosen')),
+  );
+
+  $form['assign_date'] = array(
+    '#title' => 'Date',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#empty_option' => '',
+    '#attributes' => array(
+      'class' => array('custom-datepicker'),
+      'data-date-format' => 'dd/mm/yyyy',
+      'placeholder' => 'dd/mm/yyyy'),
+  );
+
+  $form['assign_condition'] = array(
+    '#title' => 'Condition',
+    '#type' => 'textarea',
+    '#required' => TRUE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+    '#attributes' => array('class' => array(''),)
+  );
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+
+  $form['#attributes']['class'][] = 'form-bordered';
+  $form['#attributes']['class'][] = 'asset-form';
+
+  return $form;
+}
+
+function hrm_backend_asset_generate_assign_receipt_form_submit(&$form, &$form_state) {
+  $asset = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+  $aid = $asset['aid'];
+  $empid = $form_state['values']['employee'];
+  $assign_condition = $form_state['values']['assign_condition'];
+  $assign_date = date(HRM_DATE_LONG, strtotime(str_replace('/', '-', $form_state['values']['assign_date'])));
+  $next_year_assign_date = date(HRM_DATE_LONG, strtotime("+1 year", $form_state['values']['assign_date']));
+
+  if ($asset['assign_template']) {
+    hrm_basic_file_delete_file_data($asset['assign_template'], HRM_MODULE_BACKEND);
+  }
+
+  $category = hrm_basic_asset_category_get_name($asset['category']);
+  $brand = hrm_basic_asset_brand_get_name($asset['brand']);
+  $model = $asset['model'];
+  $quantity = 1;
+  $assigned_to_name = hrm_basic_employee_get_name($empid);
+  $assigned_by_name = hrm_basic_account_get_name($account['uid']);
+  $asset_no = $asset['asset_no'];
+  $serial_no = $asset['serial_no'];
+  $now = date(HRM_DATE_LONG, time());
+
+  $generate_assign_receipt = variable_get(HRM_VAR_ORG_ASSET_GENERATE_ASSIGN_RECIEPT . $oid, 0);
+  if ($generate_assign_receipt) {
+    $receipt_form_template = variable_get(HRM_VAR_ORG_ASSET_ASSIGN_RECIEPT_CONTENT . $oid, '');
+    $search = array('@[client_logo]', '@[client_name]', '@[assign_date]', '@[next_year_assign_date]', '@[employee_name]',
+      '@[category]', '@[brand]', '@[model]', '@[asset_no]', '@[serial_number]', '@[quantity]', '@[condition]', '@[now]',
+      '@[assigned_by]');
+    $cleint_logo = hrm_basic_organization_get_logo_url($oid);
+    $client_name = hrm_basic_organization_get_name($oid);
+    $replace = array($cleint_logo, $client_name, $assign_date, $next_year_assign_date,
+      $assigned_to_name, $category, $brand, $model, $asset_no, $serial_no,
+      $quantity, $assign_condition, $now, $assigned_by_name);
+
+    $html = str_replace($search, $replace, $receipt_form_template);
+    $dest = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $asset['aid'])) . '/template';
+
+    $name = 'asset-assign-receipt-form-' . $asset['aid'];
+
+    hrm_backend_entity_pdf_generate_pdf($html, $name, $dest);
+    $pdf_uri = $dest . '/' . $name . '.pdf';
+    $assign_reciept_fid = hrm_basic_file_save_unmanged_file($pdf_uri, $name, HRM_MODULE_BACKEND, 'asset_assign_template', $asset['aid']);
+    if ($assign_reciept_fid) {
+      db_update('hrm_asset')
+        ->fields(array('assign_template' => $assign_reciept_fid))
+        ->condition('aid', $asset['aid'], '=')
+        ->execute();
+    }
+  }
+
+  drupal_set_message('Assign Receipt form has been generated successfully***');
+  ctools_include('ajax');
+  ctools_add_js('ajax-responder');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/details/' . $asset['aid'], 0, array('query' => array('tab' => HRM_TAB_ASSIGNMENT)));
+
+  print ajax_render($commands);
+  exit;
+}
+
+function hrm_backend_asset_generate_return_receipt_form($form, &$form_state, $asset, $account) {
+  form_load_include($form_state, 'inc', 'hrm_backend', 'includes/asset/backend_asset');
+  drupal_set_title('Generate Return PDF form');
+
+  $form['return_date'] = array(
+    '#title' => 'Date',
+    '#type' => 'textfield', '#required' => TRUE,
+    '#empty_option' => '',
+    '#attributes' => array('class' => array('custom-datepicker'),
+      'data-date-format' => 'dd/mm/yyyy',
+      'placeholder' => 'dd/mm/yyyy'),
+  );
+
+  $form['return_condition'] = array(
+    '#title' => 'Condition',
+    '#type' => 'textarea',
+    '#required' => TRUE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+  );
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+
+  $form['#attributes']['class'][] = 'form-bordered';
+  $form['#attributes']['class'][] = 'asset-form';
+  return $form;
+}
+
+function hrm_backend_asset_generate_return_receipt_form_submit(&$form, &$form_state) {
+  $asset = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+  $aid = $asset['aid'];
+
+  if ($asset['return_template']) {
+    hrm_basic_file_delete_file_data($asset['return_template'], HRM_MODULE_BACKEND);
+  }
+  $now = date(HRM_DATE_LONG, time());
+  $return_condition = $form_state['values']['return_condition'];
+  $return_date = date(HRM_DATE_LONG, strtotime(str_replace('/', '-', $form_state['values']['return_date'])));
+  $current_value = $asset['current_value'];
+  $category = hrm_basic_asset_category_get_name($asset['category']);
+  $brand = hrm_basic_asset_brand_get_name($asset['brand']);
+  $assigned_to_name = hrm_basic_employee_get_name($asset['assignment']['empid']);
+  $returned_by_name = hrm_basic_account_get_name($account['uid']);
+
+  $generate_asset_return = variable_get(HRM_VAR_ORG_ASSET_GENERATE_RETURN_RECIEPT . $oid, 0);
+  if ($generate_asset_return) {
+    $return_form_template = variable_get(HRM_VAR_ORG_ASSET_RETURN_RECIEPT_CONTENT . $oid, '');
+    $search = array('@[client_logo]', '@[client_name]', '@[now]', '@[asset_no]', '@[serial_number]', '@[category]',
+      '@[brand]', '@[model]', '@[current_value]', '@[asset_no]', '@[assigned_to_name]', '@[return_condition]',
+      '@[return_date]', '@[returned_by]');
+    $cleint_logo = hrm_basic_organization_get_logo_url($oid);
+    $client_name = hrm_basic_organization_get_name($oid);
+    $replace = array(
+      $cleint_logo, $client_name, $now, $asset['asset_no'], $asset['serial_no'], $category,
+      $brand, $asset['model'], $current_value, $asset['asset_no'], $assigned_to_name, $return_condition,
+      $return_date, $returned_by_name);
+
+    $html = str_replace($search, $replace, $return_form_template);
+    $dest = strtr(HRM_DIR_ASSET, array('%oid' => $oid, '%aid' => $aid)) . '/template';
+    $name = 'asset-return-receipt-form-' . $asset['aid'];
+
+    hrm_backend_entity_pdf_generate_pdf($html, $name, $dest);
+
+    $pdf_uri = $dest . '/' . $name . '.pdf';
+    $return_reciept_fid = hrm_basic_file_save_unmanged_file($pdf_uri, $name, HRM_MODULE_BACKEND, 'asset_assign_template', $asset['aid']);
+    if ($return_reciept_fid) {
+      db_update('hrm_asset')
+        ->fields(array('return_template' => $return_reciept_fid))
+        ->condition('aid', $asset['aid'], '=')
+        ->execute();
+    }
+  }
+
+  drupal_set_message('Return Receipt form has been generated successfully***');
+  ctools_include('ajax');
+  ctools_add_js('ajax-responder');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/details/' . $asset['aid'], 0, array('query' => array('tab' => HRM_TAB_ASSIGNMENT)));
+  print ajax_render($commands);
+  exit;
+}
+
+/*
+ * Update Status (Decommision && Stolen)
+ */
+
+function hrm_backend_asset_update_status_form($form, &$form_state, $asset, $account) {
+  form_load_include($form_state, 'inc', 'hrm_backend', 'includes/asset/backend_asset');
+
+  drupal_set_title('Update asset status');
+  $status = array();
+  if ($asset['status'] == HRM_STATUS_IN_STOCK) {
+    $status[HRM_STATUS_DECOMMISSIONED] = 'Decomission';
+    $status[HRM_STATUS_STOLEN] = 'Mark stolen';
+  }
+  elseif ($asset['status'] == HRM_STATUS_ASSIGNED) {
+    $status[HRM_STATUS_DECOMMISSIONED] = 'Decomission';
+    $status[HRM_STATUS_STOLEN] = 'Mark stolen';
+  }
+  elseif ($asset['status'] == HRM_STATUS_DECOMMISSIONED) {
+    $status[HRM_STATUS_IN_STOCK] = 'Make Available';
+  }
+  elseif ($asset['status'] == HRM_STATUS_STOLEN) {
+    $status[HRM_STATUS_IN_STOCK] = 'Make found';
+  }
+
+  $form['status'] = array(
+    '#title' => 'Status',
+    '#type' => 'select',
+    '#options' => $status,
+    '#required' => TRUE,
+    '#empty_option' => '',
+    '#attributes' => array(
+      'class' => array('select-chosen')),
+  );
+
+  $form['comment'] = array(
+    '#title' => 'Comments',
+    '#type' => 'textarea',
+    '#required' => TRUE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+    '#attributes' => array('class' => array('ckeditor')),
+  );
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['update'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+
+  $form['#attributes']['class'][] = 'form-bordered';
+  $form['#attributes']['class'][] = 'asset-form';
+
+  return $form;
+}
+
+function hrm_backend_asset_update_status_form_validate(&$form, &$form_state) {
+  
+}
+
+function hrm_backend_asset_update_status_form_submit(&$form, &$form_state) {
+
+  $asset = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+  $employee = $form_state['values']['employee'];
+  $status = $form_state['values']['status'];
+  $status_names = hrm_basic_status_names();
+
+  $status_comment = '';
+  if ($status == HRM_STATUS_DECOMMISSIONED || $status == HRM_STATUS_STOLEN) {
+    $status_comment = $form_state['values']['comment'];
+
+    if ($asset['status'] == HRM_STATUS_ASSIGNED) {
+      db_insert('hrm_asset_assignment_history')
+        ->fields(array(
+          'oid' => $oid,
+          'aid' => $asset['aid'],
+          'empid' => $asset['assignment']['empid'],
+          'current_value' => isset($asset['current_value']) ? $asset['current_value'] : 0,
+          'assign_date' => $asset['assignment']['assign_date'],
+          'assign_condition' => $asset['assignment']['assign_condition'],
+          'assign_photo_fid' => $asset['assignment']['photo_fid'],
+          'assign_receipt_fid' => $asset['assignment']['receipt_fid'],
+          'assign_comment' => $asset['assignment']['comment'],
+          'assign_uid' => $asset['assignment']['uid'],
+          'assign_created' => $asset['assignment']['created'],
+          'assign_changed' => $asset['assignment']['changed'],
+          'return_date' => 0,
+          'return_condition' => '',
+          'return_photo_fid' => 0,
+          'return_receipt_fid' => 0,
+          'return_created' => time(),
+          'return_changed' => time(),
+          'return_comment' => $form_state['values']['comment'],
+          'return_uid' => $account['uid'],
+        ))
+        ->execute();
+
+      db_delete('hrm_asset_assignment')
+        ->condition('aid', $asset['aid'], '=')
+        ->execute();
+    }
+  }
+
+  if ($form_state['values']['status'] == HRM_STATUS_IN_STOCK) {
+    db_delete('hrm_asset_assignment')
+      ->condition('aid', $asset['aid'], '=')
+      ->execute();
+  }
+  db_update('hrm_asset')
+    ->fields(array(
+      'status' => $status,
+      'changed' => time(),
+    ))
+    ->condition('aid', $asset['aid'], '=')
+    ->execute();
+
+  $log_data = array(
+    'title' => $asset['asset_no'],
+    'prev_status' => array('value' => $asset['status'], 'label' => isset($status_names[$asset['status']]) ? $status_names[$asset['status']] : ''),
+    'new_status' => array('value' => $form_state['values']['status'], 'label' => isset($status_names[$form_state['values']['status']]) ? $status_names[$form_state['values']['status']] : ''),
+    'justification' => $form_state['values']['comment'],
+  );
+  hrm_backend_entity_history_log_action(HRM_ENTITY_ASSET, $asset['aid'], HRM_ACTION_STATUS_UPDATE, $account['uid'], $log_data);
+
+  drupal_set_message('Saved successfully***');
+  ctools_include('ajax');
+  ctools_add_js('ajax-responder');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/details/' . $asset['aid']);
+  print ajax_render($commands);
+  exit;
+}
+
+/*
+ * Brand
+ */
+
+function hrm_backend_asset_brands() {
+  $account = hrm_basic_account_get_info();
+  if (empty($account) || !isset($account['oid']) || !$account['oid']) {
+    drupal_access_denied();
+    exit();
+  }
+
+  $brands = hrm_basic_asset_brand_get_data(array(array('field' => 'oid', 'value' => $account['oid'])));
+
+  $access_details_permission = user_access(HRM_PERM_ASSET_BRAND_ACCESS_DETAILS);
+  $rows = array();
+
+  foreach ($brands as $id => $brand) {
+
+    $row_classes = array();
+    $row_classes[] = ($access_details_permission ? 'table-tr-link' : '');
+    $tr_data_url = ($access_details_permission ? url('asset/brand/details/' . $id) : '');
+
+    $rows[$id] = array(
+      'data' => array(
+        array('data' => $brand['brand_no']),
+        array('data' => $brand['name']),
+      ),
+      'class' => $row_classes,
+      'data-url' => $tr_data_url,
+    );
+  }
+  $header = array(
+    array('data' => 'Brand ID'),
+    array('data' => 'Name'),
+  );
+
+  $list = array(
+    'attributes' => array('class' => array('table-hover', 'table-vcenter')),
+    'rows' => $rows,
+    'header' => $header
+  );
+  $list['attributes']['class'][] = (!empty($rows) ? 'datatable-sort-export' : 'empty-datatable');
+
+  $variables = array(
+    'list' => $list
+  );
+  return theme('page_wrapper_entity_list_no_header', $variables);
+}
+
+function hrm_backend_asset_brand_details($id) {
+  if ($id && is_numeric($id)) {
+    $brand = hrm_basic_asset_brand_get_data(array(array('field' => 'id', 'value' => $id)), TRUE);
+    if (!empty($brand)) {
+      $account = hrm_basic_account_get_info();
+
+      $role_permissions = hrm_basic_role_permissions($account['role']);
+      $permission_data = array('brand' => $brand, 'permissions' => $role_permissions);
+
+      if (hrm_backend_asset_permissions(HRM_PERM_ASSET_BRAND_ACCESS_DETAILS, $account, $permission_data)) {
+
+        $fields = array();
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Brand NO', 'value_class' => array(),
+          'value' => $brand['brand_no'], 'value_class' => array());
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Name', 'value_class' => array(),
+          'value' => $brand['name'], 'value_class' => array());
+
+        $details = theme('section_entity_details', array('fields' => $fields));
+        $actions = array();
+
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_BRAND_EDIT, $account, $permission_data)) {
+          $actions[] = l(HRM_FA_PENCIL_YELLOW . 'Edit', 'asset/brand/edit/' . $id, array('html' => TRUE));
+        }
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_BRAND_DELETE, $account, $permission_data)) {
+          $actions[] = l(HRM_FA_TRASH_RED . 'Delete', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_BRAND_DELETE, 'id' => $brand['id']), 'html' => TRUE));
+        }
+
+        $variables = array(
+          'details' => $details,
+          'actions' => $actions,
+          'entity' => HRM_ENTITY_ASSET
+        );
+        return theme('page_wrapper_entity_details', $variables);
+      }
+      else {
+        drupal_access_denied();
+        exit();
+      }
+    }
+    else {
+      drupal_not_found();
+      exit();
+    }
+  }
+  else {
+    drupal_not_found();
+    exit();
+  }
+}
+
+function hrm_backend_asset_brand_form_page($id) {
+
+  $account = hrm_basic_account_get_info();
+
+  $brand = array();
+  if ($id) {
+    $brand = hrm_basic_asset_brand_get_data(array(array('field' => 'id', 'value' => $id)), TRUE);
+
+    if (empty($brand)) {
+      drupal_not_found();
+      exit();
+    }
+    $edit_brand_permission = hrm_backend_asset_permissions(HRM_PERM_ASSET_BRAND_EDIT, $account, array('brand' => $brand));
+    if (!$edit_brand_permission) {
+      drupal_access_denied();
+      exit();
+    }
+    drupal_set_title('Edit ' . $brand['name']);
+  }
+  else {
+    if (!user_access(HRM_PERM_ASSET_BRAND_ADD) || !isset($account['oid']) || !$account['oid']) {
+      drupal_access_denied();
+      exit();
+    }
+    drupal_set_title('Add Brand');
+  }
+
+  $brand_form = drupal_get_form('hrm_backend_asset_brand_form', $brand, $account);
+
+  $variables = array(
+    'entity' => HRM_ENTITY_ASSET,
+    'title' => 'Brand information',
+    'form' => $brand_form,
+  );
+  return theme('page_wrapper_entity_form', $variables);
+}
+
+function hrm_backend_asset_brand_form($form, &$form_state, $brand, $account) {
+  $brand_no = variable_get('organization_brands_no_' . $account['oid'], '0001');
+  $form['brand_no'] = array(
+    '#title' => 'Brand No.',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($brand['brand_no']) ? $brand['brand_no'] : $brand_no),
+    '#disabled' => TRUE,
+  );
+
+  $form['name'] = array('#title' => 'Name',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($brand['name']) ? $brand['name'] : ''),
+  );
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => ' Save Brand',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+
+  $form['#attributes']['class'][] = 'form-bordered';
+
+  return $form;
+}
+
+function hrm_backend_asset_brand_form_validate(&$form, &$form_state) {
+  $brand = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+  if (isset($brand['id']) && $brand['id']) {
+    if (!empty($form_state['values']['name'])) {
+      $brand_exist = db_query('SELECT COUNT(*) FROM {hrm_asset_brand} WHERE oid = :oid AND name = :name AND id <> :id', array(':oid' => $oid, ':name' => $form_state['values']['name'], ':id' => $brand['id']))->fetchField(0);
+      if ($brand_exist) {
+        form_set_error('name', 'Brand already exists');
+      }
+    }
+  }
+  else {
+    if (!empty($form_state['values']['name'])) {
+      $brand_exist = db_query('SELECT COUNT(*) FROM {hrm_asset_brand} WHERE oid = :oid AND name = :name', array(':oid' => $oid, ':name' => $form_state['values']['name']))->fetchField(0);
+      if ($brand_exist) {
+        form_set_error('name', 'Brand already exists');
+      }
+    }
+  }
+}
+
+function hrm_backend_asset_brand_form_submit(&$form, &$form_state) {
+  $brand = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+
+  if (isset($brand['id']) && $brand['id']) {
+    db_update('hrm_asset_brand')
+      ->fields(array(
+        'name' => $form_state['values']['name'],
+        'changed' => time(),
+      ))
+      ->condition('id', $brand['id'], '=')
+      ->execute();
+  }
+  else {
+    db_insert('hrm_asset_brand')
+      ->fields(array(
+        'oid' => $oid,
+        'brand_no' => $form_state['values']['brand_no'],
+        'name' => $form_state['values']['name'],
+        'uid' => $account['uid'],
+        'created' => time(),
+        'changed' => time(),
+      ))
+      ->execute();
+
+    $brand_no = variable_get('organization_brands_no_' . $oid, '0001');
+    $brand_no += 1;
+    variable_set('organization_brands_no_' . $oid, str_pad($brand_no, 4, "0", STR_PAD_LEFT));
+  }
+  drupal_set_message($form_state['values']['name'] . ' saved successfully***');
+  drupal_goto('asset/brand');
+}
+
+function hrm_backend_asset_brand_delete_form($form, &$form_state, $brand, $account) {
+  drupal_set_title('Delete Brand');
+
+  $role_permissions = hrm_basic_role_permissions($account['role']);
+  $permission_data = array('brand' => $brand, 'permissions' => $role_permissions);
+
+  $id = $brand['id'];
+
+  $delete_permission = hrm_backend_asset_permissions(HRM_PERM_ASSET_BRAND_DELETE, $account, $permission_data);
+  if (!$delete_permission) {
+    hrm_backend_modal_access_denied();
+  }
+
+  $form['description'] = array('#markup' => '<div class="form-item form-group">Are you sure to delete brand ?***</div>');
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Delete',
+    '#attributes' => array('class' => array('btn-danger', 'btn-sm')),
+    '#prefix' => '<div class="form-group form-actions">',
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+  $form['#attributes']['class'][] = 'form-bordered';
+
+  return $form;
+}
+
+function hrm_backend_asset_brand_delete_form_submit(&$form, &$form_state) {
+
+  $brand = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $id = $brand['id'];
+  if ($id && is_numeric($id)) {
+    if ($brand['oid'] == $account['oid']) {
+      db_delete('hrm_asset_brand')
+        ->condition('id', $brand['id'], '=')
+        ->execute();
+      db_update('hrm_asset')
+        ->fields(array('brand' => 0))
+        ->condition('brand', $brand['id'], '=')
+        ->execute();
+    }
+    else {
+      drupal_access_denied();
+      exit();
+    }
+  }
+  else {
+    drupal_not_found();
+    exit();
+  }
+  drupal_set_message('Brand has been deleted successfully***');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/brand');
+  print ajax_render($commands);
+  exit;
+}
+
+/*
+ * Vendor
+ */
+
+function hrm_backend_asset_vendors() {
+  $account = hrm_basic_account_get_info();
+  if (empty($account) || !isset($account['oid']) || !$account['oid']) {
+    drupal_access_denied();
+    exit();
+  }
+
+  $vendors = hrm_basic_asset_vendor_get_data(array(array('field' => 'oid', 'value' => $account['oid'])));
+
+  $access_details_permission = user_access(HRM_PERM_ASSET_VENDOR_ACCESS_DETAILS);
+  $rows = array();
+  foreach ($vendors as $id => $vendor) {
+
+    $row_classes = array();
+    $row_classes[] = ($access_details_permission ? 'table-tr-link' : '');
+    $tr_data_url = ($access_details_permission ? url('asset/vendor/details/' . $id) : '');
+    $rows[$id] = array(
+      'data' => array(
+        array('data' => $vendor['vendor_no']),
+        array('data' => $vendor['name']),
+        array('data' => $vendor['phone']),
+        array('data' => $vendor['email']),
+        array('data' => $vendor['website']),
+      ),
+      'class' => $row_classes,
+      'data-url' => $tr_data_url,
+    );
+  }
+  $header = array(
+    array('data' => 'Vendor ID'),
+    array('data' => 'Name'),
+    array('data' => 'Phone'),
+    array('data' => 'Email'),
+    array('data' => 'Website'),
+  );
+
+  $list = array(
+    'attributes' => array('class' => array('table-hover', 'table-vcenter')),
+    'rows' => $rows,
+    'header' => $header
+  );
+  $list['attributes']['class'][] = (!empty($rows) ? 'datatable-sort-export' : 'empty-datatable');
+
+  $variables = array(
+    'list' => $list
+  );
+  return theme('page_wrapper_entity_list_no_header', $variables);
+}
+
+function hrm_backend_asset_vendor_details($id) {
+  if ($id && is_numeric($id)) {
+    $vendor = hrm_basic_asset_vendor_get_data(array(array('field' => 'id', 'value' => $id)), TRUE);
+    if (!empty($vendor)) {
+      $account = hrm_basic_account_get_info();
+      $role_permissions = hrm_basic_role_permissions($account['role']);
+      $permission_data = array('vendor' => $vendor, 'permissions' => $role_permissions);
+
+      if (hrm_backend_asset_permissions(HRM_PERM_ASSET_VENDOR_ACCESS_DETAILS, $account, $permission_data)) {
+        $fields = array();
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Vendor NO', 'value_class' => array(),
+          'value' => $vendor['vendor_no'], 'value_class' => array());
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Name', 'value_class' => array(),
+          'value' => $vendor['name'], 'value_class' => array());
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Phone', 'value_class' => array(),
+          'value' => $vendor['phone'], 'value_class' => array());
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Email', 'value_class' => array(),
+          'value' => $vendor['email'], 'value_class' => array());
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Website', 'value_class' => array(),
+          'value' => $vendor['website'], 'value_class' => array());
+
+        $address = trim($vendor['address']);
+        if (!empty($address)) {
+          $address = check_markup($vendor['address'], 'filtered_html');
+        }
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Address', 'value_class' => array(),
+          'value' => $address, 'value_class' => array());
+
+        $details = theme('section_entity_details', array('fields' => $fields));
+        $actions = array();
+
+
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_VENDOR_EDIT, $account, $permission_data)) {
+          $actions[] = l(HRM_FA_PENCIL_YELLOW . 'Edit', 'asset/vendor/edit/' . $id, array('html' => TRUE));
+        }
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_VENDOR_DELETE, $account, $permission_data)) {
+          $actions[] = l(HRM_FA_TRASH_RED . 'Delete', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_VENDOR_DELETE, 'id' => $vendor['id']), 'html' => TRUE));
+        }
+
+        $variables = array(
+          'details' => $details,
+          'actions' => $actions,
+          'entity' => HRM_ENTITY_ASSET
+        );
+        return theme('page_wrapper_entity_details', $variables);
+      }
+      else {
+        drupal_access_denied();
+        exit();
+      }
+    }
+    else {
+      drupal_not_found();
+      exit();
+    }
+  }
+  else {
+    drupal_not_found();
+    exit();
+  }
+}
+
+function hrm_backend_asset_vendor_form_page($id) {
+
+  $account = hrm_basic_account_get_info();
+
+  $vendor = array();
+
+  if ($id) {
+    $vendor = hrm_basic_asset_vendor_get_data(array(array('field' => 'id', 'value' => $id)), TRUE);
+
+    if (empty($vendor)) {
+      drupal_not_found();
+      exit();
+    }
+    $edit_vendor_permission = hrm_backend_asset_permissions(HRM_PERM_ASSET_VENDOR_EDIT, $account, array('vendor' => $vendor));
+    if (!$edit_vendor_permission) {
+      drupal_access_denied();
+      exit();
+    }
+    drupal_set_title('Edit ' . $vendor['name']);
+  }
+  else {
+    if (!user_access(HRM_PERM_ASSET_VENDOR_ADD) || !isset($account['oid']) || !$account['oid']) {
+      drupal_access_denied();
+      exit();
+    }
+    drupal_set_title('Add Vendor');
+  }
+
+  $vendor_form = drupal_get_form('hrm_backend_asset_vendor_form', $vendor, $account);
+
+  $variables = array(
+    'entity' => HRM_ENTITY_ASSET,
+    'title' => 'Vendor information',
+    'form' => $vendor_form,
+  );
+  return theme('page_wrapper_entity_form', $variables);
+}
+
+function hrm_backend_asset_vendor_form($form, &$form_state, $vendor, $account) {
+
+  $vendor_no = variable_get('organization_vendors_no_' . $account['oid'], '0001');
+
+  $form['vendor_no'] = array(
+    '#title' => 'Vendor No.',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($vendor['vendor_no']) ? $vendor['vendor_no'] : $vendor_no),
+    '#disabled' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+
+
+  $form['name'] = array('#title' => 'Name',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($vendor['name']) ? $vendor['name'] : ''),
+    '#attributes' => array('class' => array())
+  );
+
+  $form['phone'] = array('#title' => 'phone',
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($vendor['phone']) ? $vendor['phone'] : ''),
+    '#attributes' => array(
+      'class' => array())
+  );
+
+  $form['email'] = array('#title' => 'Email',
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($vendor['email']) ? $vendor['email'] : ''),
+    '#attributes' => array('class' => array()),);
+
+  $form['website'] = array('#title' => 'Website',
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($vendor['website']) ? $vendor['website'] : ''),
+    '#attributes' => array('class' => array()));
+
+  $form['address'] = array('#title' => 'Address',
+    '#type' => 'textarea',
+    '#required' => FALSE,
+    '#resizable' => FALSE,
+    '#rows' => 3,
+    '#default_value' => (isset($vendor['address']) ? $vendor['address'] : ''),
+    '#attributes' => array('class' => array(''),),);
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => ' Save Vendor',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+
+
+  $form['#attributes']['class'][] = 'form-bordered';
+
+  return $form;
+}
+
+function hrm_backend_asset_vendor_form_validate(&$form, &$form_state) {
+
+  if (!empty($form_state['values']['email']) && !valid_email_address($form_state['values']['email'])) {
+    form_set_error('email', t('Invalid email address.'));
+  }
+
+  if (!empty($form_state['values']['website']) && !valid_url($form_state['values']['website'], FALSE)) {
+    form_set_error('website', t('Invalid website address.'));
+  }
+}
+
+function hrm_backend_asset_vendor_form_submit(&$form, &$form_state) {
+  $vendor = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+
+  if (isset($vendor['id']) && $vendor['id']) {
+    db_update('hrm_asset_vendor')
+      ->fields(array(
+        'name' => $form_state['values']['name'],
+        'phone' => $form_state['values']['phone'],
+        'email' => $form_state['values']['email'],
+        'website' => $form_state['values']['website'],
+        'address' => $form_state['values']['address'],
+        'changed' => time(),
+      ))
+      ->condition('id', $vendor['id'], '=')
+      ->execute();
+  }
+  else {
+    db_insert('hrm_asset_vendor')
+      ->fields(array(
+        'oid' => $oid,
+        'vendor_no' => $form_state['values']['vendor_no'],
+        'name' => $form_state['values']['name'],
+        'phone' => $form_state['values']['phone'],
+        'email' => $form_state['values']['email'],
+        'website' => $form_state['values']['website'],
+        'address' => $form_state['values']['address'],
+        'uid' => $account['uid'],
+        'created' => time(),
+        'changed' => time(),
+      ))
+      ->execute();
+
+    $vendor_no = variable_get('organization_vendors_no_' . $oid, '0001');
+    $vendor_no += 1;
+    variable_set('organization_vendors_no_' . $oid, str_pad($vendor_no, 4, "0", STR_PAD_LEFT));
+  }
+  drupal_set_message($form_state['values']['name'] . 'Vendor has been saved successfully***');
+  drupal_goto('asset/vendor');
+}
+
+function hrm_backend_asset_vendor_delete_form($form, &$form_state, $vendor, $account) {
+  drupal_set_title('Delete Vendor');
+
+  $role_permissions = hrm_basic_role_permissions($account['role']);
+  $permission_data = array('vendor' => $vendor, 'permissions' => $role_permissions);
+
+  $id = $vendor['id'];
+
+  $delete_permission = hrm_backend_asset_permissions(HRM_PERM_ASSET_VENDOR_DELETE, $account, $permission_data);
+  if (!$delete_permission) {
+    hrm_backend_modal_access_denied();
+  }
+
+  $form['description'] = array('#markup' => '<div class="form-item form-group">Are you sure to delete vendor ?***</div>');
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Delete',
+    '#attributes' => array('class' => array('btn-danger', 'btn-sm')),
+    '#prefix' => '<div class="form-group form-actions">',
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+  $form['#attributes']['class'][] = 'form-bordered';
+
+  return $form;
+}
+
+function hrm_backend_asset_vendor_delete_form_submit(&$form, &$form_state) {
+
+  $vendor = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $id = $vendor['id'];
+  if ($id && is_numeric($id)) {
+    if ($vendor['oid'] == $account['oid']) {
+      db_delete('hrm_asset_vendor')->condition('id', $vendor['id'], '=')->execute();
+      db_update('hrm_asset')->fields(array('vendor' => 0))
+        ->condition('vendor', $vendor['id'], '=')
+        ->execute();
+    }
+    else {
+      drupal_access_denied();
+      exit();
+    }
+  }
+  else {
+    drupal_not_found();
+    exit();
+  }
+  drupal_set_message('Vendor has beem deleted successfully***');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/vendor');
+  print ajax_render($commands);
+  exit;
+}
+
+/*
+ * Category
+ */
+
+function hrm_backend_asset_categories() {
+  $account = hrm_basic_account_get_info();
+  if (empty($account) || !isset($account['oid']) || !$account['oid']) {
+    drupal_access_denied();
+    exit();
+  }
+
+  $categories = hrm_basic_asset_category_get_data(array(array('field' => 'oid', 'value' => $account['oid'])));
+
+  $access_details_permission = user_access(HRM_PERM_ASSET_CATEGORY_ACCESS_DETAILS);
+  $rows = array();
+  foreach ($categories as $id => $category) {
+    $row_classes = array();
+    $row_classes[] = ($access_details_permission ? 'table-tr-link' : '');
+    $tr_data_url = ($access_details_permission ? url('asset/category/details/' . $id) : '');
+    $rows[$id] = array(
+      'data' => array(
+        array('data' => $category['category_no']),
+        array('data' => $category['name']),
+        array('data' => $category['total']),
+        array('data' => $category['status'][HRM_STATUS_IN_STOCK]),
+        array('data' => $category['status'][HRM_STATUS_ASSIGNED]),
+        array('data' => $category['status'][HRM_STATUS_DECOMMISSIONED]),
+        array('data' => $category['status'][HRM_STATUS_STOLEN]),
+      ),
+      'class' => $row_classes,
+      'data-url' => $tr_data_url,
+    );
+  }
+  $header = array(
+    array('data' => 'Category ID'),
+    array('data' => 'Name'),
+    array('data' => 'Total'),
+    array('data' => 'In-stock'),
+    array('data' => 'Assigned'),
+    array('data' => 'Decommissioned'),
+    array('data' => 'Stolen'),
+  );
+
+  $list = array(
+    'attributes' => array('class' => array('table-hover', 'table-vcenter')),
+    'rows' => $rows,
+    'header' => $header
+  );
+  $list['attributes']['class'][] = (!empty($rows) ? 'datatable-sort-export' : 'empty-datatable');
+
+  $variables = array(
+    'list' => $list
+  );
+  return theme('page_wrapper_entity_list_no_header', $variables);
+}
+
+function hrm_backend_asset_category_details($id) {
+  if ($id && is_numeric($id)) {
+    $category = hrm_basic_asset_category_get_data(array(array('field' => 'id', 'value' => $id)), TRUE);
+    if (!empty($category)) {
+      $account = hrm_basic_account_get_info();
+      $role_permissions = hrm_basic_role_permissions($account['role']);
+      $permission_data = array('category' => $category, 'permissions' => $role_permissions);
+
+      if (hrm_backend_asset_permissions(HRM_PERM_ASSET_CATEGORY_ACCESS_DETAILS, $account, $permission_data)) {
+
+        $fields = array();
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Category NO', 'value_class' => array(),
+          'value' => $category['category_no'], 'value_class' => array());
+
+        $fields[] = array('type' => 'row', 'wrapper_class' => array('col-sm-12'), 'row_class' => array(),
+          'label' => 'Name', 'value_class' => array(),
+          'value' => $category['name'], 'value_class' => array());
+
+        $details = theme('section_entity_details', array('fields' => $fields));
+
+
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_CATEGORY_EDIT, $account, $permission_data)) {
+          $actions[] = l(HRM_FA_PENCIL_YELLOW . 'Edit ', 'asset/category/edit/' . $id, array('html' => TRUE));
+        }
+        if (hrm_backend_asset_permissions(HRM_PERM_ASSET_CATEGORY_DELETE, $account, $permission_data)) {
+          $actions[] = l(HRM_FA_TRASH_RED . 'Delete', 'hrm-modal', array('query' => array('action' => HRM_MODAL_ASSET_CATEGORY_DELETE, 'id' => $category['id']), 'html' => TRUE));
+        }
+
+        $variables = array(
+          'details' => $details,
+          'actions' => $actions,
+          'entity' => HRM_ENTITY_ASSET
+        );
+        return theme('page_wrapper_entity_details', $variables);
+      }
+      else {
+        drupal_access_denied();
+        exit();
+      }
+    }
+    else {
+      drupal_not_found();
+      exit();
+    }
+  }
+  else {
+    drupal_not_found();
+    exit();
+  }
+}
+
+function hrm_backend_asset_category_form_page($id) {
+
+  $account = hrm_basic_account_get_info();
+
+  $category = array();
+
+  if ($id) {
+    $category = hrm_basic_asset_category_get_data(array(array('field' => 'id', 'value' => $id)), TRUE);
+    if (empty($category)) {
+      drupal_not_found();
+      exit();
+    }
+    $edit_category_permission = hrm_backend_asset_permissions(HRM_PERM_ASSET_CATEGORY_EDIT, $account, array('category' => $category));
+    if (!$edit_category_permission) {
+      drupal_access_denied();
+      exit();
+    }
+    drupal_set_title('Edit ' . $category['name']);
+  }
+  else {
+    if (!user_access(HRM_PERM_ASSET_CATEGORY_ADD) || !isset($account['oid']) || !$account['oid']) {
+      drupal_access_denied();
+      exit();
+    }
+    drupal_set_title('Add Category');
+  }
+
+  $category_form = drupal_get_form('hrm_backend_asset_category_form', $category, $account);
+
+  $variables = array(
+    'entity' => HRM_ENTITY_ASSET,
+    'title' => 'Category information',
+    'form' => $category_form,
+  );
+  return theme('page_wrapper_entity_form', $variables);
+}
+
+function hrm_backend_asset_category_form($form, &$form_state, $category, $account) {
+
+  $category_no = variable_get('organization_categories_no_' . $account['oid'], '0001');
+
+  $form['category_no'] = array(
+    '#title' => 'Category No.',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => (isset($category['category_no']) ? $category['category_no'] : $category_no),
+    '#disabled' => TRUE,
+    '#attributes' => array('class' => array()),
+  );
+
+
+  $form['name'] = array(
+    '#title' => 'Name',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#description' => 'eg. Laptop, Smartphone ...etc',
+    '#default_value' => (isset($category['name']) ? $category['name'] : ''),
+    '#attributes' => array('class' => array()));
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => ' Save Category',
+    '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+  );
+
+
+
+  $form['#attributes']['class'][] = 'form-bordered';
+
+  return $form;
+}
+
+function hrm_backend_asset_category_form_validate(&$form, &$form_state) {
+  $category = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+  if (isset($category['id']) && $category['id']) {
+    if (!empty($form_state['values']['name'])) {
+      $category_exist = db_query('SELECT COUNT(*) FROM {hrm_asset_category} WHERE oid = :oid AND name = :name AND id <> :id', array(':oid' => $oid, ':name' => $form_state['values']['name'], ':id' => $category['id']))->fetchField(0);
+      if ($category_exist) {
+        form_set_error('name', 'Category already exists');
+      }
+    }
+  }
+  else {
+    if (!empty($form_state['values']['name'])) {
+      $category_exist = db_query('SELECT COUNT(*) FROM {hrm_asset_category} WHERE oid = :oid AND name = :name', array(':oid' => $oid, ':name' => $form_state['values']['name']))->fetchField(0);
+      if ($category_exist) {
+        form_set_error('name', 'Category already exists');
+      }
+    }
+  }
+}
+
+function hrm_backend_asset_category_form_submit(&$form, &$form_state) {
+  $category = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $oid = $account['oid'];
+
+
+  if (isset($category['id']) && $category['id']) {
+    db_update('hrm_asset_category')
+      ->fields(array(
+        'name' => $form_state['values']['name'],
+        'changed' => time(),
+      ))
+      ->condition('id', $category['id'], '=')
+      ->execute();
+  }
+  else {
+    db_insert('hrm_asset_category')
+      ->fields(array(
+        'oid' => $oid,
+        'category_no' => $form_state['values']['category_no'],
+        'name' => $form_state['values']['name'],
+        'uid' => $account['uid'],
+        'created' => time(),
+        'changed' => time(),
+      ))
+      ->execute();
+
+    $category_no = variable_get('organization_categories_no_' . $oid, '0001');
+    $category_no += 1;
+    variable_set('organization_categories_no_' . $oid, str_pad($category_no, 4, "0", STR_PAD_LEFT));
+  }
+  drupal_set_message($form_state['values']['name'] . 'Category has been saved successfully***');
+  drupal_goto('asset/category');
+}
+
+function hrm_backend_asset_category_delete_form($form, &$form_state, $category, $account) {
+  drupal_set_title('Delete Category');
+
+  $role_permissions = hrm_basic_role_permissions($account['role']);
+  $permission_data = array('category' => $category, 'permissions' => $role_permissions);
+
+  $id = $category['id'];
+
+  $delete_permission = hrm_backend_asset_permissions(HRM_PERM_ASSET_CATEGORY_DELETE, $account, $permission_data);
+  if (!$delete_permission) {
+    hrm_backend_modal_access_denied();
+  }
+
+  $form['description'] = array('#markup' => '<div class="form-item form-group">Are you sure to delete category ?***</div>');
+
+  $form['submit_suffix'] = array('#markup' => '<div class="form-group">');
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Delete',
+    '#attributes' => array('class' => array('btn-danger', 'btn-sm')),
+    '#prefix' => '<div class="form-group form-actions">',
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => 'Cancel',
+    '#limit_validation_errors' => array(),
+    '#submit' => array('hrm_backend_modal_cancel_submit'),
+    '#attributes' => array('class' => array('btn-default', 'btn-sm')),
+    '#suffix' => '</div>',
+  );
+  $form['#attributes']['class'][] = 'form-bordered';
+
+  return $form;
+}
+
+function hrm_backend_asset_category_delete_form_submit(&$form, &$form_state) {
+
+  $category = $form_state['build_info']['args'][0];
+  $account = $form_state['build_info']['args'][1];
+  $id = $category['id'];
+  if ($id && is_numeric($id)) {
+    if ($category['oid'] == $account['oid']) {
+      db_delete('hrm_asset_category')
+        ->condition('id', $category['id'], '=')
+        ->execute();
+      db_update('hrm_asset')
+        ->fields(array('category' => 0))
+        ->condition('category', $category['id'], '=')
+        ->execute();
+    }
+    else {
+      drupal_access_denied();
+      exit();
+    }
+  }
+  else {
+    drupal_not_found();
+    exit();
+  }
+  drupal_set_message('Category has been deleted successfully***');
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect('asset/category');
+  print ajax_render($commands);
+  exit;
+}
+
+// Asset Coordinates
+function hrm_backend_asset_display_coordinates($asset, $oid, $id) {
+
+  drupal_set_title('Asset Location');
+
+  if (empty($asset)) {
+    hrm_backend_modal_not_found();
+  }
+  $markers = array();
+  $tracking = $asset['tracking'][$id];
+
+  $account_info = hrm_basic_account_get_info($tracking['uid']);
+
+  if (isset($tracking['coordinates']) && !empty($tracking['coordinates'])) {
+
+    $marker = HRM_MARKER_RED;
+
+    $content = $account_info['photo_image'];
+    $content .= '<b>' . $account_info['name'] . '</b> ';
+    $content .= 'Last seen <b>ON</b> on ' . date(HRM_DATE_LONG, $tracking['created']) . ' ';
+    if (!empty($tracking['note'])) {
+      $content .= '<hr /><p><b>Notes: </b>' . $tracking['note'] . '</p>';
+    }
+    $markers[] = array(
+      'coordinates' => $tracking['coordinates'],
+      'content' => '<div class="asset-location-content">' . $content . '</div>',
+      'icon' => file_create_url($marker)
+    );
+  }
+
+  $map_output = '';
+  if (!empty($markers)) {
+    $map_output = theme('map_view_locations', array(
+      'div_id' => 'asset-location',
+      'center' => $tracking['coordinates'],
+      'zoom' => 13,
+      'markers' => json_encode($markers),
+      'class' => array('map-infobox-style')));
+  }
+  // CHECK AGAIN CENTER AND ZOOM
+
+  return $map_output;
+}
+
+function hrm_backend_asset_display_all_coordinates($asset, $account) {
+
+  $markers = array();
+  $coordinates = array();
+
+  if (!empty($asset['tracking'])) {
+    foreach ($asset['tracking'] as $tracking) {
+      $account_info = hrm_basic_account_get_info($tracking['uid']);
+
+      $marker = HRM_MARKER_RED;
+      $content = $account_info['photo_image'];
+      $content .= '<b>' . $account_info['name'] . '</b> ';
+      $content .= 'Last seen <b>ON</b> on ' . date(HRM_DATE_LONG, $tracking['created']) . ' ';
+      $coordinates[] = $tracking['coordinates'];
+      if (!empty($tracking['note'])) {
+        $content .= '<hr /><p><b>Notes: </b>' . $tracking['note'] . '</p>';
+      }
+      $markers[] = array(
+        'coordinates' => $tracking['coordinates'],
+        'content' => '<div class="asset-location-content">' . $content . '</div>',
+        'icon' => file_create_url($marker)
+      );
+    }
+  }
+
+  $map_output = '';
+  if (!empty($markers)) {
+    $map_output = theme('map_view_locations', array(
+      'div_id' => 'assets-locations',
+      'center' => hrm_basic_coordinates_get_center($coordinates), // CHECK AGIAN
+      'zoom' => 13,
+      'markers' => json_encode($markers),
+    ));
+  }
+  return $map_output;
+}

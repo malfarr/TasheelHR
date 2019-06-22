@@ -1,0 +1,6 @@
+name = ResponseHRM Frontend
+description = custom module that contains all hooks and functions for frontend.
+core = 7.x
+
+
+package = responseHRM

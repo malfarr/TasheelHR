@@ -1,0 +1,3746 @@
+<?php
+
+//Mousa
+
+/*
+ * ===================================================
+ * Modules
+ * ===================================================
+ */
+
+define('HRM_USER_TYPE_USER', '1');
+define('HRM_USER_TYPE_EMPLOYEE', '2');
+
+define('HRM_MODULE_ADMINISTRATION', 'hrm_administration');
+define('HRM_MODULE_PERMISSION', 'hrm_permission');
+define('HRM_MODULE_DATA', 'hrm_data');
+define('HRM_MODULE_BACKEND', 'hrm_backend');
+define('HRM_MODULE_BASIC', 'hrm_basic');
+define('HRM_MODULE_EMAILS', 'hrm_emails');
+define('HRM_MODULE_SERVICES', 'hrm_services');
+
+
+define('HRM_ORG_RIMT_ID_KEY', 'var_org_rimt_id_key');
+define('HRM_ORG_RIMT', variable_get(HRM_ORG_RIMT_ID_KEY, 0));
+/*
+ * ===================================================
+ * Administration Variables
+ * ===================================================
+ */
+/* ----------- HRM ----------- */
+define('HRM_VAR_ADMIN_HRM_RELEASE', 'hrm_var_admin_hrm_release');
+
+/* ----------- APP ----------- */
+define('HRM_VAR_ADMIN_APP_VERSION', 'hrm_var_admin_app_version');
+
+/* ----------- Dashboard ----------- */
+
+/* ----------- Organization ----------- */
+
+define('HRM_ORGANIZATION_STATUS_ACTIVE', 1);
+define('HRM_ORGANIZATION_STATUS_INACTIVE', 2);
+
+/* ----------- Emails ----------- */
+define('HRM_VAR_ADMIN_EMAIL_SENDER_NAME', 'hrm_var_admin_email_sender_name');
+define('HRM_VAR_ADMIN_EMAIL_SENDER_EMAIL', 'hrm_var_admin_email_sender_email');
+define('HRM_VAR_ADMIN_EMAIL_BCC_EMAIL', 'hrm_var_admin_email_bcc_email');
+define('HRM_VAR_ADMIN_EMAIL_HEADER_IMAGE', 'hrm_var_admin_email_header_image');
+define('HRM_VAR_ADMIN_EMAIL_FOOTER', 'hrm_var_admin_email_footer');
+
+/* ----------- Locations & MAPS ----------- */
+
+/* ----------- APIs & Keys ----------- */
+define('HRM_VAR_ADMIN_API_GOOGLE_MAP_API_KEY', 'hrm_var_admin_api_google_map_api_key');
+define('HRM_VAR_ADMIN_API_FIREBASE_PROJECT_NAME', 'hrm_var_admin_api_firebase_project_name');
+define('HRM_VAR_ADMIN_API_FIREBASE_PROJECT_ID', 'hrm_var_admin_api_firebase_project_id');
+define('HRM_VAR_ADMIN_API_FIREBASE_URL', 'hrm_var_admin_api_firebase_url');
+define('HRM_VAR_ADMIN_API_FIREBASE_SENDER_ID', 'hrm_var_admin_api_firebase_sender_id');
+define('HRM_VAR_ADMIN_API_FIREBASE_SERVER_KEY', 'hrm_var_admin_api_firebase_server_key');
+define('HRM_VAR_ADMIN_API_FIREBASE_SERVER_KEY_LEGACY', 'hrm_var_admin_api_firebase_server_key_legacy');
+define('HRM_VAR_ADMIN_API_FIREBASE_GOOGLE_SERVICES_JSON', 'hrm_var_admin_api_firebase_google_services_json');
+
+/* ----------- Date & Time ----------- */
+define('HRM_VAR_ADMIN_DATE_TIMEZONE', 'hrm_var_admin_date_timezone');
+
+/* ----------- Users ----------- */
+define('HRM_VAR_ADMIN_USERS_ROLE_NAME', 'hrm_var_admin_users_role_name_');
+define('HRM_VAR_ADMIN_USERS_ROLE_NAME_ABBREV', 'hrm_var_admin_users_role_name_abbrev_');
+
+
+/* ----------- Workflow ----------- */
+//Global
+define('HRM_VAR_ADMIN_WF_GL_SERIAL_NUMBER_SEQUENCE', 'hrm_var_admin_wf_global_serial_number');
+
+//Entities
+define('HRM_VAR_ADMIN_WF_ENTITY_NAME', 'hrm_var_admin_wf_entity_name_');
+define('HRM_VAR_ADMIN_WF_ENTITY_ICON', 'hrm_var_admin_wf_entity_icon_');
+//Actions
+define('HRM_VAR_ADMIN_WF_ACTION_TITLE', 'hrm_var_admin_wf_actions_title_');
+define('HRM_VAR_ADMIN_WF_ACTION_CONTENT', 'hrm_var_admin_wf_actions_content_');
+define('HRM_VAR_ADMIN_WF_ACTION_ICON', 'hrm_var_admin_wf_actions_icon_');
+
+/* ----------- LOV ----------- */
+
+/* ----------- Finance ----------- */
+
+/* ----------- Interface Images ----------- */
+
+/* ----------- CRON ----------- */
+define('HRM_VAR_ADMIN_CRON_TASKS_LIMIT', 'hrm_var_admin_cron_job_tasks_limit');
+define('HRM_VAR_ADMIN_CRON_INTERVAL_24_HOURS', 'hrm_var_admin_cron_interval_24_hours');
+/* ----------- Functions ----------- */
+
+/* ----------- FILES ----------- */
+define('HRM_VAR_ADMIN_FILES_PLUPLOAD_PICTURE_MAX_SIZE', 'hrm_var_admin_files_picture_plupload_max_size');
+define('HRM_VAR_ADMIN_FILES_PLUPLOAD_DOCUMENT_MAX_SIZE', 'hrm_var_admin_files_document_plupload_max_size');
+
+
+/* ----------- OTHER ----------- */
+define('HRM_VAR_ADMIN_OTHER_RESPONSE_FOOTER_LOGO', 'hrm_var_admin_other_response_footer_logo');
+
+/* ----------- Administration ----------- */
+define('HRM_VAR_LEAVE_CURRENT_LEAVE_PERIOD', 'hrm_var_leave_current_leave_period');
+
+/*
+ * ===================================================
+ * Organization variebales
+ * ===================================================
+ */
+define('HRM_VAR_ORG_SIDEBAR_LOGO', 'hrm_var_org_sidebar_logo_');
+define('HRM_VAR_ORG_EMPLOYEE_ID_SERIAL', 'hrm_var_org_employee_id_serial_');
+define('HRM_VAR_ORG_DATE_FORMAT', 'hrm_var_org_date_format_');
+define('HRM_VAR_ORG_TIME_FORMAT', 'hrm_var_org_time_format_');
+define('HRM_VAR_ORG_PICKER_DATE_FORMAT', 'hrm_var_org_picker_date_format_');
+define('HRM_VAR_ORG_PICKER_TIME_FORMAT', 'hrm_var_org_picker_time_format_');
+define('HRM_VAR_ORG_ATTENDANCE_ACCEPTABLE_DISTANCE', 'hrm_var_org_attendance__acceptable_distance_');
+define('HRM_VAR_ORG_DATA_FIRST_YEAR', 'hrm_var_org_data_first_year_');
+define('HRM_VAR_ORG_LEAVE_FIRST_LEAVE_PERIOD', 'hrm_var_org_leave_first_leave_period_');
+define('HRM_VAR_ORG_LEAVE_CURRENT_LEAVE_PERIOD', 'hrm_var_org_leave_current_leave_period_');
+define('HRM_VAR_ORG_DEPARTMENTS_NAME', 'hrm_var_org_departments_name_');
+
+
+define('HRM_VAR_ORG_ASSET_GENERATE_ASSIGN_RECIEPT', 'hrm_var_org_asset_genereate_assign_reciept_');
+define('HRM_VAR_ORG_ASSET_ASSIGN_RECIEPT_CONTENT', 'hrm_var_org_asset_assign_reciept_content_');
+define('HRM_VAR_ORG_ASSET_GENERATE_RETURN_RECIEPT', 'hrm_var_org_asset_genereate_return_reciept_');
+define('HRM_VAR_ORG_ASSET_RETURN_RECIEPT_CONTENT', 'hrm_var_org_asset_return_reciept_content_');
+
+
+define('HRM_KEY_SHA512_SALT', '$S$DqSQXkztT7');
+
+define('HRM_VAR_CLIENT_ROLE_DEPARTMENT_NAME', 'hrm_client_role_department_name_');
+define('HRM_VAR_CLIENT_HEADER_LOGO', 'hrm_client_header_logo_');
+/*
+ * ===================================================
+ * Database
+ * ===================================================
+ */
+//Fields
+define('HRM_DB_FIELD_ENGLISH_NAME', 'e_name');
+define('HRM_DB_FIELD_ARABIC_NAME', 'a_name');
+define('HRM_DB_FIELD_LOGO', 'logo');
+define('HRM_DB_FIELD_COLOR_CODE', 'color_code');
+define('HRM_DB_FIELD_KEY_NAME', 'key_name');
+define('HRM_DB_FIELD_KEY_VALUE', 'key_value');
+define('HRM_DB_FIELD_WEIGHT', 'weight');
+define('HRM_DB_FIELD_ABBREV', 'abbrev');
+define('HRM_DB_FIELD_SCORE', 'score');
+define('HRM_DB_FIELD_FA_ICON', 'fa_icon');
+define('HRM_DB_FIELD_REF_1', 'ref_1');
+define('HRM_DB_FIELD_REF_2', 'ref_2');
+define('HRM_DB_FIELD_REF_3', 'ref_3');
+//LOV custom fields
+define('HRM_DB_FIELD_LOV_ID', 'lid');
+define('HRM_DB_FIELD_LOV_GROUP_ID', 'gid');
+define('HRM_DB_FIELD_LOV_OPTION_ID', 'oid');
+
+/*
+ * ===================================================
+ * File Extensions
+ * ===================================================
+ */
+define('HRM_FILE_EXT_PDF', 'pdf');
+define('HRM_FILE_EXT_PICTURE', 'jpg jpeg gif png');
+define('HRM_FILE_EXT_PICTURE_PNG', 'png');
+define('HRM_FILE_EXT_DOCUMENT', 'jpg jpeg gif png txt doc xls docx xlsx pdf ppt pps vsdx vsd vss vst vdx vsx vtx msg');
+define('HRM_FILE_EXT_DOCUMENT_WORD', 'doc docx');
+define('HRM_FILE_EXT_VIDEO', 'mp4');
+define('HRM_FILE_EXT_PICTURE_WORD_PDF', 'jpg jpeg gif png doc docx pdf');
+define('HRM_FILE_EXT_PICTURE_JQUERY', 'jpg|jpeg|gif|png');
+define('HRM_FILE_EXT_DESC_PICTURE', 'Valid file extensions: <strong>jpg, jpeg, gif, png</strong>');
+define('HRM_FILE_EXT_DESC_PICTURE_PNG', 'Valid file extensions: <strong>png</strong>');
+define('HRM_FILE_EXT_DESC_DOCUMENT', 'Valid file extensions: <strong>jpg, jpeg, gif, png, txt, doc, xls, docx, xlsx, pdf, ppt, pps</strong>');
+define('HRM_FILE_EXT_DESC_DOCUMENT_WORD', 'Valid file extensions: <strong>doc, docx</strong>');
+define('HRM_FILE_EXT_DESC_VIDEO', 'Valid file extensions: <strong>mp4</strong>');
+define('HRM_FILE_EXT_DESC_PICTURE_WORD_PDF', 'Valid file extensions: <strong>jpg, jpeg, gif, png, doc, docx, pdf</strong>');
+
+
+/*
+ * ===================================================
+ * Entity
+ * ===================================================
+ */
+define('HRM_ENTITY_NONE', 'none');
+define('HRM_ENTITY_ORGANIZATION', 'organization');
+define('HRM_ENTITY_LOCATION', 'location');
+define('HRM_ENTITY_BRANCH', 'branch');
+
+define('HRM_ENTITY_EMPLOYEE', 'employee');
+define('HRM_ENTITY_LEAVE', 'leave');
+define('HRM_ENTITY_LEAVE_ENTITLEMENT', 'leave_eantitlement');
+define('HRM_ENTITY_ANNOUNCEMENT', 'announcement');
+define('HRM_ENTITY_HOLIDAY', 'holiday');
+define('HRM_ENTITY_DOCUMENT', 'document');
+define('HRM_ENTITY_DISCIPLINE', 'discipline');
+define('HRM_ENTITY_DISCIPLINE_ACTION', 'discipline_action');
+define('HRM_ENTITY_USER', 'user');
+define('HRM_ENTITY_JOB_TITLE', 'job_title');
+define('HRM_ENTITY_IDENTITY_DOCUMENT', 'identity_document');
+define('HRM_ENTITY_SKILLS', 'skills');
+define('HRM_ENTITY_EDUCATION', 'education');
+define('HRM_ENTITY_LANGUAGES', 'languages');
+define('HRM_ENTITY_LICENS', 'licens');
+define('HRM_ENTITY_ASSET', 'asset');
+define('HRM_ENTITY_TIMESHEET', 'timesheet');
+define('HRM_ENTITY_JOB_STRUCTURE', 'job_structure');
+define('HRM_ENTITY_EMPLOYMENT_STATUS', 'employment_status');
+define('HRM_ENTITY_RECRUITMENT_SOURCE', 'recruitment_source');
+define('HRM_ENTITY_REPORTING_METHOD', 'reporting_method');
+define('HRM_ENTITY_TERMINATION_REASON', 'termination_reason');
+define('HRM_ENTITY_PROJECT', 'project');
+define('HRM_ENTITY_WORK_WEEK', 'work_week');
+define('HRM_ENTITY_WORK_SHIFT', 'work_shift');
+define('HRM_ENTITY_GRADE', 'grade');
+define('HRM_ENTITY_SALARY_COMPONENT', 'salary_component');
+define('HRM_ENTITY_PERFORMANCE', 'performance');
+define('HRM_ENTITY_ATTENDANCE', 'attendance');
+
+
+/*
+ * ===================================================
+ * Status
+ * ===================================================
+ */
+define('HRM_STATUS_GLOBAL', 0);
+define('HRM_STATUS_SAVED', 1);
+define('HRM_STATUS_ACTIVE', 2);
+define('HRM_STATUS_DEACTIVETED', 3);
+define('HRM_STATUS_ASSIGNED', 4);
+define('HRM_STATUS_CLOSED', 5);
+define('HRM_STATUS_PENDING', 6);
+define('HRM_STATUS_REJECTED', 7);
+define('HRM_STATUS_PUBLISHED', 8);
+define('HRM_STATUS_ARCHIVED', 9);
+define('HRM_STATUS_IN_STOCK', 10);
+define('HRM_STATUS_DECOMMISSIONED', 11);
+define('HRM_STATUS_STOLEN', 12);
+define('HRM_STATUS_DONATED', 13);
+define('HRM_STATUS_IN_PROGRESS', 14);
+define('HRM_STATUS_SCHEDULED', 15);
+define('HRM_STATUS_USED', 16);
+define('HRM_STATUS_SUBMITTED', 17);
+define('HRM_STATUS_DRAFT', 18);
+define('HRM_STATUS_CANCELED', 19);
+// added recentlly
+define('HRM_STATUS_EARLY_IN', 20);
+define('HRM_STATUS_LATE_IN', 21);
+define('HRM_STATUS_EARLY_OUT', 22);
+define('HRM_STATUS_LATE_OUT', 23);
+define('HRM_STATUS_ABSENT', 24);
+define('HRM_STATUS_LEAVE', 25);
+define('HRM_STATUS_WEEK_END', 26);
+define('HRM_STATUS_HOLIDAY', 27);
+define('HRM_STATUS_PRESENT', 28);
+
+define('HRM_STATUS_PENDING_TO_SUPERVISOR', 29);
+define('HRM_STATUS_PENDING_TO_HR', 30);
+
+
+
+
+/*
+ * ===================================================
+ * Performance Indicator
+ * ===================================================
+ */
+define('HRM_INDICATOR_NEGATIVE', 0);
+define('HRM_INDICATOR_POSITIVE', 1);
+
+/*
+ * ===================================================
+ * Attendance Status
+ * ===================================================
+ */
+
+define('HRM_ATTENDANCE_STATUS_EARLY_IN', 1);
+define('HRM_ATTENDANCE_STATUS_LATE_IN', 2);
+define('HRM_ATTENDANCE_STATUS_EARLY_OUT', 3);
+define('HRM_ATTENDANCE_STATUS_LATE_OUT', 4);
+define('HRM_ATTENDANCE_STATUS_ABSENT', 5);
+define('HRM_ATTENDANCE_STATUS_LEAVE', 6);
+define('HRM_ATTENDANCE_STATUS_WEEK_END', 7);
+define('HRM_ATTENDANCE_STATUS_HOLIDAY', 8);
+define('HRM_ATTENDANCE_STATUS_PRESENT', 9);
+
+define('HRM_ATTENDANCE_LOG_UNCOMPLETED', 1);
+define('HRM_ATTENDANCE_LOG_COMPLETED', 2);
+define('HRM_ATTENDANCE_LOG_DELETED', 3);
+
+/*
+ * ===================================================
+ * Days status
+ * ===================================================
+ */
+define('HRM_DAY_STATUS_WORKING', 1);
+define('HRM_DAY_STATUS_WEEKEND', 2);
+define('HRM_DAY_STATUS_HOLIDAY', 3);
+
+/*
+ * ===================================================
+ * Actions
+ * ===================================================
+ */
+define('HRM_ACTION_ADD', 'add');
+define('HRM_ACTION_EDIT', 'edit');
+define('HRM_ACTION_DRAFT', 'draft');
+define('HRM_ACTION_SAVE', 'save');
+//Submit
+define('HRM_ACTION_SUBMIT', 'submit');
+define('HRM_ACTION_REJECT', 'reject');
+define('HRM_ACTION_APPROVE', 'approve');
+define('HRM_ACTION_ASSIGN_TO_OTHER', 'assign-to-other');
+
+//Other Actions activate, block, archive
+define('HRM_ACTION_APPLY', 'apply');
+define('HRM_ACTION_ACTIVATE', 'activate');
+define('HRM_ACTION_CANCEL', 'cancel');
+define('HRM_ACTION_START', 'start');
+define('HRM_ACTION_BLOCKED', 'block');
+define('HRM_ACTION_OPEN', 'open');
+define('HRM_ACTION_CLOSE', 'close');
+define('HRM_ACTION_PUBLISHED', 'publish');
+define('HRM_ACTION_UNPUBLISHED', 'unpublish');
+define('HRM_ACTION_ARCHIVED', 'archive');
+define('HRM_ACTION_REVERT', 'revert');
+define('HRM_ACTION_CANCELED', 'cancel');
+define('HRM_ACTION_SUSPEND', 'suspend');
+define('HRM_ACTION_DROP_OUT', 'drop_out');
+define('HRM_ACTION_DELETE', 'delete');
+define('HRM_ACTION_TRANSFER', 'transfer');
+define('HRM_ACTION_SKIP', 'skip');
+define('HRM_ACTION_ASSIGN', 'assign');
+define('HRM_ACTION_RETURN', 'return');
+define('HRM_ACTION_REASSIGN', 'reassign');
+define('HRM_ACTION_ENABLE', 'enable');
+define('HRM_ACTION_DISABLE', 'disable');
+define('HRM_ACTION_ADJUST_VALUE', 'adjust_value');
+define('HRM_ACTION_STATUS_UPDATE', 'status_update');
+
+//Documents actions
+define('HRM_ACTION_DOCUMENT_ADD', 'document_add');
+define('HRM_ACTION_DOCUMENT_EDIT', 'document_edit');
+define('HRM_ACTION_DOCUMENT_DELETE', 'document_delete');
+//Pictures actions
+define('HRM_ACTION_PICTURE_ADD', 'picture_add');
+define('HRM_ACTION_PICTURE_EDIT', 'picture_edit');
+define('HRM_ACTION_PICTURE_DELETE', 'picture_delete');
+//Video actions
+define('HRM_ACTION_VIDEO_ADD', 'video_add');
+define('HRM_ACTION_VIDEO_EDIT', 'video_edit');
+define('HRM_ACTION_VIDEO_DELETE', 'video_delete');
+//App reports actions
+define('HRM_ACTION_PUNCH_IN', 'punch_in');
+define('HRM_ACTION_PUNCH_OUT', 'punch_out');
+
+
+
+/*
+ * Directory & Files usage
+ */
+//Directory
+define('HRM_DIR_TMP', file_default_scheme() . '://tmp');
+define('HRM_DIR', file_default_scheme() . '://hrm_files');
+define('HRM_DIR_ENTITY', HRM_DIR . '/entity/%entity/%entity_id');
+define('HRM_DIR_ENTITY_SUB', HRM_DIR . '/entity/%entity/%entity_id/%sub_entity/%sub_entity_id');
+define('HRM_DIR_ENTITY_LOGO', HRM_DIR_ENTITY . '/logo');
+define('HRM_DIR_ENTITY_PHOTO', HRM_DIR_ENTITY . '/photo');
+define('HRM_DIR_ENTITY_DOCUMENT', HRM_DIR_ENTITY . '/document');
+define('HRM_DIR_ADMIN', HRM_DIR . '/administration/%type');
+define('HRM_DIR_ORG', HRM_DIR . '/entity/organization/%oid');
+define('HRM_DIR_ORG_EMPLOYEES', HRM_DIR_ORG . '/employees/%empid');
+define('HRM_DIR_ORG_ATTENDANCE_ADJUSTMENTS', HRM_DIR_ORG . '/attendance/adjustments');
+define('HRM_DIR_ORG_LEAVE_ENTITLEMENTS_ADJUSTMENTS', HRM_DIR_ORG . '/leave/entitlement/adjustments');
+//define('HRM_DIR_ASSET_RECEIPT', file_default_scheme() . '://hrm_files/organization/%oid/assets/%aid/assignment');
+define('HRM_DIR_ASSET', HRM_DIR_ORG . '/assets/%aid');
+
+//File Usage
+define('HRM_FILE_USAGE_ENTITY_LOGO', '%entity_logo');
+define('HRM_FILE_USAGE_ASSET_ASSIGNMENT_RECEIPT', 'asset_assignment_receipt');
+define('HRM_FILE_USAGE_ASSET_ASSIGNMENT_PICTURE', 'asset_assignment_picture');
+define('HRM_FILE_USAGE_ASSET_RETURN_PICTURE', 'asset_return_picture');
+define('HRM_FILE_USAGE_ASSET_RETURN_RECEIPT', 'asset_return_receipt');
+/*
+ * ===================================================
+ * Image Styles
+ * ===================================================
+ */
+
+define('HRM_IMAGE_STYLE_THUMBNAIL', 'thumbnail');
+define('HRM_IMAGE_STYLE_MEDIUM', 'medium');
+define('HRM_IMAGE_STYLE_LARGE', 'large');
+define('HRM_IMAGE_STYLE_150_150', 'image_style_150_150');
+
+
+/*
+ * ===================================================
+ * Colors
+ * ===================================================
+ */
+define('HRM_COLOR_PIMARY', '#ff0000');
+
+
+
+/* Date time Formats */
+define('HRM_DATE_SYSTEM_DATE', 'Y-m-d');
+define('HRM_DATE_SYSTEM_TIME', 'H:i:s');
+
+define('HRM_DATE_SYSTEM_DATE_TIME', 'Y-m-d H:i:s');
+
+define('HRM_DATE_SIMPLE', 'd-m-Y');
+define('HRM_DATE_SIMPLE_TIME_12', 'd-m-Y h:i a');
+define('HRM_DATE_SIMPLE_MONTH_NAME', 'd-F-Y');
+define('HRM_DATE_SIMPLE_MONTH_NAME_MMM', 'd-M-y');
+define('HRM_DATE_SHORT', 'd/m/Y');
+define('HRM_DATE_SHORT_TIME_12', 'd/m/Y  h:i a');
+define('HRM_DATE_SHORT_DAY_NAME', 'l d/m/Y');
+define('HRM_DATE_SHORT_DAY_NAME_TIME_12', 'l d/m/Y  h:i a');
+
+define('HRM_DATE_MONTH_NAME', 'F');
+define('HRM_DATE_MONTH_MM', 'm');
+define('HRM_DATE_MONTH_M', 'n');
+define('HRM_DATE_DAY_DD', 'd');
+define('HRM_DATE_DAY_DDD', 'D');
+define('HRM_DATE_DAY_NAME_DD', 'D d');
+define('HRM_DATE_YEAR_YYYY', 'Y');
+define('HRM_DATE_TIME_12', 'h:i A');
+define('HRM_DATE_TIME_24', 'G:i');
+
+define('HRM_DATE_LONG', 'F d, Y');
+define('HRM_DATE_LONG_TIME_12', 'F d, Y h:i a');
+define('HRM_DATE_LONG_MONTH_MMM', 'd M, Y');
+define('HRM_DATE_LONG_MONTH_MMM_TIME', 'd M, Y h:i a');
+define('HRM_DATE_LONG_DAY_NAME_MONTH_MMM', 'l, d F Y');
+
+define('HRM_DATE_MONTH_NAME_YEAR_YYYY', 'F Y');
+define('HRM_DATE_MONTH_NAME_DAY_DD', 'F d');
+
+/* LOV */
+define('HRM_LOV_STATUS', 'lov_status');
+define('HRM_LOV_COUNTRY', 'lov_country');
+define('HRM_LOV_GENDER', 'lov_gender');
+define('HRM_LOV_MARITAL_STATUS', 'lov_marital');
+define('HRM_LOV_CURRENCY', 'lov_currency');
+define('HRM_DISCIPLINE_ACTION', 'lov_discipline_action');
+define('HRM_DISCIPLINE_ACTION_STATUS', 'lov_discipline_action_status');
+define('HRM_LOV_LANGUAGE_FLUENCY_LEVEL', 'lov_language_fluency_level');
+
+/* Terms */
+//Country
+define('HRM_TERM_COUNTRY_JORDAN', 90);
+
+//Marital status
+define('HRM_TERM_MARITAL_STATUS_MARRIED', 3);
+
+/* Terms */
+
+/*
+ * File Usage
+ */
+define('HRM_FILE_USAGE_CLIENT_HEADER_LOGO', 'client_header_logo');
+
+
+/*
+ * Image style
+ */
+define('HRM_IMAGE_STYLE_CIRCLE_IMAGE', 'image_style_circle_image');
+
+/* Default images */
+define('HRM_DEFAULT_IMAGES_USER', HRM_DIR . '/default_images/user.png');
+define('HRM_DEFAULT_IMAGES_ASSET', HRM_DIR . '/default_images/asset.jpg');
+define('HRM_DEFAULT_IMAGES_ORGANIZATION_LOGO', HRM_DIR . '/default_images/organization.png');
+define('HRM_DEFAULT_IMAGES_SIDEBAR_LOGO', HRM_DIR . '/default_images/sidebar_logo.png');
+define('HRM_DEFAULT_IMAGES_EMPLOYEE_PHOTO', HRM_DIR . '/default_images/employee.png');
+
+
+/* Roles */
+define('HRM_ROLE_ANONYMOUS', 1);
+define('HRM_ROLE_AUTHENTICATED', 2);
+define('HRM_ROLE_ADMIN', 3);
+define('HRM_ROLE_HR', 4);
+define('HRM_ROLE_FINANCE', 5);
+define('HRM_ROLE_LOGISTICS', 6);
+define('HRM_ROLE_EMPLOYEE', 7);
+
+/*
+ * Email notifications
+ */
+//Account
+define('HRM_EMAIL_NOTIF_EMPLOYEE_ACCOUNT_NEW', 'email_notification_account_new');
+define('HRM_EMAIL_NOTIF_EMPLOYEE_ACCOUNT_RESET_PASSWORD', 'email_notification_account_reset_password');
+define('HRM_EMAIL_NOTIF_ANNOUNCMENT_PUBLISHED', 'email_notification_announcment_published');
+//Asset
+define('HRM_EMAIL_NOTIF_ASSET_ASSIGNED', 'email_notification_asset_assigned');
+define('HRM_EMAIL_NOTIF_ASSET_ASSIGNMENT_NOT_COMPLETED', 'email_notification_asset_assignment_not_completed');
+define('HRM_EMAIL_NOTIF_ASSET_RETURN', 'email_notification_asset_return');
+define('HRM_EMAIL_NOTIF_ASSET_RETURN_NOT_COMPLETED', 'email_notification_asset_return_not_completed');
+//Job
+define('HRM_EMAIL_NOTIF_PIM_JOB_PROBATION_END', 'email_notification_pim_job_probation_end');
+define('HRM_EMAIL_NOTIF_PIM_JOB_CONTRACT_END', 'email_notification_pim_job_contract_end');
+//Leave
+define('HRM_EMAIL_NOTIF_LEAVE_AUTO_APPROVAL', 'email_notification_leave_auto_approval');
+//Documen
+define('HRM_EMAIL_NOTIF_DOCUMENT_SEND_DOCUMENT', 'email_notification_document_send_document');
+//Reports
+define('HRM_EMAIL_REPORTS_PIM_CONTACTS_LIST', 'email_reports_pim_contacts_list');
+
+/*
+ * Qualifications 
+ */
+define('HRM_QUALIFICATION_SKILLS', 1);
+define('HRM_QUALIFICATION_EDUCATION', 2);
+define('HRM_QUALIFICATION_LICENSES', 3);
+define('HRM_QUALIFICATION_LANGUAGES', 4);
+
+
+
+/* Attendance */
+define('HRM_DATA_SOURCE_APP', 1);
+define('HRM_DATA_SOURCE_WEB', 2);
+define('HRM_DATA_SOURCE_EMPLOYEE', 3);
+define('HRM_DATA_SOURCE_HR', 4);
+
+/* LEAVE TYPE */
+define('HRM_LEAVE_APPROVAL_METHOD_REPORT_TO', 1);
+define('HRM_LEAVE_APPROVAL_METHOD_EMPLOYEE', 2);
+define('HRM_LEAVE_APPROVAL_METHOD_AUTO_APPROVAL', 3);
+
+define('HRM_LEAVE_SOURCE_EMPLOYEE', 1);
+define('HRM_LEAVE_SOURCE_HR', 2);
+
+define('HRM_LEAVE_STATUS_PENDING', 1);
+define('HRM_LEAVE_STATUS_REJECTED', 2);
+define('HRM_LEAVE_STATUS_SCHEDULED', 3);
+define('HRM_LEAVE_STATUS_TAKEN', 4);
+
+define('HRM_LEAVE_ACTION_ASSIGN', 'assign');
+define('HRM_LEAVE_ACTION_CANCEL', 'cancel');
+define('HRM_LEAVE_ACTION_APPLY', 'apply');
+define('HRM_LEAVE_ACTION_ASSIGN_TO_OTHER', 'assign to other');
+define('HRM_LEAVE_ACTION_REJECT', 'reject');
+define('HRM_LEAVE_ACTION_APPROVE', 'approve');
+define('HRM_LEAVE_ACTION_DOCUMENT_ADD', 'document_add');
+
+
+define('HRM_FLAG_YES', 1);
+define('HRM_FLAG_NO', 0);
+define('HRM_FLAG_TEXT_YES', '<span class="themed-color-green">Yes</span>');
+define('HRM_FLAG_TEXT_NO', '<span class="themed-color-red">No</span>');
+
+
+
+
+/* Options */
+define('HRM_LEAVE_DURATION_FULL_DAY', 1);
+define('HRM_LEAVE_DURATION_HALF_DAY', 2);
+define('HRM_LEAVE_DURATION_TIME', 3);
+
+define('HRM_LEAVE_HALF_DAY_MORNING', 1);
+define('HRM_LEAVE_HALF_DAY_AFTERNOON', 2);
+
+/* Accrue Frequency */
+define('HRM_LEAVE_ACCRUE_FREQUENCY_DAILY', 1);
+define('HRM_LEAVE_ACCRUE_FREQUENCY_MONTHLY', 2);
+define('HRM_LEAVE_ACCRUE_FREQUENCY_YEARLY', 3);
+
+/* Accrue Credit Day */
+define('HRM_LEAVE_ACCRUE_CREDIT_DAY_FIRST', 1);
+define('HRM_LEAVE_ACCRUE_CREDIT_DAY_LAST', 2);
+
+/* Accrue Carried Type */
+define('HRM_LEAVE_CARRIED_TYPE_ALL', 1);
+define('HRM_LEAVE_CARRIED_TYPE_SPECIFIC_DAYS', 2);
+
+/* Salary Component */
+
+define('HRM_SALARY_COMPONENT_EARNING', 1);
+define('HRM_SALARY_COMPONENT_DEDUCTION', 2);
+
+define('HRM_SALARY_COMPONENT_EARNING_NAME', 'Earning');
+define('HRM_SALARY_COMPONENT_DEDUCTION_NAME', 'Deduction');
+
+define('HRM_SALARY_COMPONENT_VALUE_TYPE_AMOUNT', 1);
+define('HRM_SALARY_COMPONENT_VALUE_TYPE_PERCENTAGE', 2);
+/*
+ * Announcement
+ */
+define('HRM_ANNOUNCEMENT_PUBLISH_TO_ALL_EMPLOYEE', 1);
+define('HRM_ANNOUNCEMENT_PUBLISH_TO_RESTRICTED', 2);
+
+
+/*
+ * Working days status names
+ */
+
+/*
+ * MAP Markers
+ */
+define('HRM_MARKER_BLUE', HRM_DIR . '/images/markers/blue.png');
+define('HRM_MARKER_RED', HRM_DIR . '/images/markers/red.png');
+define('HRM_MARKER_GREEN', HRM_DIR . '/images/markers/green.png');
+
+define('HRM_MARKER_BLUE_PIN', HRM_DIR . '/images/markers/pin-blue.png');
+define('HRM_MARKER_RED_PIN', HRM_DIR . '/images/markers/pin-red.png');
+define('HRM_MARKER_GREEN_PIN', HRM_DIR . '/images/markers/pin-green.png');
+
+define('HRM_MARKER_BLUE_FLAG', HRM_DIR . '/images/markers/flag-blue.png');
+define('HRM_MARKER_RED_FLAG', HRM_DIR . '/images/markers/flag-red.png');
+define('HRM_MARKER_GREEN_FLAG', HRM_DIR . '/images/markers/flag-green.png');
+
+define('HRM_MARKER_BLUE_CHEQUERED_FLAG', HRM_DIR . '/images/markers/chequered-flag-blue.png');
+define('HRM_MARKER_RED_CHEQUERED_FLAG', HRM_DIR . '/images/markers/chequered-flag-red.png');
+define('HRM_MARKER_GREEN_CHEQUERED_FLAG', HRM_DIR . '/images/markers/chequered-flag-green.png');
+
+define('HRM_MARKER_BLUE_IN', HRM_DIR . '/images/markers/in-blue.png');
+define('HRM_MARKER_RED_IN', HRM_DIR . '/images/markers/in-red.png');
+define('HRM_MARKER_GREEN_IN', HRM_DIR . '/images/markers/in-green.png');
+
+define('HRM_MARKER_BLUE_OUT', HRM_DIR . '/images/markers/out-blue.png');
+define('HRM_MARKER_RED_OUT', HRM_DIR . '/images/markers/out-red.png');
+define('HRM_MARKER_GREEN_OUT', HRM_DIR . '/images/markers/out-green.png');
+
+/*
+ * Google Cloud Messaging
+ */
+define('HRM_APP_NOTIF_KEY_NEW_ANNOUNCEMENT', 'new_announcement');
+define('HRM_APP_NOTIF_KEY_LEAVE_APPROVAL', 'leave_approval');
+define('HRM_APP_NOTIF_KEY_LEAVE_APPROVED', 'leave_approved');
+define('HRM_APP_NOTIF_KEY_LEAVE_REJECTED', 'leave_rejected');
+define('HRM_APP_NOTIF_KEY_LEAVE_ASSIGNED', 'leave_assigned');
+define('HRM_APP_NOTIF_KEY_LEAVE_STAFF_APPROVED', 'leave_staff_approved');
+define('HRM_APP_NOTIF_KEY_ACCOUNT_LOGOUT', 'account_logout');
+
+//Messages content
+define('HRM_GCM_MSG_LEAVE_SUBMIT_SUPERVISOR_NOTIFICATION', '@[leave_owner_name] has submitted @[leave_type_name] leave that starts on @[starting_date] for your approval');
+//str_replace(array('@[leave_owner_name]', '@[leave_type_name]', '@[starting_date]'), array($leave_owner_name, $leave_type_name, $starting_date), HRM_GCM_MSG_LEAVE_SUBMIT_SUPERVISOR_NOTIFICATION);
+define('HRM_GCM_MSG_LEAVE_APPROVED_OWNER_NOTIFICATION', 'Your @[leave_type_name] leave starting on @[starting_date] has been approved');
+//str_replace(array('@[leave_type_name]', '@[starting_date]'), array($leave_type_name, $starting_date), HRM_GCM_MSG_LEAVE_APPROVED_OWNER_NOTIFICATION);
+define('HRM_GCM_MSG_LEAVE_APPROVED_SUPERVISOR_NOTIFICATION', 'An approved @[leave_type_name] leave on @[starting_date] has been given to @[leave_owner_name]');
+//str_replace(array('@[leave_type_name]', '@[starting_date]', '@[leave_owner_name]'), array($leave_type_name, $starting_date, $leave_owner_name), HRM_GCM_MSG_LEAVE_APPROVED_SUPERVISOR_NOTIFICATION);
+define('HRM_GCM_MSG_LEAVE_REJECTED_OWNER_NOTIFICATION', 'Your requested @[leave_type_name] leave starting on @[starting_date] has been rejected by @[rejected_by_name]');
+define('HRM_GCM_MSG_LEAVE_TRANSFERED_ASSIGNED_TO_NOTIFICATION', '@[transfered_by_name] has transfered @[leave_owner_name]\'s @[leave_type_name] leave for your approval');
+define('HRM_GCM_MSG_LEAVE_TRANSFERED_OWNER_NOTIFICATION', 'Your requested @[leave_type_name] leave starting on @[starting_date] has been assigned to @[assigned_to_name] for approval');
+
+/*
+ * ==========================================
+ * MODAL Actions
+ * ==========================================
+ */
+/*
+ * Entity
+ */
+//Documents
+define('HRM_MODAL_EN_DOCUMENT_ADD', 'entity-document-add');
+define('HRM_MODAL_EN_DOCUMENT_EDIT', 'entity-document-edit');
+//Pictures
+define('HRM_MODAL_EN_PICTURE_ADD', 'entity-picture-add');
+define('HRM_MODAL_EN_PICTURE_EDIT', 'entity-picture-edit');
+define('HRM_MODAL_EN_PICTURE_DELETE', 'entity-picture-delete');
+
+//
+/*
+ * PIM Employee
+ */
+/*
+ * Administration
+ */
+/* Branch */
+define('HRM_MODAL_ADMINISTRATION_BRANCH_ADD', 'branch-add');
+define('HRM_MODAL_ADMINISTRATION_BRANCH_EDIT', 'branch-edit');
+define('HRM_MODAL_ADMINISTRATION_BRANCH_DELETE', 'branch-delete');
+
+
+
+// Terminate & Activate Employees
+define('HRM_MODAL_PIM_EMP_TERMINATE_EMPLOYEE', 'pim-emp-terminate-employee');
+define('HRM_MODAL_PIM_EMP_ACTIVATE_EMPLOYEE', 'pim-emp-activate-employee');
+
+//Emergency Contacts
+define('HRM_MODAL_PIM_EMP_EMERGENCY_CONTACT_ADD_FORM', 'pim-emp-emergency-contact-add-form');
+define('HRM_MODAL_PIM_EMP_EMERGENCY_CONTACT_EDIT_FORM', 'pim-emp-emergency-contact-edit-form');
+define('HRM_MODAL_PIM_EMP_EMERGENCY_CONTACT_DELETE_FORM', 'pim-emp-emergency-contact-delete-form');
+
+//Emergency Contacts
+define('HRM_MODAL_PIM_EMP_REPORT_TO_SUPERVISOR_ADD_FORM', 'pim-emp-report-to-supervisor-add-form');
+define('HRM_MODAL_PIM_EMP_REPORT_TO_SUBORDINATE_ADD_FORM', 'pim-emp-report-to-subordinate-add-form');
+define('HRM_MODAL_PIM_EMP_REPORT_TO_DELETE_FORM', 'pim-emp-report-to-delete-form');
+
+//QULIFICATIONS
+define('HRM_MODAL_PIM_QUALIFICATION_DELETE_FORM', 'pim-emp-qualification--delete-form');
+
+//QULIFICATIONS - EXPERIENCE
+define('HRM_MODAL_PIM_QUALIFICATION_EXPERIENCE_ADD_FORM', 'pim-emp-qualification-experience-add-form');
+define('HRM_MODAL_PIM_QUALIFICATION_EXPERIENCE_EDIT_FORM', 'pim-emp-qualification-experience-edit-form');
+define('HRM_MODAL_PIM_QUALIFICATION_EXPERIENCE_DELETE_FORM', 'pim-emp-experience--delete-form');
+
+//QULIFICATIONS - EDUCATION
+define('HRM_MODAL_PIM_QUALIFICATION_EDUCATION_ADD_FORM', 'pim-emp-qualification-education-add-form');
+define('HRM_MODAL_PIM_QUALIFICATION_EDUCATION_EDIT_FORM', 'pim-emp-qualification-education-edit-form');
+define('HRM_MODAL_PIM_QUALIFICATION_EDUCATION_DELETE_FORM', 'pim-emp-education--delete-form');
+
+//QULIFICATIONS - SKILLS
+define('HRM_MODAL_PIM_QUALIFICATION_SKILLS_ADD_FORM', 'pim-emp-qualification-skills-add-form');
+define('HRM_MODAL_PIM_QUALIFICATION_SKILLS_EDIT_FORM', 'pim-emp-qualification-skills-edit-form');
+define('HRM_MODAL_PIM_QUALIFICATION_SKILLS_DELETE_FORM', 'pim-emp-skill--delete-form');
+
+//QULIFICATIONS - LANGUAGES
+define('HRM_MODAL_PIM_QUALIFICATION_LANGUAGE_ADD_FORM', 'pim-emp-qualification-language-add-form');
+define('HRM_MODAL_PIM_QUALIFICATION_LANGUAGE_EDIT_FORM', 'pim-emp-qualification-language-edit-form');
+define('HRM_MODAL_PIM_QUALIFICATION_LANGUAGE_DELETE_FORM', 'pim-emp-language--delete-form');
+
+//QULIFICATIONS - License
+define('HRM_MODAL_PIM_QUALIFICATION_LICENSE_ADD_FORM', 'pim-emp-qualification-license-add-form');
+define('HRM_MODAL_PIM_QUALIFICATION_LICENSE_EDIT_FORM', 'pim-emp-qualification-license-edit-form');
+define('HRM_MODAL_PIM_QUALIFICATION_LICENSE_DELETE_FORM', 'pim-emp-license--delete-form');
+
+//Identity Documentss
+define('HRM_MODAL_PIM_EMP_IDENTITY_DOCUMENT_ADD_FORM', 'pim-employee-identity-document-add-form');
+define('HRM_MODAL_PIM_EMP_IDENTITY_DOCUMENT_EDIT_FORM', 'pim-employee-identity-document-edit-form');
+define('HRM_MODAL_PIM_EMP_IDENTITY_DOCUMENT_DELETE_FORM', 'pim-employee-identity-document-delete-form');
+
+// Account
+define('HRM_MODAL_PIM_EMP_ACCOUNT_LOGOUT', 'pim-employee-account-logout');
+define('HRM_MODAL_PIM_EMP_ACCOUNT_RESET_PASS', 'pim-employee-account-reset-pass');
+
+
+//assets
+define('HRM_MODAL_ASSET_UPDATE_STATUS', 'asset-update-status');
+define('HRM_MODAL_ASSET_ASSIGN', 'asset-assign');
+define('HRM_MODAL_ASSET_GENERATE_FORMS', 'asset-generate PDF forms');
+define('HRM_MODAL_ASSET_RETURN', 'asset-return');
+define('HRM_MODAL_ASSET_DELETE', 'asset-delete');
+
+
+define('HRM_MODAL_LOCATION_DELETE', 'location-delete');
+define('HRM_MODAL_ASSET_BRAND_DELETE', 'brand-delete');
+define('HRM_MODAL_ASSET_VENDOR_DELETE', 'vendor-delete');
+define('HRM_MODAL_ASSET_CATEGORY_DELETE', 'category-delete');
+define('HRM_MODAL_ASSET_COORDINATES', 'asset-coordinates');
+
+//discipline 
+define('HRM_MODAL_DISCIPLINE_CLOSE', 'discipline-close');
+define('HRM_MODAL_DISCIPLINE_DELETE', 'discipline-delete');
+define('HRM_MODAL_DISCIPLINE_ACTION_DELETE', 'discipline-action-delete');
+
+//performance
+define('HRM_MODAL_PERF_TRACKER_LOGS_ADD', 'logs-add');
+define('HRM_MODAL_PERF_TRACKER_LOGS_EDIT', 'logs-edit');
+define('HRM_MODAL_PERF_TRACKER_LOGS_DELETE', 'logs-delete');
+define('HRM_MODAL_PERF_TRACKER_ADD', 'tracker-add');
+define('HRM_MODAL_PERF_TRACKER_EDIT', 'tracker-edit');
+define('HRM_MODAL_PERF_TRACKER_DELETE', 'tracker-delete');
+
+
+define('HRM_MODAL_PERF_COMPETENCY_ADD', 'competency-add');
+define('HRM_MODAL_PERF_COMPETENCY_EDIT', 'competency-edit');
+define('HRM_MODAL_PERF_COMPETENCY_DELETE', 'competency-delete');
+define('HRM_MODAL_PERF_COMPETENCY_GROUP_ADD', 'group-add');
+define('HRM_MODAL_PERF_COMPETENCY_GROUP_EDIT', 'group-edit');
+define('HRM_MODAL_PERF_COMPETENCY_QUESTION_ADD', 'question-add');
+define('HRM_MODAL_PERF_COMPETENCY_QUESTION_EDIT', 'question-edit');
+
+
+define('HRM_MODAL_PERF_APPRAISAL_DELETE', 'appraisal-delete');
+define('HRM_MODAL_PERF_APPRAISAL_ACTIVATE', 'appraisal-activate');
+define('HRM_MODAL_PERF_APPRAISAL_CLOSE', 'appraisal-close');
+define('HRM_MODAL_PERF_APPRAISAL_EMPLOYEE_ADD', 'appraisal-employee-add');
+define('HRM_MODAL_PERF_APPRAISAL_EMPLOYEE_DELETE', 'appraisal-employee-delete');
+define('HRM_MODAL_PERF_APPRAISAL_EVALUATOR_DELETE', 'appraisal-evaluator-delete');
+
+
+
+/*
+ * Leave
+ */
+define('HRM_MODAL_LEAVE_CANCEL_LEAVE', 'leave-cancel');
+
+/*
+ * Attendance
+ */
+define('HRM_MODAL_ATTENDANCE_EMPLOYEE_DETAILS_DETAILS', 'attendance-employee-daily-details');
+define('HRM_MODAL_TIME_ATTENDANCE_MAP', 'time-attendance-map');
+define('HRM_MODAL_TIME_ATTENDANCE_DETAILS_MAP', 'time-attendance-details-map');
+
+/*
+ * FONT Awsome Icons
+ */
+define('HRM_FA_ANGEL_DOWN', '<i class="fa fa-angle-down extra_class" extra_attributes></i>');
+define('HRM_FILTER', '<i class="fas fa-filter extra_class" extra_attributes></i>');
+define('HRM_FA_EXPAND', '<i class="fas fa-expand extra_class" extra_attributes></i>');
+define('HRM_FA_ARROWS_V', '<i class="fas fa-arrows-v extra_class" extra_attributes></i>');
+
+define('HRM_FA_DETAILS', '<i class="fa fa-eye"></i>');
+define('HRM_FA_PHOTO', '<i class="fa fa-picture-o"></i>');
+define('HRM_FA_ATTENDANCE', '<i class="fa fa-users"></i>');
+define('HRM_FA_EYE', '<i class="fa fa-eye"></i>');
+define('HRM_FA_FILE', '<i class="fa fa-files-o"></i>');
+define('HRM_FA_FILE_ALT', '<i class="fa fa-files"></i>');
+define('HRM_FA_DOCUMENT', '<i class="fa fa-book"></i>');
+define('HRM_FA_NOTE', '<i class="fa fa-sticky-note"></i>');
+define('HRM_FA_DOWNLOAD', '<i class="fa fa-download"></i>');
+define('HRM_FA_PICTURE', '<i class="fa fa-picture-o"></i>');
+define('HRM_FA_VIDEO', '<i class="fa fa-video-camera"></i>');
+define('HRM_FA_TRACKER', '<i class="fa fa-thumb-tack"></i>');
+define('HRM_FA_SUMMARY', '<i class="fa fa-file-text-o"></i>');
+define('HRM_FA_PBL_TOOLKIT', '<i class="fa fa-book"></i>');
+define('HRM_FA_HISTORY', '<i class="fa fa-history"></i>');
+define('HRM_FA_ASSIGNMENT', '<i class="fa fa-hand-o-right"></i>');
+define('HRM_FA_ACTIONS', '<i class="fa fa-spinner"></i>');
+define('HRM_FA_HISTORY_BLUE', '<i class="fa fa-history themed-color-blue"></i>');
+define('HRM_FA_USER', '<i class="fa fa-user"></i>');
+define('HRM_FA_USER_BLUE', '<i class="fa fa-user themed-color-blue"></i>');
+
+define('HRM_FA_USERS', '<i class="fa fa-users"></i>');
+define('HRM_FA_USER_O', '<i class="fa fa-user-o"></i>');
+define('HRM_FA_USERS_BLUE', '<i class="fa fa-users themed-color-blue"></i>');
+define('HRM_FA_TOOLKITS', '<i class="fa fa-suitcase"></i>');
+define('HRM_FA_FOCAL_POINT', '<i class="fa fa-phone"></i>');
+define('HRM_FA_STAR', '<i class="fa fa-star"></i>');
+define('HRM_FA_STAR_BROWN', '<i class="fa fa-star themed-color-brown"></i>');
+define('HRM_FA_STAR_YELLOW', '<i class="fa fa-star themed-color-yellow"></i>');
+define('HRM_FA_STAR_BLUE', '<i class="fa fa-star themed-color-blue"></i>');
+define('HRM_FA_STAR_BLUE_15x', '<i class="fa fa-star fa-15x themed-color-blue"></i>');
+define('HRM_FA_STAR_YELLOW_15x', '<i class="fa fa-star fa-15x themed-color-yellow"></i>');
+define('HRM_FA_STAR_ALT', '<i class="fa fa-star-o"></i>');
+define('HRM_FA_INFO', '<i class="fa fa-info"></i>');
+define('HRM_FA_INFO_CIRCLE', '<i class="fa fa-info-circle"></i>');
+define('HRM_FA_INFO_CIRCLE_GREEN', '<i class="fa fa-info-circle themed-color-green"></i>');
+
+define('HRM_FA_STOP', '<i class="fa fa-stop"></i>');
+define('HRM_FA_STOP_RED', '<i class="fa fa-stop themed-color-red"></i>');
+define('HRM_FA_TIMES_CIRCLE_RED', '<i class="fa fa-times-circle-o themed-color-red"></i>');
+define('HRM_FA_TIMES_CIRCLE_RED_3x', '<i class="fa fa-3x fa-times-circle-o themed-color-red"></i>');
+define('HRM_FA_TIMES_CIRCLE_RED_2X', '<i class="fa fa-2x fa-times-circle-o themed-color-red"></i>');
+define('HRM_FA_EDIT', '<i class="fa fa-pencil"></i>');
+define('HRM_FA_PLUS', '<i class="fa fa-plus"></i>');
+define('HRM_FA_PLUS_BLUE', '<i class="fa fa-plus themed-color-blue"></i>');
+define('HRM_FA_PLUS_CIRCLE', '<i class="fa fa-plus-circle"></i>');
+define('HRM_FA_PLUS_CIRCLE_GREEN', '<i class="fa fa-plus-circle themed-color-green"></i>');
+define('HRM_FA_PLAY', '<i class="fa fa-play"></i>');
+define('HRM_FA_THUMBS', '<i class="fa fa-thumbs-o-up"></i>');
+define('HRM_FA_THUMBS_DARK_COLOR', '<i class="fa fa-thumbs-o-up themed-color-dark-default"></i>');
+define('HRM_FA_PLAY_GREEN', '<i class="fa fa-play themed-color-green"></i>');
+define('HRM_FA_PENCIL', '<i class="fa fa-pencil"></i>');
+define('HRM_FA_UPDATE', '<i class="fa fa-sync"></i>');
+define('HRM_FA_PENCIL_PURPLE', '<i class="fa fa-pencil themed-color-purple"></i>');
+define('HRM_FA_PENCIL_YELLOW', '<i class="fa fa-pencil themed-color-yellow"></i>');
+define('HRM_FA_PENCIL_SQUARE', '<i class="fa fa-pencil-square-o"></i>');
+define('HRM_FA_PENCIL_SQUARE_PURPLE', '<i class="fa fa-pencil-square-o themed-color-purple"></i>');
+define('HRM_FA_TIMES', '<i class="fa fa-times"></i>');
+define('HRM_FA_TIMES_RED', '<i class="fa fa-times themed-color-red"></i>');
+define('HRM_FA_SIGN_IN', '<i class="fa fa-sign-in"></i>');
+define('HRM_FA_SIGN_IN_YELLOW', '<i class="fa fa-sign-in themed-color-yellow"></i>');
+define('HRM_FA_SIGN_IN_BLUE', '<i class="fa fa-sign-in themed-color-blue"></i>');
+define('HRM_FA_SIGN_OUT', '<i class="fa fa-sign-out"></i>');
+define('HRM_FA_SIGN_OUT_PURPLE', '<i class="fa fa-sign-out themed-color-purple"></i>');
+define('HRM_FA_BAN', '<i class="fa fa-ban"></i>');
+define('HRM_FA_BAN_RED', '<i class="fa fa-ban themed-color-red"></i>');
+define('HRM_FA_SPINNER', '<i class="fa fa-spinner"></i>');
+define('HRM_FA_SPINNER_ORANGE', '<i class="fa fa-spinner themed-color-orange"></i>');
+define('HRM_FA_SPINNER_PURPLE', '<i class="fa fa-spinner themed-color-purple"></i>');
+define('HRM_FA_SPINNER_GRAY', '<i class="fa fa-spinner themed-color-gray"></i>');
+define('HRM_FA_SPINNER_RED', '<i class="fa fa-spinner themed-color-red"></i>');
+define('HRM_FA_CHECK', '<i class="fa fa-check"></i>');
+define('HRM_FA_CHECK_BLUE', '<i class="fa fa-check themed-color-blue"></i>');
+define('HRM_FA_CHECK_GREEN', '<i class="fa fa-check themed-color-green"></i>');
+
+define('HRM_FA_RETWEET', '<i class="fa fa-retweet"></i>');
+
+define('HRM_FA_CHECK_CIRCLE', '<i class="fa fa-check-circle-o"></i>');
+define('HRM_FA_CHECK_CIRCLE_GREEN', '<i class="fa fa-check-circle-o themed-color-green"></i>');
+define('HRM_FA_CHECK_CIRCLE_GREEN_3x', '<i class="fa fa-3x fa-check-circle-o themed-color-green"></i>');
+define('HRM_FA_CHECK_CIRCLE_GREEN_2x', '<i class="fa fa-2x fa-check-circle-o themed-color-green"></i>');
+define('HRM_FA_CHECK_CIRCLE_ALT', '<i class="fa fa-check-circle"></i>');
+define('HRM_FA_CHECK_CIRCLE_ALT_GREEN', '<i class="fa fa-check-circle themed-color-green"></i>');
+define('HRM_FA_CHECK_CIRCLE_ALT_DARK_DEFAULT', '<i class="fa fa-check-circle themed-color-dark-default"></i>');
+define('HRM_FA_CHECK_SQUARE_ALT', '<i class="fa fa-check-square-o"></i>');
+define('HRM_FA_CHECK_BLUE_15x', '<i class="fa fa-check fa-15x themed-color-blue"></i>');
+define('HRM_FA_ARCHIVE', '<i class="fa fa-archive"></i>');
+define('HRM_FA_ARCHIVE_GRAY', '<i class="fa fa-archive themed-color-gray"></i>');
+define('HRM_FA_TRASH', '<i class="fa fa-trash"></i>');
+define('HRM_FA_TRASH_RED', '<i class="fa fa-trash themed-color-red"></i>');
+define('HRM_FA_TRASH_ALT', '<i class="fa fa-trash-o"></i>');
+define('HRM_FA_COMPRESS', '<i class="fa fa-compress"></i>');
+define('HRM_FA_LIST', '<i class="fa fa-list"></i>');
+define('HRM_FA_LIST_DARK_COLOR', '<i class="fa fa-list themed-color-dark-default"></i>');
+define('HRM_FA_FILE_TEXT', '<i class="fa fa-file-text"></i>');
+define('HRM_FA_FILE_TEXT_YELLOW', '<i class="fa fa-file-text themed-color-yellow"></i>');
+define('HRM_FA_FILE_TEXT_ALT', '<i class="fa fa-file-text-o"></i>');
+define('HRM_FA_LOCATION_ARROW', '<i class="fa fa-location-arrow"></i>');
+define('HRM_FA_MOBILE', '<i class="fa fa-mobile"></i>');
+define('HRM_FA_MOBILE_GREEN', '<i class="fa fa-mobile themed-color-green"></i>');
+define('HRM_FA_MOBILE_RED', '<i class="fa fa-mobile themed-color-red"></i>');
+define('HRM_FA_COG', '<i class="fa fa-cog"></i>');
+define('HRM_FA_COGS', '<i class="fa fa-cogs"></i>');
+define('HRM_FA_COMMENTS_ALT', '<i class="fa fa-comments-o"></i>');
+define('HRM_FA_COMMENTS_ALT_BLUE', '<i class="fa fa-comments-o themed-color-blue"></i>');
+define('HRM_FA_TASKS', '<i class="fa fa-tasks"></i>');
+define('HRM_FA_TASKS_RED', '<i class="fa fa-tasks themed-color-red"></i>');
+define('HRM_FA_GRADUATION_CAP', '<i class="fa fa-graduation-cap"></i>');
+define('HRM_FA_GLOBE', '<i class="fa fa-globe"></i>');
+define('HRM_FA_BAR_CHART', '<i class="fa fa-bar-chart"></i>');
+define('HRM_FA_HOME', '<i class="fa fa-home"></i>');
+define('HRM_FA_FLOPPY_ALT', '<i class="fa fa-floppy-o"></i>');
+define('HRM_FA_FLOPPY_ALT_YELLOW', '<i class="fa fa-floppy-o themed-color-yellow"></i>');
+define('HRM_FA_FLOPPY_ALT_BLUE', '<i class="fa fa-floppy-o themed-color-blue"></i>');
+define('HRM_FA_FLOPPY_ALT_PURPLE', '<i class="fa fa-floppy-o themed-color-purple"></i>');
+define('HRM_FA_MAP_SIGNS', '<i class="fa fa-map-signs"></i>');
+define('HRM_FA_MAP_MARKER', '<i class="fa fa-map-marker"></i>');
+define('HRM_FA_MAP_MARKER_BLUE', '<i class="fa fa-map-marker themed-color-blue"></i>');
+define('HRM_FA_MAP_TROPHY', '<i class="fa fa-trophy"></i>');
+define('HRM_FA_USD', '<i class="fa fa-usd"></i>');
+define('HRM_FA_USD_GREEN', '<i class="fa fa-usd themed-color-green"></i>');
+define('HRM_FA_REFRESH', '<i class="fa fa-refresh"></i>');
+define('HRM_FA_SEARCH', '<i class="fa fa-search"></i>');
+define('HRM_FA_SEARCH_PLUS', '<i class="fa fa-search-plus"></i>');
+define('HRM_FA_SEARCH_PLUS_BLUE', '<i class="fa fa-search-plus themed-color-blue"></i>');
+define('HRM_FA_LINK', '<i class="fa fa-link"></i>');
+define('HRM_FA_LINK_BLUE', '<i class="fa fa-link themed-color-blue"></i>');
+define('HRM_FA_LINE_CHART', '<i class="fa fa-line-chart"></i>');
+define('HRM_FA_EXCHANGE', '<i class="fa fa-exchange"></i>');
+define('HRM_FA_BOOKMARK_ALT', '<i class="fa fa-bookmark-o"></i>');
+define('HRM_FA_ALIGN_JUSTIFY', '<i class="fa fa-align-justify"></i>');
+define('HRM_FA_ALIGN_JUSTIFY_YELLOW', '<i class="fa fa-align-justify themed-color-yellow"></i>');
+define('HRM_FA_BOOK', '<i class="fa fa-book"></i>');
+define('HRM_FA_LIST_ALT', '<i class="fa fa-list-alt"></i>');
+define('HRM_FA_BUILDING', '<i class="fa fa-building"></i>');
+define('HRM_FA_HANDSHAKE', '<i class="fa fa-handshake-o"></i>');
+define('HRM_FA_HANDSHAKE_BLUE', '<i class="fa fa-handshake-o themed-color-blue"></i>');
+define('HRM_FA_MALE', '<i class="fa fa-male"></i>');
+define('HRM_FA_MALE_YELLOW', '<i class="fa fa-male themed-color-yellow"></i>');
+define('HRM_FA_FEMALE', '<i class="fa fa-female"></i>');
+define('HRM_FA_FEMALE_RED', '<i class="fa fa-female themed-color-red"></i>');
+define('HRM_FA_CHILD', '<i class="fa fa-child"></i>');
+define('HRM_FA_CHILD_YELLOW', '<i class="fa fa-child themed-color-yellow"></i>');
+define('HRM_FA_CHILD_RED', '<i class="fa fa-child themed-color-red"></i>');
+
+define('HRM_FA_EXCLAMATION', '<i class="fa fa-exclamation"></i>');
+define('HRM_FA_EXCLAMATION_RED', '<i class="fa fa-exclamation themed-color-red"></i>');
+
+define('HRM_FA_BULLHORN', '<i class="fa fa-bullhorn"></i>');
+define('HRM_FA_BRIEFCASE', '<i class="fa fa-briefcase"></i>');
+define('HRM_FA_BRIEFCASE_BLUE', '<i class="fa fa-briefcase themed-color-blue"></i>');
+define('HRM_FA_WRENCH', '<i class="fa fa-wrench"></i>');
+define('HRM_FA_CERTIFICATE', '<i class="fa fa-certificate"></i>');
+define('HRM_FA_MONEY', '<i class="fa fa-money"></i>');
+define('HRM_FA_ASTERISK', '<i class="fa fa-asterisk"></i>');
+define('HRM_FA_SIGN_OUT_mosa', '<i class="fas fa-sign-out-alt"></i>');
+define('HRM_FA_ASTERISK_RED', '<i class="fa fa-asterisk themed-color-red"></i>');
+define('HRM_FA_UPLOAD', '<i class="fa fa-upload"></i>');
+define('HRM_FA_UPLOAD_GREEN', '<i class="fa fa-upload themed-color-green"></i>');
+define('HRM_FA_UPLOAD_RED', '<i class="fa fa-upload themed-color-red"></i>');
+define('HRM_FA_THUMB_TACK', '<i class="fa fa-thumb-tack"></i>');
+define('HRM_FA_PAUSE', '<i class="fa fa-pause"></i>');
+define('HRM_FA_PAUSE_YELLOW', '<i class="fa fa-pause themed-color-yellow"></i>');
+define('HRM_FA_SHARE_ALT', '<i class="gi gi-share_alt"></i>');
+define('HRM_FA_BINOCULARS', '<i class="gi gi-binoculars"></i>');
+define('HRM_FA_TABLE', '<i class="fa fa-table"></i>');
+define('HRM_FA_SUITCASE', '<i class="fa fa-suitcase"></i>');
+define('HRM_FA_PHONE', '<i class="fa fa-phone"></i>');
+define('HRM_FA_REPEAT', '<i class="fa fa-repeat"></i>');
+define('HRM_FA_LIGHTBULB_ALT', '<i class="fa fa-lightbulb-o"></i>');
+define('HRM_FA_LIGHTBULB_ALT_YELLOW', '<i class="fa fa-lightbulb-o themed-color-yellow"></i>');
+define('HRM_FA_TAGS', '<i class="fa fa-tags"></i>');
+define('HRM_FA_TAGS_BLUE', '<i class="fa fa-tags themed-color-blue"></i>');
+define('HRM_FA_TAGS_YELLOW', '<i class="fa fa-tags themed-color-yellow"></i>');
+define('HRM_FA_TAGS_PURPLE', '<i class="fa fa-tags themed-color-purple"></i>');
+define('HRM_FA_CLOCK', '<i class="fa fa-clock-o"></i>');
+define('HRM_FA_CLOSE', '<i class="fa fa-close"></i>');
+define('HRM_FA_CLOSE_RED', '<i class="fa fa-close themed-color-red"></i>');
+
+define('HRM_FA_PAPER_PLANE', '<i class="fa fa-paper-plane"></i>');
+define('HRM_FA_PAPER_PLANE_ALT', '<i class="fa fa-paper-plane-o"></i>');
+define('HRM_FA_CLONE', '<i class="fa fa-clone"></i>');
+define('HRM_FA_CALENDAR_CHECK', '<i class="fa fa-calendar-check-o"></i>');
+define('HRM_FA_CALENDAR_CHECK_PURPLE', '<i class="fa fa-calendar-check-o themed-color-purple"></i>');
+define('HRM_FA_ARROW_LEFT', '<i class="fa fa-arrow-left"></i>');
+define('HRM_FA_ARROW_DOWN', '<i class="fa fa-arrow-down"></i>');
+define('HRM_FA_ARROW_DOWN_RED', '<i class="fa fa-arrow-down themed-color-red"></i>');
+define('HRM_FA_ARROW_UP', '<i class="fa fa-arrow-up"></i>');
+define('HRM_FA_ARROW_UP_GREEN', '<i class="fa fa-arrow-up themed-color-green"></i>');
+define('HRM_FA_ARROW_CIRCLE_LEFT', '<i class="fa fa-arrow-circle-left"></i>');
+define('HRM_FA_ARROW_CIRCLE_LEFT_PURPLE', '<i class="fa fa-arrow-circle-left themed-color-purple"></i>');
+define('HRM_FA_SITEMAP', '<i class="fa fa-sitemap"></i>');
+define('HRM_FA_ROAD', '<i class="fa fa-road"></i>');
+define('HRM_FA_STREET_VIEW', '<i class="fa fa-street-view"></i>');
+define('HRM_FA_STREET_VIEW_YELLOW', '<i class="fa fa-street-view themed-color-yellow"></i>');
+define('HRM_FA_STREET_VIEW_RED', '<i class="fa fa-street-view themed-color-red"></i>');
+define('HRM_FA_STREET_VIEW_GREEN', '<i class="fa fa-street-view themed-color-green"></i>');
+define('HRM_FA_STREET_VIEW_PURPLE', '<i class="fa fa-street-view themed-color-purple"></i>');
+define('HRM_FA_LIST_OL', '<i class="fa fa-list-ol"></i>');
+define('HRM_FA_SHOPPING_BAG', '<i class="fa fa-shopping-bag"></i>');
+define('HRM_FA_RECYCLE', '<i class="fa fa-recycle"></i>');
+define('HRM_FA_CUBES', '<i class="fa fa-cubes"></i>');
+define('HRM_FA_GRID', '<i class="fa fa-th"></i>');
+define('HRM_FA_DOLLAR', '<i class="fa fa-dollar"></i>');
+define('HRM_FA_ADDRESS_BOOK', '<i class="fa fa-address-book"></i>');
+define('HRM_FA_EXCLAMATION_TRIANGLE', '<i class="fa fa-exclamation-triangle"></i>');
+define('HRM_FA_EXCLAMATION_TRIANGLE_RED', '<i class="fa fa-exclamation-triangle themed-color-red"></i>');
+define('HRM_FA_ID_CARD', '<i class="fa fa-id-card"></i>');
+define('HRM_FA_UNLOCK_ALT', '<i class="fa fa-unlock-alt"></i>');
+define('HRM_FA_INTERNET_EXPLORER', '<i class="fa fa-internet-explorer"></i>');
+define('HRM_FA_INTERNET_EXPLORER_RED', '<i class="fa fa-internet-explorer themed-color-red"></i>');
+//glyphicon
+define('HRM_GI_GIRL', '<i class="gi gi-girl"></i>');
+define('HRM_GI_CHILD', '<i class="gi gi-child"></i>');
+define('HRM_GI_USER', '<i class="gi gi-user"></i>');
+define('HRM_GI_COGWHEEL', '<i class="gi gi-cogwheel"></i>');
+define('HRM_GI_BRIEFCASE', '<i class="gi gi-briefcase"></i>');
+
+/*
+ * ===================================================
+ * Tabs data
+ * ===================================================
+ */
+define('HRM_TAB_ACTIVE', 'active');
+define('HRM_TAB_DRAFT', 'draft');
+define('HRM_TAB_SUSPENDED', 'susspended');
+define('HRM_TAB_DROPPED_OUT', 'dropped-out');
+define('HRM_TAB_CLOSED', 'closed');
+define('HRM_TAB_CANCELED', 'canceled');
+define('HRM_TAB_DETAILS', 'details');
+define('HRM_TAB_WORKSHOPS', 'workshops');
+define('HRM_TAB_CBT', 'cbt');
+define('HRM_TAB_ACTIVITIES', 'activities');
+define('HRM_TAB_FSVS', 'fsvs');
+define('HRM_TAB_CERTIFICATES', 'certificates');
+define('HRM_TAB_HISTORY', 'history');
+define('HRM_TAB_FILES', 'files');
+define('HRM_TAB_DOCUMENTS', 'documents');
+define('HRM_TAB_PICTURES', 'photos');
+define('HRM_TAB_VIDEOS', 'videos');
+define('HRM_TAB_ALL', 'all');
+define('HRM_TAB_ASSIGNED', 'assigned');
+define('HRM_TAB_SKIPPED', 'skipped');
+define('HRM_TAB_PENDING', 'pending');
+define('HRM_TAB_SUBMITTED', 'submitted');
+define('HRM_TAB_SAVED', 'saved');
+define('HRM_TAB_REJECTED', 'rejected');
+define('HRM_TAB_APPROVED', 'approved');
+define('HRM_TAB_ARCHIVED', 'archived');
+define('HRM_TAB_STAFF', 'staff');
+define('HRM_TAB_REHABS', 'rehabs');
+define('HRM_TAB_ASSESSMENT', 'assessment');
+define('HRM_TAB_ASSIGNMENT', 'assignment');
+define('HRM_TAB_LEADERS', 'leaders');
+define('HRM_TAB_CLASS_ROOMS', 'class_rooms');
+define('HRM_TAB_GROUPS', 'groups');
+define('HRM_TAB_FOCAL_POINTS', 'focal_points');
+define('HRM_TAB_TOOLKITS', 'toolkits');
+define('HRM_TAB_LABELS', 'labels');
+define('HRM_TAB_LOGFRAME', 'logframe');
+define('HRM_TAB_PMF', 'pmf');
+define('HRM_TAB_REVISION', 'revision');
+define('HRM_TAB_TRACKER', 'tracker');
+define('HRM_TAB_SUMMARY', 'summary');
+define('HRM_TAB_PETTY_CASH', 'petty-cash');
+define('HRM_TAB_ATTENDANCE', 'attendance');
+define('HRM_TAB_PBL_TOOLKIT', 'pbl-toolkit');
+define('HRM_TAB_TRAINING', 'training');
+define('HRM_TAB_PERFORMANCE', 'performance');
+define('HRM_TAB_BLOCKED', 'blocked');
+define('HRM_TAB_RESPONSES', 'responses');
+define('HRM_TAB_GRANTS', 'grants');
+define('HRM_TAB_USERS', 'users');
+define('HRM_TAB_STOCK', 'stock');
+define('HRM_TAB_REVIEW', 'review');
+define('HRM_TAB_CHECKLIST', 'checklist');
+define('HRM_TAB_JOB', 'job');
+define('HRM_TAB_SALARY', 'salary');
+define('HRM_TAB_CONTACT_DETAILS', 'contact-details');
+define('HRM_TAB_EMERGENCY_CONTACTS', 'emergency-contacts');
+define('HRM_TAB_REPORT_TO', 'report-to');
+define('HRM_TAB_QUALIFICATION', 'qualification');
+define('HRM_TAB_IDENTITY_DOCUMENT', 'identity-document');
+define('HRM_TAB_Account', 'account');
+define('HRM_TAB_EMPLOYEES', 'employees');
+define('HRM_TAB_EVALUATORS', 'evaluators');
+define('HRM_TAB_ACTIONS', 'actions');
+define('HRM_TAB_TRACKING', 'tracking');
+
+
+
+//Tab Title
+define('HRM_TAB_TITLE_ACTIVE', 'Active');
+define('HRM_TAB_TITLE_DRAFT', 'Draft');
+define('HRM_TAB_TITLE_SUSPENDED', 'Suspended');
+define('HRM_TAB_TITLE_DROPPED_OUT', 'Dropped Out');
+define('HRM_TAB_TITLE_CLOSED', 'Closed');
+define('HRM_TAB_TITLE_CANCELED', 'Canceled');
+define('HRM_TAB_TITLE_DETAILS', 'Details');
+define('HRM_TAB_TITLE_EMPLOYEES', 'Employees');
+define('HRM_TAB_TITLE_EVALUATORS', 'Evaluators');
+
+
+define('HRM_TAB_TITLE_WORKSHOPS', 'Workshops');
+define('HRM_TAB_TITLE_CBT', 'CBTs');
+define('HRM_TAB_TITLE_ACTIVITIES', 'Activities');
+define('HRM_TAB_TITLE_FSVS', 'Follow-up Visits');
+define('HRM_TAB_TITLE_CERTIFICATES', 'Certificates');
+define('HRM_TAB_TITLE_HISTORY', 'History');
+define('HRM_TAB_TITLE_ASSIGNMENT', 'Assignment');
+define('HRM_TAB_TITLE_TRACKING', 'Tracking');
+
+define('HRM_TAB_TITLE_FILES', 'Files');
+define('HRM_TAB_TITLE_DOCUMENTS', 'Documents');
+define('HRM_TAB_TITLE_PICTURES', 'Pictures');
+define('HRM_TAB_TITLE_VIDEOS', 'Videos');
+define('HRM_TAB_TITLE_ALL', 'All');
+define('HRM_TAB_TITLE_ASSIGNED', 'assigned');
+define('HRM_TAB_TITLE_SKIPPED', 'Skipped');
+define('HRM_TAB_TITLE_PENDING', 'Pending');
+define('HRM_TAB_TITLE_SUBMITTED', 'Submitted');
+define('HRM_TAB_TITLE_SAVED', 'Saved');
+define('HRM_TAB_TITLE_REJECTED', 'Rejected');
+define('HRM_TAB_TITLE_APPROVED', 'Approved');
+define('HRM_TAB_TITLE_ARCHIVED', 'Archived');
+define('HRM_TAB_TITLE_STAFF', 'Staff');
+define('HRM_TAB_TITLE_REHABS', 'Rehabilitations');
+define('HRM_TAB_TITLE_ASSESSMENT', 'Assessments');
+define('HRM_TAB_TITLE_LEADERS', 'Leaders');
+define('HRM_TAB_TITLE_CLASS_ROOMS', 'Classes');
+define('HRM_TAB_TITLE_GROUPS', 'Groups');
+define('HRM_TAB_TITLE_FOCAL_POINTS', 'Focal Points');
+define('HRM_TAB_TITLE_TOOLKITS', 'Toolkits');
+define('HRM_TAB_TITLE_LABELS', 'Labels');
+
+define('HRM_TAB_TITLE_LOGFRAME', ' Logical Framework');
+define('HRM_TAB_TITLE_PMF', 'PMF');
+define('HRM_TAB_TITLE_REVISION', 'Revisions');
+define('HRM_TAB_TITLE_TRACKER', 'Tracker');
+define('HRM_TAB_TITLE_SUMMARY', 'Summary');
+define('HRM_TAB_TITLE_PETTY_CASH', 'Petty Cash');
+define('HRM_TAB_TITLE_ATTENDANCE', 'Attendance');
+define('HRM_TAB_TITLE_PBL_TOOLKITS', 'PBL Toolkit');
+define('HRM_TAB_TITLE_TRAINING', 'Training');
+define('HRM_TAB_TITLE_TRAININGS', 'Trainings');
+define('HRM_TAB_TITLE_PERFORMANCE', 'Performance');
+define('HRM_TAB_TITLE_BLOCKED', 'Blocked');
+define('HRM_TAB_TITLE_RESPONSES', 'Responses');
+define('HRM_TAB_TITLE_GRANTS', 'Grants');
+define('HRM_TAB_TITLE_USERS', 'Users');
+define('HRM_TAB_TITLE_STOCK', 'Stock');
+define('HRM_TAB_TITLE_REVIEW', 'Review');
+define('HRM_TAB_TITLE_REVIEWS', 'Reviews');
+
+define('HRM_TAB_TITLE_CHECKLIST', 'Checklist');
+define('HRM_TAB_TITLE_PERSONAL_DETAILS', 'Personal Details');
+define('HRM_TAB_TITLE_JOB', 'Job');
+define('HRM_TAB_TITLE_SALARY', 'Salary');
+define('HRM_TAB_TITLE_REPORT_TO', 'Report-To');
+define('HRM_TAB_TITLE_CONTACT_DETAILS', 'Contact Details');
+define('HRM_TAB_TITLE_EMERGENCY_CONTACTS', 'Emergency Contacts');
+define('HRM_TAB_TITLE_IDENTITY_DOCUMENTS', 'Identity Documents');
+define('HRM_TAB_TITLE_Qualifications', 'Qualifications');
+define('HRM_TAB_TITLE_ACTIONS', 'Actions');
+
+// PIM tabs
+define('HRM_PIM_TAB_PERSONAL_DETAIL', 'personal-details');
+define('HRM_PIM_TAB_JOB', 'job');
+define('HRM_PIM_TAB_SALARY', 'salary');
+define('HRM_PIM_TAB_REPORT_TO', 'report-to');
+define('HRM_PIM_TAB_CONTACT_DETAIL', 'contact-detail');
+define('HRM_PIM_TAB_EMERGANCY_CONTACT', 'emergency-contact');
+define('HRM_PIM_TAB_EXPERIENCE', 'experience');
+define('HRM_PIM_TAB_EDUCATION', 'education');
+define('HRM_PIM_TAB_SKILLS', 'skills');
+define('HRM_PIM_TAB_LANGUAGE', 'language');
+define('HRM_PIM_TAB_LICENSE', 'license');
+define('HRM_PIM_TAB_IDENTITY_DOCUMENT', 'identity-document');
+
+/*
+ * HRM Data module
+ */
+
+function hrm_data_update_7001() {
+  /*
+   * Entity Tables
+   */
+
+  $schema['hrm_entity_address'] = array(
+    'description' => 'Entity address',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'entity' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'entity_id' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'phone' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'mobile' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'fax' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'email' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'street_1' => array('type' => 'varchar', 'length' => 400, 'not null' => FALSE),
+      'street_2' => array('type' => 'varchar', 'length' => 400, 'not null' => FALSE),
+      'city' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'region' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'postal_code' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'country' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'time_zone' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE,),
+      'coordinates' => array('type' => 'text', 'not null' => FALSE),
+      'note' => array('type' => 'text', 'not null' => FALSE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'entity_id' => array('entity_id'),
+      'country' => array('country'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_entity_picture'] = array(
+    'description' => 'Entity pictures',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'entity' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'entity_id' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'picture_fid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'caption' => array('type' => 'text', 'not null' => FALSE),
+      'source' => array('type' => 'int', 'length' => 11, 'not null' => FALSE, 'default' => 0),
+      'ref_1' => array('type' => 'int', 'length' => 11, 'not null' => FALSE, 'default' => 0),
+      'ref_2' => array('type' => 'int', 'length' => 11, 'not null' => FALSE, 'default' => 0),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'entity_id' => array('entity_id'),
+      'picture_fid' => array('picture_fid'),
+      'source' => array('source'),
+      'ref_1' => array('ref_1'),
+      'ref_2' => array('ref_2'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_entity_document'] = array(
+    'description' => 'Entity Documents',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'entity' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'entity_id' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'fid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'title' => array('type' => 'text', 'not null' => FALSE),
+      'description' => array('type' => 'text', 'not null' => FALSE),
+      'type' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'ref_1' => array('type' => 'int', 'length' => 11, 'not null' => FALSE, 'default' => 0),
+      'ref_2' => array('type' => 'int', 'length' => 11, 'not null' => FALSE, 'default' => 0),
+      'ref_3' => array('type' => 'int', 'length' => 11, 'not null' => FALSE, 'default' => 0),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'entity_id' => array('entity_id'),
+      'fid' => array('fid'),
+      'ref_1' => array('ref_1'),
+      'ref_2' => array('ref_2'),
+      'ref_3' => array('ref_3'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_entity_file'] = array(
+    'description' => 'Entity files',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'entity' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'entity_id' => array('type' => 'int', 'not null' => TRUE),
+      'type' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'fid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'title' => array('type' => 'varchar', 'length' => '400', 'not null' => TRUE),
+      'extension' => array('type' => 'varchar', 'length' => '10', 'not null' => TRUE),
+      'uri' => array('type' => 'varchar', 'length' => '400', 'not null' => TRUE),
+      'ref_1' => array('type' => 'int', 'not null' => FALSE, 'default' => 0,),
+      'ref_2' => array('type' => 'int', 'not null' => FALSE, 'default' => 0),
+      'weight' => array('type' => 'int', 'not null' => FALSE, 'default' => 0),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'entity_id' => array('entity_id'),
+      'fid' => array('fid'),
+      'ref_1' => array('ref_1'),
+      'ref_2' => array('ref_2'),
+      'weight' => array('weight'),
+      'created' => array('created'),
+    ),
+  );
+
+  /*
+   * Organization Tables
+   */
+  $schema['hrm_org'] = array(
+    'description' => 'Organizations',
+    'fields' => array(
+      'oid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 400, 'not null' => TRUE),
+      'logo' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('oid'),
+    'indexes' => array(
+      'logo' => array('logo'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  /*
+   * Configration Tables
+   */
+  //Leave tables
+  $schema['hrm_config_leave_type'] = array(
+    'description' => 'Leave types',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'country' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 400, 'not null' => TRUE),
+      'days' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'description' => 'Days per leave peiod',),
+      'emp_apply' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'admin_assign' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'beyond_balance' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'accrue' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'accrue_frequency' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Accrual frequency Yearly, Monthly, Daily',),
+      'accrue_credit_day' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Accrual day of crediting First, Last day',),
+      'carried' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'carried_type' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Type of carried all, sepicific days',),
+      'carried_max' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'description' => 'Carried specifica days maximimu', 'default' => 0,),
+      'attachment' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'attachment_required' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'dur_full_day' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'dur_half_day' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'dur_time' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'holidays_bd' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'weekend_bd' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'approval_method' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Approval method Employee, Supervisor',),
+      'approval_value' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Approval Value such employee ID, reporting method ID',),
+      'assign_to_other' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => '1 0 flag',),
+      'color_code' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'description' => 'Color code hex',),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'User ID',),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'Created timestamp',),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'description' => 'Updated timestamp',),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'country' => array('country'),
+      'emp_apply' => array('emp_apply'),
+      'admin_assign' => array('admin_assign'),
+      'beyond_balance' => array('beyond_balance'),
+      'accrue' => array('accrue'),
+      'accrue_frequency' => array('accrue_frequency'),
+      'accrue_credit_day' => array('accrue_credit_day'),
+      'carried' => array('carried'),
+      'carried_type' => array('carried_type'),
+      'attachment' => array('attachment'),
+      'attachment_required' => array('attachment_required'),
+      'dur_full_day' => array('dur_full_day'),
+      'dur_half_day' => array('dur_half_day'),
+      'dur_time' => array('dur_time'),
+      'holidays_bd' => array('holidays_bd'),
+      'weekend_bd' => array('weekend_bd'),
+      'approval_method' => array('approval_method'),
+      'approval_value' => array('approval_value'),
+      'assign_to_other' => array('assign_to_other'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  //Job tables
+  $schema['hrm_config_job_title'] = array(
+    'description' => 'Job titles',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'description' => array('type' => 'text', 'not null' => FALSE),
+      'attachment' => array('type' => 'int', 'length' => 11, 'not null' => FALSE, 'default' => 0),
+      'note' => array('type' => 'text', 'not null' => FALSE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'attachment' => array('attachment'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_config_job_structure'] = array(
+    'description' => 'Job structure',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'job_id' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'parent' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'weight' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'job_id' => array('job_id'),
+      'parent' => array('parent'),
+      'weight' => array('weight'),
+    ),
+  );
+  $schema['hrm_config_job_employment_status'] = array(
+    'description' => 'Employement status',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_config_job_recruitment_source'] = array(
+    'description' => 'Recruitment Sources',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_config_job_reporting_method'] = array(
+    'description' => 'Reporting methods',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_config_job_termination_reason'] = array(
+    'description' => 'Termination reasons',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_config_job_project'] = array(
+    'description' => 'Projects',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'abbrev' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'description' => array('type' => 'text', 'not null' => FALSE),
+      'color_code' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  //PIM tables
+  $schema['hrm_config_pim_qualification'] = array(
+    'description' => 'Qualifications data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'type' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Qualification type'),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'description' => array('type' => 'text', 'not null' => FALSE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'type' => array('type'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_config_pim_document_type'] = array(
+    'description' => 'Document types',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  //Time  
+  $schema['hrm_config_time_work_week'] = array(
+    'description' => 'Work week',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'country' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'sun' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'mon' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'tue' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'wed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'thu' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'fri' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'sat' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'country' => array('country'),
+      'sun' => array('sun'),
+      'mon' => array('mon'),
+      'tue' => array('tue'),
+      'wed' => array('wed'),
+      'thu' => array('thu'),
+      'fri' => array('fri'),
+      'sat' => array('sat'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_config_time_work_shift'] = array(
+    'description' => 'HR Work shift',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'from' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'to' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'duration' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  //Payroll
+  $schema['hrm_config_payroll_grade'] = array(
+    'description' => 'Pay grades',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_config_payroll_grade_currency'] = array(
+    'description' => 'Pay grade currency',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'grade' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'currency' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'max_salary' => array('type' => 'float', 'not null' => TRUE, 'default' => 0.00),
+      'min_salary' => array('type' => 'float', 'not null' => TRUE, 'default' => 0.00),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'grade' => array('grade'),
+      'currency' => array('currency'),
+    ),
+  );
+  $schema['hrm_config_payroll_salary_component'] = array(
+    'description' => 'Salary components',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'type' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'payable' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'cost' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'value_amount' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'value_percentage' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'type' => array('type'),
+      'payable' => array('payable'),
+      'cost' => array('cost'),
+      'value_amount' => array('value_amount'),
+      'value_percentage' => array('value_percentage'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  /*
+   * Administration Tables
+   */
+  $schema['hrm_location'] = array(
+    'description' => 'Organization locations',
+    'fields' => array(
+      'lid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'timezone' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('lid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_holiday'] = array(
+    'description' => 'Holidays',
+    'fields' => array(
+      'hid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'start' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'end' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'annually' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'country' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('hid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'start' => array('start'),
+      'end' => array('end'),
+      'annually' => array('annually'),
+      'country' => array('country'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_holiday_day'] = array(
+    'description' => 'Holiday days',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'hid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'day' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'month' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'year' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'day_date' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'day_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'hid' => array('hid'),
+      'day' => array('day'),
+      'month' => array('month'),
+      'year' => array('year'),
+      'day_timestamp' => array('day_timestamp'),
+    ),
+  );
+  $schema['hrm_holiday_location'] = array(
+    'description' => 'Holiday applicable locations',
+    'fields' => array(
+      'hid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'lid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('hid', 'lid'),
+  );
+  $schema['hrm_announcement'] = array(
+    'description' => 'Announcements',
+    'fields' => array(
+      'aid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'description' => array('type' => 'text', 'not null' => FALSE,),
+      'publish_to' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'publish_date' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('aid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'publish_to' => array('publish_to'),
+      'publish_date' => array('publish_date'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  $schema['hrm_announcement_employee'] = array(
+    'description' => 'Announcements Employees',
+    'fields' => array(
+      'aid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('aid', 'empid'),
+  );
+
+  /*
+   * User Tables
+   */
+  $schema['hrm_users'] = array(
+    'description' => 'Users information',
+    'fields' => array(
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'oid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'username' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'password' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'email' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 400, 'not null' => TRUE),
+      'photo' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'role' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'status' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('uid'),
+    'indexes' => array(
+      'photo' => array('photo'),
+      'role' => array('role'),
+      'status' => array('status'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  /*
+   * Employee Tables
+   */
+  $schema['hrm_emp'] = array(
+    'description' => 'Employees data',
+    'fields' => array(
+      'empid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'emp_no' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'fname' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'mname' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'lname' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'photo' => array('type' => 'int', 'length' => 11, 'not null' => FALSE, 'default' => 0),
+      'gender' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'marital_status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'nationality' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'birthday' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      //SSN tax info
+      'ssn' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'tax' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      //Job information
+      'join_date' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0,),
+      'permanency_date' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0,),
+      'location' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0,),
+      'employment_status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0,),
+      'recruitment_source' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0,),
+      'work_shift' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0,),
+      //Login info
+      'email' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'username' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'password' => array('type' => 'text', 'not null' => TRUE),
+      'token' => array('type' => 'text', 'not null' => FALSE),
+      'logged_in' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'note' => array('type' => 'text', 'not null' => FALSE,),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+    ),
+    'primary key' => array('empid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'photo' => array('photo'),
+      'gender' => array('gender'),
+      'marital_status' => array('marital_status'),
+      'nationality' => array('nationality'),
+      'join_date' => array('join_date'),
+      'permanency_date' => array('permanency_date'),
+      'location' => array('location'),
+      'employment_status' => array('employment_status'),
+      'recruitment_source' => array('recruitment_source'),
+      'work_shift' => array('work_shift'),
+      'logged_in' => array('logged_in'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_emp_contact'] = array(
+    'description' => 'Employee contact information',
+    'fields' => array(
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'street_1' => array('type' => 'varchar', 'length' => 400, 'not null' => FALSE),
+      'street_2' => array('type' => 'varchar', 'length' => 400, 'not null' => FALSE),
+      'city' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'region' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'postal_code' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'country' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'mobile' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE, 'default' => '',),
+      'other_mobile' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE, 'default' => '',),
+      'phone' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE, 'default' => '',),
+      'other_phone' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE, 'default' => '',),
+      'other_email' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE, 'default' => '',),
+    ),
+    'primary key' => array('empid'),
+    'indexes' => array(
+      'country' => array('country'),
+    ),
+  );
+  $schema['hrm_emp_emergency_contact'] = array(
+    'description' => 'Employee emergency contacts',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'relationship' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'mobile' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'other_mobile' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'phone' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'other_phone' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+    ),
+  );
+  $schema['hrm_emp_language'] = array(
+    'description' => 'Employee Languages',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'language' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0, 'description' => 'Language reference ID from languages qualification configuration',),
+      'reading' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'writing' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'speaking' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'comment' => array('type' => 'text', 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'language' => array('language'),
+      'reading' => array('reading'),
+      'writing' => array('writing'),
+      'speaking' => array('speaking'),
+    ),
+  );
+  $schema['hrm_emp_document'] = array(
+    'description' => 'Employee documents',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'type' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0, 'description' => 'Document type reference ID from document qualification configuration',),
+      'document_no' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'issue_place' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'issue_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'expiry_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'type' => array('type'),
+      'issue_date' => array('issue_date'),
+      'expiry_date' => array('expiry_date'),
+    ),
+  );
+  $schema['hrm_emp_experience'] = array(
+    'description' => 'Employee Experience',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'company' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'job_title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'from_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'to_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'attachment' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'comment' => array('type' => 'text', 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'from_date' => array('from_date'),
+      'to_date' => array('to_date'),
+      'attachment' => array('attachment'),
+    ),
+  );
+  $schema['hrm_emp_education'] = array(
+    'description' => 'Employee Education',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'degree' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Degree reference ID from document qualification configuration',),
+      'institute' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'major' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'year' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'score' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'start_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'end_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'attachment' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'degree' => array('degree'),
+      'year' => array('year'),
+      'start_date' => array('start_date'),
+      'end_date' => array('end_date'),
+      'attachment' => array('attachment'),
+    ),
+  );
+  $schema['hrm_emp_license'] = array(
+    'description' => 'Employee License',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'license' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'License reference ID from document qualification configuration',),
+      'license_no' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'issue_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'expiry_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'attachment' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'license' => array('license'),
+      'issue_date' => array('issue_date'),
+      'expiry_date' => array('expiry_date'),
+      'attachment' => array('attachment'),
+    ),
+  );
+  $schema['hrm_emp_skill'] = array(
+    'description' => 'Employee Skills',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'skill' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Skill reference ID from document qualification configuration',),
+      'years' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'comment' => array('type' => 'text', 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'skill' => array('skill'),
+      'years' => array('years'),
+    ),
+  );
+
+  //Repoting
+  $schema['hrm_emp_reporting'] = array(
+    'description' => 'Employee reporting data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'supervisor_empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'method' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Reporting method ID',),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'supervisor_empid' => array('supervisor_empid'),
+      'method' => array('method'),
+    ),
+  );
+
+  //Job
+  $schema['hrm_emp_job'] = array(
+    'description' => 'Employee job',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'job_title' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'job_no' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'start_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'end_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'contract_fid' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'performance_fid' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'job_title' => array('job_title'),
+      'start_date' => array('start_date'),
+      'end_date' => array('end_date'),
+      'contract_fid' => array('contract_fid'),
+      'performance_fid' => array('performance_fid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_emp_job_history'] = array(
+    'description' => 'Employee job',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'job_title' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'job_no' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'start_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'end_date' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'contract_fid' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'performance_fid' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'job_title' => array('job_title'),
+      'start_date' => array('start_date'),
+      'end_date' => array('end_date'),
+      'contract_fid' => array('contract_fid'),
+      'performance_fid' => array('performance_fid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_emp_job_project'] = array(
+    'description' => 'Employee projects',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'project' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'project' => array('project'),
+    ),
+  );
+
+  $schema['hrm_emp_terminated'] = array(
+    'description' => 'Terminated Employees data',
+    'fields' => array(
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'reason' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'termination_date' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'letter' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'separation' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'settlement' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'comment' => array('type' => 'text', 'not null' => FALSE,),
+      'leaves_data' => array('type' => 'blob', 'size' => 'big', 'not null' => FALSE),
+      'attendance_data' => array('type' => 'blob', 'size' => 'big', 'not null' => FALSE),
+      'salary_data' => array('type' => 'blob', 'size' => 'big', 'not null' => FALSE),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'changed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('empid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'reason' => array('reason'),
+      'termination_date' => array('termination_date'),
+      'letter' => array('letter'),
+      'separation' => array('separation'),
+      'settlement' => array('settlement'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  $schema['hrm_emp_timesheet'] = array(
+    'description' => 'Employee timesheet',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'project' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'day_date' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'day_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'from_time' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'to_time' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'description' => array('type' => 'text', 'not null' => TRUE),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'project' => array('project'),
+      'day_timestamp' => array('day_timestamp'),
+      'from_time' => array('from_time'),
+      'to_time' => array('to_time'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  /*
+   * Attendance Tables
+   */
+  $schema['hrm_attendance'] = array(
+    'description' => 'Attendance data',
+    'fields' => array(
+      'aid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'date' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'in_time' => array('type' => 'int', 'varchar', 'length' => 11, 'not null' => TRUE),
+      'in_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'in_coordinates' => array('type' => 'text', 'not null' => TRUE),
+      'in_comment' => array('type' => 'text', 'not null' => FALSE),
+      'out_time' => array('type' => 'varchar', 'length' => 11, 'not null' => FALSE),
+      'out_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'out_coordinates' => array('type' => 'text', 'not null' => TRUE),
+      'out_comment' => array('type' => 'text', 'not null' => FALSE),
+      'duration' => array('type' => 'varchar', 'length' => 11, 'not null' => FALSE),
+      'duration_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'source' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('aid'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'oid' => array('oid'),
+      'in_timestamp' => array('in_timestamp'),
+      'out_timestamp' => array('out_timestamp'),
+      'duration_timestamp' => array('duration_timestamp'),
+      'source' => array('source'),
+    ),
+  );
+
+  $schema['hrm_attendance_details'] = array(
+    'description' => 'Attendance details data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'aid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'in_time' => array('type' => 'int', 'varchar', 'length' => 11, 'not null' => TRUE),
+      'in_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'in_coordinates' => array('type' => 'text', 'not null' => TRUE),
+      'in_comment' => array('type' => 'text', 'not null' => FALSE),
+      'out_time' => array('type' => 'varchar', 'length' => 11, 'not null' => FALSE),
+      'out_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'out_coordinates' => array('type' => 'text', 'not null' => TRUE),
+      'out_comment' => array('type' => 'text', 'not null' => FALSE),
+      'duration' => array('type' => 'varchar', 'length' => 11, 'not null' => FALSE),
+      'duration_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'aid' => array('aid'),
+      'in_timestamp' => array('in_timestamp'),
+      'out_timestamp' => array('out_timestamp'),
+      'duration_timestamp' => array('duration_timestamp'),
+    ),
+  );
+
+  $schema['hrm_attendance_adjustment'] = array(
+    'description' => 'Attendance details data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'aid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'data' => array('type' => 'blob', 'size' => 'big', 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'changed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'aid' => array('aid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  /*
+   * Leave Tables
+   */
+  $schema['hrm_leave'] = array(
+    'description' => 'Leaves data',
+    'fields' => array(
+      'lid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'leave_type' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Leave type ID',),
+      'source' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'comment' => array('type' => 'text', 'not null' => FALSE),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'changed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('lid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'leave_type' => array('leave_type'),
+      'source' => array('source'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_leave_timing'] = array(
+    'description' => 'Leaves data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'lid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Leave ID',),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'leave_type' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Leave type ID',),
+      'date' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'length_hours' => array('type' => 'numeric', 'precision' => 6, 'scale' => 2, 'not null' => TRUE),
+      'length_days' => array('type' => 'numeric', 'precision' => 6, 'scale' => 4, 'not null' => TRUE),
+      'start_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'end_timestamp' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'duration_type' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'lid' => array('lid'),
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'leave_type' => array('leave_type'),
+      'start_timestamp' => array('start_timestamp'),
+      'end_timestamp' => array('end_timestamp'),
+      'duration_type' => array('duration_type'),
+      'status' => array('status'),
+    ),
+  );
+  $schema['hrm_leave_action'] = array(
+    'description' => 'Leave actions',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => ' id.',),
+      'lid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Leave ID',),
+      'action' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'description' => 'action',),
+      'comment' => array('type' => 'text', 'not null' => FALSE, 'description' => 'Comment',),
+      'created_entity' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created_entity_id' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'lid' => array('lid'),
+      'created_entity_id' => array('created_entity_id'),
+      'created' => array('created'),
+    ),
+  );
+
+  //Leave Entitlment Tables
+  $schema['hrm_leave_entitlement'] = array(
+    'description' => 'Leave Entitlemnts',
+    'fields' => array(
+      'eid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'leave_type' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'leave_period' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'days' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'transfered' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'pending' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'used' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('eid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'leave_type' => array('leave_type'),
+      'leave_period' => array('leave_period'),
+    ),
+  );
+
+  $schema['hrm_leave_entitlement_adjustment'] = array(
+    'description' => 'Attendance details data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'eid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'data' => array('type' => 'blob', 'size' => 'big', 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'changed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'eid' => array('eid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  /*
+   * Payroll
+   */
+  $schema['hrm_payroll_salary'] = array(
+    'description' => 'Salaries data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'grade' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'currency' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'regulation' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'basic' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'earning' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'deduction' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'payable' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'cost' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'changed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'grade' => array('grade'),
+      'currency' => array('currency'),
+      'regulation' => array('regulation'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_payroll_salary_allocation'] = array(
+    'description' => 'Employee salary allocation',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'project' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'percentage' => array('type' => 'float', 'not null' => TRUE),
+      'total' => array('type' => 'float', 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'project' => array('project'),
+    ),
+  );
+  $schema['hrm_payroll_salary_history'] = array(
+    'description' => 'Salaries data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'grade' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'currency' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'basic' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'earning' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'deduction' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'payable' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'cost' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE, 'default' => 0),
+      'data' => array('type' => 'blob', 'size' => 'big', 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'changed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'grade' => array('grade'),
+      'currency' => array('currency'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_payroll_salary_component'] = array(
+    'description' => 'Salary component',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'component' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'type' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'value' => array('type' => 'float', 'not null' => TRUE),
+      'exemption' => array('type' => 'float', 'not null' => TRUE, 'default' => 0),
+      'total_value' => array('type' => 'float', 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'component' => array('component'),
+      'type' => array('type'),
+    ),
+  );
+
+  /*
+   * Asset Tables
+   */
+  $schema['hrm_asset'] = array(
+    'description' => 'Assets',
+    'fields' => array(
+      'aid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'location' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'asset_no' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'serial_no' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'model' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'brand' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'category' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'vendor' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'picture_fid' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'qr_code_fid' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'cost' => array('type' => 'float', 'default' => 0, 'not null' => FALSE),
+      'current_value' => array('type' => 'float', 'default' => 0, 'not null' => FALSE),
+      'acquired' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'warranty_start' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'warranty_end' => array('type' => 'int', 'length' => 11, 'not null' => FALSE),
+      'description' => array('type' => 'text', 'not null' => FALSE),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('aid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'location' => array('location'),
+      'brand' => array('brand'),
+      'category' => array('category'),
+      'vendor' => array('vendor'),
+      'picture_fid' => array('picture_fid'),
+      'qr_code_fid' => array('qr_code_fid'),
+      'acquired' => array('acquired'),
+      'warranty_start' => array('warranty_start'),
+      'warranty_end' => array('warranty_end'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_asset_brand'] = array(
+    'description' => 'Asset brands',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'brand_no' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_asset_category'] = array(
+    'description' => 'Asset categories',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'category_no' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_asset_vendor'] = array(
+    'description' => 'Asset vendors',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'phone' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'email' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'website' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'address' => array('type' => 'text', 'not null' => FALSE),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  //Assignment Tables
+  $schema['hrm_asset_assignment'] = array(
+    'description' => 'Asset assignment data',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'aid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'current_value' => array('type' => 'float', 'not null' => TRUE),
+      'assign_date' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'assign_condition' => array('type' => 'text', 'not null' => FALSE),
+      'photo_fid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'receipt_fid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'comment' => array('type' => 'text', 'not null' => FALSE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11,),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'aid' => array('aid'),
+      'empid' => array('empid'),
+      'assign_date' => array('assign_date'),
+      'photo_fid' => array('photo_fid'),
+      'receipt_fid' => array('receipt_fid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_asset_assignment_history'] = array(
+    'description' => 'Asset assignment history',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'aid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'current_value' => array('type' => 'float', 'not null' => TRUE),
+      'assign_date' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'assign_condition' => array('type' => 'text', 'not null' => FALSE),
+      'assign_photo_fid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'assign_receipt_fid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'assign_comment' => array('type' => 'text', 'not null' => FALSE),
+      'assign_uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'assign_created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11,),
+      'assign_changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'return_date' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'return_condition' => array('type' => 'text', 'not null' => FALSE),
+      'return_photo_fid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'return_receipt_fid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'return_uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'return_created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'return_changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      'return_comment' => array('type' => 'text', 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'aid' => array('aid'),
+      'empid' => array('empid'),
+      'assign_date' => array('assign_date'),
+      'assign_photo_fid' => array('assign_photo_fid'),
+      'assign_receipt_fid' => array('assign_receipt_fid'),
+      'assign_uid' => array('assign_uid'),
+      'assign_created' => array('assign_created'),
+      'assign_changed' => array('assign_changed'),
+      'return_date' => array('return_date'),
+      'return_photo_fid' => array('return_photo_fid'),
+      'return_receipt_fid' => array('return_receipt_fid'),
+      'return_uid' => array('return_uid'),
+      'return_created' => array('return_created'),
+      'return_changed' => array('return_changed'),
+    ),
+  );
+  /*
+   * Discipline Tables
+   */
+  $schema['hrm_discipline'] = array(
+    'description' => 'Employees Disciplines',
+    'fields' => array(
+      'did' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'title' => array('type' => 'varchar', 'length' => 400, 'not null' => TRUE),
+      'description' => array('type' => 'text', 'not null' => FALSE,),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'changed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('did'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  $schema['hrm_discipline_action'] = array(
+    'description' => 'Employees Discipline Actions',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
+      'did' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'action' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'owner_empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'due_date' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'description' => array('type' => 'text', 'not null' => FALSE,),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'changed' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'did' => array('did'),
+      'action' => array('action'),
+      'owner_empid' => array('owner_empid'),
+      'due_date' => array('due_date'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  foreach ($schema as $key => $table) {
+    db_create_table($key, $table);
+  }
+}
+
+function hrm_data_update_7002() {
+  /*
+   * Administration Tables
+   */
+  //Tiers && Pricing 
+  $schema['hrm_admin_tier'] = array(
+    'description' => 'Tiers information',
+    'fields' => array(
+      'tid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'min_emp' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'max_emp' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('tid'),
+    'indexes' => array(
+      'min_emp' => array('min_emp'),
+      'max_emp' => array('max_emp'),
+    ),
+  );
+  $schema['hrm_admin_tier_price'] = array(
+    'description' => 'Organization pricing',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'tid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0),
+      'price' => array('type' => 'float', 'not null' => TRUE, 'default' => 0, 'description' => 'Proce per user per month'),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'tid' => array('tid'),
+      'oid' => array('oid'),
+    ),
+  );
+
+  foreach ($schema as $key => $table) {
+    db_create_table($key, $table);
+  }
+}
+
+function hrm_data_update_7003() {
+  $schema['hrm_lov'] = array(
+    'description' => 'List of values tabels',
+    'fields' => array(
+      'lid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'key_name' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'key_value' => array('type' => 'int', 'not null' => TRUE),
+      'e_name' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'a_name' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
+      'description' => array('type' => 'text', 'size' => 'big', 'not null' => FALSE),
+      'weight' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('lid'),
+    'indexes' => array(
+      'key_value' => array('key_value'),
+      'weight' => array('weight'),
+    ),
+  );
+  $schema['hrm_lov_group'] = array(
+    'description' => 'LOV group data table',
+    'fields' => array(
+      'gid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'lid' => array('type' => 'int', 'not null' => TRUE),
+      'key_name' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE, 'default' => ''),
+      'key_value' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'e_name' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'a_name' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
+      'abbrev' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
+      'description' => array('type' => 'text', 'size' => 'big', 'not null' => FALSE),
+      'weight' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('gid'),
+    'indexes' => array(
+      'key_value' => array('key_value'),
+      'lid' => array('lid'),
+      'weight' => array('weight'),
+    ),
+  );
+  $schema['hrm_lov_option'] = array(
+    'description' => 'List of values tabels',
+    'fields' => array(
+      'oid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'lid' => array('type' => 'int', 'not null' => TRUE),
+      'gid' => array('type' => 'int', 'not null' => FALSE, 'default' => 0),
+      'key_name' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE, 'default' => ''),
+      'key_value' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'e_name' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'a_name' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
+      'abbrev' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
+      'score' => array('type' => 'int', 'not null' => FALSE, 'default' => 0),
+      'fa_icon' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
+      'ref_1' => array('type' => 'int', 'not null' => FALSE, 'default' => 0),
+      'ref_2' => array('type' => 'int', 'not null' => FALSE, 'default' => 0),
+      'weight' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'description' => array('type' => 'text', 'size' => 'big', 'not null' => FALSE),
+    ),
+    'primary key' => array('oid'),
+    'indexes' => array(
+      'gid' => array('gid'),
+      'key_value' => array('key_value'),
+      'lid' => array('lid'),
+      'score' => array('score'),
+      'ref_1' => array('ref_1'),
+      'ref_2' => array('ref_2'),
+      'weight' => array('weight'),
+    ),
+  );
+
+  foreach ($schema as $key => $table) {
+    db_create_table($key, $table);
+  }
+}
+
+function hrm_data_update_7004() {
+  $schema['hrm_entity_history'] = array(
+    'description' => 'Entity history',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'entity' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'entity_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'sub_entity' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'sub_entity_id' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'action' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'created' => array('created'),
+      'entity_id' => array('entity_id'),
+      'sub_entity_id' => array('sub_entity_id'),
+      'uid' => array('uid'),
+    ),
+  );
+
+  foreach ($schema as $key => $table) {
+    db_create_table($key, $table);
+  }
+}
+
+function hrm_data_update_7005() {
+  db_query('ALTER TABLE {hrm_lov_option} ADD class varchar(255) NULL AFTER fa_icon');
+}
+
+function hrm_data_update_7006() {
+  db_query('ALTER TABLE {hrm_config_time_work_shift} ADD default_shift int(11) NOT NULL DEFAULT 0 AFTER duration');
+  db_add_index('hrm_config_time_work_shift', 'default_shift', array('default_shift'));
+
+  db_query('ALTER TABLE {hrm_config_time_work_shift} ADD override int(11) NOT NULL DEFAULT 0 AFTER default_shift');
+  db_add_index('hrm_config_time_work_shift', 'override', array('override'));
+}
+
+function hrm_data_update_7007() {
+  db_query('ALTER TABLE {hrm_config_time_work_shift} ADD name varchar(255) NOT NULL AFTER oid');
+}
+
+function hrm_data_update_7008() {
+  db_query('ALTER TABLE {hrm_emp} ADD device_id text AFTER token');
+}
+
+function hrm_data_update_7009() {
+  db_query('ALTER TABLE {hrm_asset_vendor} ADD vendor_no varchar(255) AFTER name');
+}
+
+function hrm_data_update_7010() {
+  db_query('ALTER TABLE {hrm_emp} ADD attendance int(11) NOT NULL DEFAULT 1 AFTER work_shift');
+}
+
+function hrm_data_update_7011() {
+  $schema['hrm_payroll_salary_country_regulation'] = array(
+    'description' => 'Salary component',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'value' => array('type' => 'float', 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'empid' => array('empid'),
+    ),
+  );
+
+  db_create_table('hrm_payroll_salary_country_regulation', $schema['hrm_payroll_salary_country_regulation']);
+}
+
+function hrm_data_update_7012() {
+  db_query('ALTER TABLE {hrm_payroll_salary_country_regulation} ADD type int(11) NOT NULL DEFAULT 0 AFTER name');
+  db_query('ALTER TABLE {hrm_payroll_salary_country_regulation} ADD payable int(11) NOT NULL DEFAULT 0 AFTER type');
+  db_query('ALTER TABLE {hrm_payroll_salary_country_regulation} ADD cost int(11) NOT NULL DEFAULT 0 AFTER payable');
+
+  db_add_index('hrm_payroll_salary_country_regulation', 'type', array('type'));
+  db_add_index('hrm_payroll_salary_country_regulation', 'payable', array('payable'));
+  db_add_index('hrm_payroll_salary_country_regulation', 'cost', array('cost'));
+}
+
+function hrm_data_update_7014() {
+  db_query('ALTER TABLE {hrm_emp_document} ADD fid int(11) NOT NULL DEFAULT 0 AFTER type');
+  db_add_index('hrm_emp_document', 'fid', array('fid'));
+}
+
+function hrm_data_update_7015() {
+  db_query('ALTER TABLE {hrm_emp} ADD device_type text AFTER device_id');
+}
+
+function hrm_data_update_7016() {
+  db_query('ALTER TABLE {hrm_asset} ADD return_template int(11) AFTER description');
+  db_query('ALTER TABLE {hrm_asset} ADD assign_template int(11) AFTER description');
+}
+
+function hrm_data_update_7017() {
+  db_change_field('hrm_attendance', 'in_time', 'in_time', array('type' => 'varchar', 'length' => 11, 'not null' => TRUE));
+}
+
+function hrm_data_update_7018() {
+  db_query('ALTER TABLE {hrm_attendance} ADD date_timestamp int(11) AFTER date');
+  db_query('ALTER TABLE {hrm_attendance} ADD in_status int(11) AFTER in_comment');
+  db_query('ALTER TABLE {hrm_attendance} ADD out_status int(11) AFTER out_comment');
+  db_query('ALTER TABLE {hrm_attendance} ADD status int(11) AFTER source');
+  db_add_index('hrm_attendance', 'date_timestamp', array('date_timestamp'));
+  db_add_index('hrm_attendance', 'in_status', array('in_status'));
+  db_add_index('hrm_attendance', 'out_status', array('out_status'));
+  db_add_index('hrm_attendance', 'status', array('status'));
+}
+
+function hrm_data_update_7019() {
+  db_change_field('hrm_attendance_details', 'in_time', 'in_time', array('type' => 'varchar', 'length' => 11, 'not null' => TRUE));
+
+  db_change_field('hrm_attendance', 'out_coordinates', 'out_coordinates', array('type' => 'text', 'not null' => FALSE));
+  db_change_field('hrm_attendance_details', 'out_coordinates', 'out_coordinates', array('type' => 'text', 'not null' => FALSE));
+}
+
+function hrm_data_update_7020() {
+  db_query('ALTER TABLE {hrm_attendance} ADD in_diff int(11) NOT NULL DEFAULT 0 AFTER in_timestamp');
+  db_query('ALTER TABLE {hrm_attendance} ADD out_diff int(11) NOT NULL DEFAULT 0 AFTER out_timestamp');
+  db_query('ALTER TABLE {hrm_attendance_details} ADD in_diff int(11) NOT NULL DEFAULT 0  AFTER in_timestamp');
+  db_query('ALTER TABLE {hrm_attendance_details} ADD out_diff int(11) NOT NULL DEFAULT 0 AFTER out_timestamp');
+
+  db_add_index('hrm_attendance', 'in_diff', array('in_diff'));
+  db_add_index('hrm_attendance', 'out_diff', array('out_diff'));
+  db_add_index('hrm_attendance_details', 'in_diff', array('in_diff'));
+  db_add_index('hrm_attendance_details', 'out_diff', array('out_diff'));
+}
+
+function hrm_data_update_7021() {
+
+  $schema['hrm_perf_tracker'] = array(
+    'description' => 'HRM performance tracker',
+    'fields' => array(
+      'tid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'tracker id.',),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Employee id.',),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Organization id.',),
+      'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '', 'description' => 'name of tracker',),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'User id who create tracker.',),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+    ),
+    'primary key' => array('tid'),
+    'indexes' => array(
+      'empid' => array('empid'),
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  db_create_table('hrm_perf_tracker', $schema['hrm_perf_tracker']);
+
+
+  $schema['hrm_perf_tracker_logs'] = array(
+    'description' => 'HRM performance tracker',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'log id.',),
+      'tid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'tracker id.',),
+      'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '', 'description' => 'name of log',),
+      'indicator' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'indicator performance positive or negative.',),
+      'empid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'employee id.',),
+      'description' => array('type' => 'text', 'not null' => FALSE, 'description' => 'description of the logs',),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'tid' => array('tid'),
+      'indicator' => array('indicator'),
+      'empid' => array('empid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  db_create_table('hrm_perf_tracker_logs', $schema['hrm_perf_tracker_logs']);
+
+  $schema['hrm_perf_tracker_reviewer'] = array(
+    'description' => 'HRM performance tracker',
+    'fields' => array(
+      'tid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0, 'description' => 'tracker id.',),
+      'empid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'employee id.',),
+    ),
+    'primary key' => array('tid', 'empid'),
+  );
+
+  db_create_table('hrm_perf_tracker_reviewer', $schema['hrm_perf_tracker_reviewer']);
+}
+
+function hrm_data_update_7022() {
+  db_drop_field('hrm_perf_tracker_logs', 'empid');
+
+  db_query('ALTER TABLE {hrm_perf_tracker_logs} ADD added_entity_id int(11) NOT NULL DEFAULT 0 AFTER title');
+  db_query('ALTER TABLE {hrm_perf_tracker_logs} ADD added_entity varchar(255) NOT NULL AFTER title');
+
+
+  db_add_index('hrm_perf_tracker_logs', 'added_entity_id', array('added_entity_id'));
+}
+
+function hrm_data_update_7023() {
+  db_change_field('hrm_leave_action', 'created_entity', 'created_entity', array('type' => 'varchar', 'length' => 255,
+    'description' => 'employee or user', 'not null' => TRUE));
+}
+
+function hrm_data_update_7024() {
+  db_query('ALTER TABLE {hrm_leave} ADD assigned_to int(11) NOT NULL DEFAULT 0 AFTER leave_type');
+}
+
+function hrm_data_update_7025() {
+
+  $schema['hrm_perf_competency_template'] = array(
+    'description' => 'HRM performance competency tamplate',
+    'fields' => array(
+      'cid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'competency id.',),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Organization id.',),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '', 'description' => 'name of competency',),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0, 'description' => 'status of competency',),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'User id who create competency.',),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+    ),
+    'primary key' => array('cid'),
+    'indexes' => array(
+      'status' => array('status'),
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  db_create_table('hrm_perf_competency_template', $schema['hrm_perf_competency_template']);
+
+
+  $schema['hrm_perf_competency_group_template'] = array(
+    'description' => 'HRM performance competency group tamplate',
+    'fields' => array(
+      'gid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'group id.',),
+      'cid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'competency id.',),
+      'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '', 'description' => 'title of group',),
+      'weight' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'weight of group.',),
+    ),
+    'primary key' => array('gid'),
+    'indexes' => array(
+      'cid' => array('cid'),
+      'weight' => array('weight'),
+    ),
+  );
+  db_create_table('hrm_perf_competency_group_template', $schema['hrm_perf_competency_group_template']);
+
+  $schema['hrm_perf_competency_question_template'] = array(
+    'description' => 'HRM performance competency question tamplate',
+    'fields' => array(
+      'qid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'question id.',),
+      'gid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'group id.',),
+      'cid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'competency id.',),
+      'text' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '', 'description' => 'question.',),
+      'weight' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'weight of question.',),
+    ),
+    'primary key' => array('qid'),
+    'indexes' => array(
+      'gid' => array('gid'),
+      'cid' => array('cid'),
+      'weight' => array('weight'),
+    ),
+  );
+
+  db_create_table('hrm_perf_competency_question_template', $schema['hrm_perf_competency_question_template']);
+}
+
+function hrm_data_update_7026() {
+  db_rename_table('hrm_perf_competency_group_template', 'hrm_perf_competency_template_group');
+  db_rename_table('hrm_perf_competency_question_template', 'hrm_perf_competency_template_question');
+}
+
+function hrm_data_update_7027() {
+  db_query('ALTER TABLE {hrm_attendance} ADD in_date varchar(255) AFTER in_time');
+  db_query('ALTER TABLE {hrm_attendance} ADD out_date varchar(255) AFTER out_time');
+
+  db_query('ALTER TABLE {hrm_attendance_details} ADD in_date varchar(255) AFTER in_time');
+  db_query('ALTER TABLE {hrm_attendance_details} ADD out_date varchar(255) AFTER out_time');
+}
+
+function hrm_data_update_7028() {
+  $schema['hrm_perf_appraisal'] = array(
+    'description' => 'HRM performance appraisal',
+    'fields' => array(
+      'aid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'appraisal id.',),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Organization id.',),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '', 'description' => 'name of appraisal',),
+      'from_date' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'to_date' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'due_date' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'header' => array('type' => 'text', 'not null' => FALSE, 'description' => 'header of appraisal',),
+      'eval_main' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'eval_self' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'eval_peers' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'eval_supervisor' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'eval_subordinate' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'status' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'default' => 0, 'description' => 'status of appraisal',),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'User id who create appraisal.',),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+    ),
+    'primary key' => array('aid'),
+    'indexes' => array(
+      'oid' => array('oid'),
+      'from_date' => array('from_date'),
+      'to_date' => array('to_date'),
+      'due_date' => array('due_date'),
+      'eval_main' => array('eval_main'),
+      'eval_self' => array('eval_self'),
+      'eval_peers' => array('eval_peers'),
+      'eval_supervisor' => array('eval_supervisor'),
+      'eval_subordinate' => array('eval_subordinate'),
+      'status' => array('status'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+
+  db_create_table('hrm_perf_appraisal', $schema['hrm_perf_appraisal']);
+
+
+
+  $schema['hrm_perf_appraisal_emp'] = array(
+    'description' => 'HRM performance appraisal employees',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
+      'aid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'appraisal id.',),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'employee selected in appraisal cycle.',),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'aid' => array('aid'),
+      'empid' => array('empid'),
+    ),
+  );
+  db_create_table('hrm_perf_appraisal_emp', $schema['hrm_perf_appraisal_emp']);
+
+  $schema['hrm_perf_appraisal_evaluator'] = array(
+    'description' => 'HRM performance appraisal evaluators',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
+      'aid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'appraisal id.',),
+      'empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'employee selected in appraisal cycle.',),
+      'eval_empid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'evaluator selected in appraisal cycle.',),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'aid' => array('aid'),
+      'empid' => array('empid'),
+      'eval_empid' => array('eval_empid'),
+    ),
+  );
+
+  db_create_table('hrm_perf_appraisal_evaluator', $schema['hrm_perf_appraisal_evaluator']);
+
+
+
+  $schema['hrm_perf_appraisal_review'] = array(
+    'description' => 'HRM performance appraisal review',
+    'fields' => array(
+      'rid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'review id.',),
+      'aid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'appraisal id.',),
+      'eval_empid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'evaluator selected in appraisal cycle.',),
+      'empid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'employee selected in appraisal cycle.',),
+      'rate' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE,),
+      'comment' => array('type' => 'text', 'not null' => FALSE,),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+    ),
+    'primary key' => array('rid'),
+    'indexes' => array(
+      'aid' => array('aid'),
+      'eval_empid' => array('eval_empid'),
+      'empid' => array('empid'),
+      'created' => array('created'),
+    ),
+  );
+
+  db_create_table('hrm_perf_appraisal_review', $schema['hrm_perf_appraisal_review']);
+
+  $schema['hrm_perf_appraisal_review_details'] = array(
+    'description' => 'HRM performance appraisal review details',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'review details id.',),
+      'rid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'review id.',),
+      'qid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'question id.',),
+      'answer' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '', 'description' => 'answer of the question.',),
+      'rate' => array('type' => 'numeric', 'precision' => 8, 'scale' => 4, 'not null' => TRUE,),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'rid' => array('rid'),
+      'qid' => array('qid'),
+    ),
+  );
+
+  db_create_table('hrm_perf_appraisal_review_details', $schema['hrm_perf_appraisal_review_details']);
+}
+
+function hrm_data_update_7029() {
+  db_query('ALTER TABLE {hrm_attendance_details} ADD empid int(11) AFTER aid');
+  db_add_index('hrm_attendance_details', 'empid', array('empid'));
+}
+
+function hrm_data_update_7030() {
+  db_query('ALTER TABLE {hrm_attendance} ADD in_near_loc int(11) AFTER in_coordinates');
+  db_add_index('hrm_attendance', 'in_near_loc', array('in_near_loc'));
+
+  db_query('ALTER TABLE {hrm_attendance} ADD out_near_loc int(11) AFTER out_coordinates');
+  db_add_index('hrm_attendance', 'out_near_loc', array('out_near_loc'));
+
+
+  db_query('ALTER TABLE {hrm_attendance_details} ADD in_near_loc int(11) AFTER in_coordinates');
+  db_add_index('hrm_attendance_details', 'in_near_loc', array('in_near_loc'));
+
+  db_query('ALTER TABLE {hrm_attendance_details} ADD out_near_loc int(11) AFTER out_coordinates');
+  db_add_index('hrm_attendance_details', 'out_near_loc', array('out_near_loc'));
+}
+
+function hrm_data_update_7031() {
+  db_query('ALTER TABLE {hrm_location} ADD coordinates text NULL AFTER timezone');
+}
+
+function hrm_data_update_7032() {
+  db_query('ALTER TABLE {hrm_perf_appraisal} ADD cid int(11) NOT NULL DEFAULT 0 AFTER oid');
+}
+
+function hrm_data_update_7033() {
+  db_query('ALTER TABLE {hrm_perf_appraisal} ADD description text AFTER status');
+}
+
+function hrm_data_update_7034() {
+  db_query('ALTER TABLE {hrm_perf_competency_template_group} ADD status int(11) NOT NULL DEFAULT 0 AFTER weight');
+  db_query('ALTER TABLE {hrm_perf_competency_template_question} ADD status int(11) NOT NULL DEFAULT 0 AFTER weight');
+}
+
+function hrm_data_update_7035() {
+  db_query('ALTER TABLE {hrm_attendance_adjustment} ADD justification text NULL AFTER aid');
+  db_query('ALTER TABLE {hrm_attendance_adjustment} ADD fid int(11) NOT NULL DEFAULT 0 AFTER justification');
+}
+
+function hrm_data_update_7036() {
+  $schema['hrm_perf_asset_tracking'] = array(
+    'description' => 'HRM Asset Tracking',
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'traking asset id',),
+      'aid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'asset id.',),
+      'coordinates' => array('type' => 'text', 'not null' => TRUE, 'description' => 'coordinates of the asset',),
+      'note' => array('type' => 'text', 'not null' => FALSE,),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0, 'description' => 'user id',),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0,),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'aid' => array('aid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+    ),
+  );
+
+  db_create_table('hrm_perf_asset_tracking', $schema['hrm_perf_asset_tracking']);
+}
+
+function hrm_data_update_7037() {
+  db_drop_field('hrm_attendance', 'duration');
+  db_drop_field('hrm_attendance', 'duration_timestamp');
+
+  db_drop_field('hrm_attendance_details', 'duration');
+  db_drop_field('hrm_attendance_details', 'duration_timestamp');
+
+  db_query('ALTER TABLE {hrm_attendance} ADD duration int(11) NOT NULL DEFAULT 0 AFTER out_status');
+  db_query('ALTER TABLE {hrm_attendance} ADD shift_duration int(11) NOT NULL DEFAULT 0 AFTER duration');
+
+  db_query('ALTER TABLE {hrm_attendance_details} ADD duration int(11) NOT NULL DEFAULT 0 AFTER out_comment');
+}
+
+function hrm_data_update_7038() {
+  db_drop_field('hrm_attendance', 'date_timestamp');
+  db_drop_field('hrm_attendance', 'in_timestamp');
+  db_drop_field('hrm_attendance', 'in_diff');
+  db_drop_field('hrm_attendance', 'out_timestamp');
+  db_drop_field('hrm_attendance', 'out_diff');
+
+  db_drop_field('hrm_attendance_details', 'in_timestamp');
+  db_drop_field('hrm_attendance_details', 'in_diff');
+  db_drop_field('hrm_attendance_details', 'out_timestamp');
+  db_drop_field('hrm_attendance_details', 'out_diff');
+
+  db_query('ALTER TABLE {hrm_attendance} ADD timezone varchar(255) NULL AFTER out_status');
+}
+
+function hrm_data_update_7039() {
+  db_rename_table('hrm_perf_asset_tracking', 'hrm_asset_tracking');
+}
+
+function hrm_data_update_7040() {
+  db_query('ALTER TABLE {hrm_asset_tracking} ADD picture_fid int(11) AFTER note');
+}
+
+function hrm_data_update_7041() {
+  db_query('ALTER TABLE {hrm_config_leave_type} ADD entitlement_auto int(11) NOT NULL DEFAULT 0 AFTER carried_max');
+}
+
+function hrm_data_update_7042() {
+  db_drop_field('hrm_leave_timing', 'length_hours');
+  db_drop_field('hrm_leave_timing', 'length_days');
+
+  db_drop_field('hrm_leave_timing', 'start_timestamp');
+  db_drop_field('hrm_leave_timing', 'end_timestamp');
+
+  db_query('ALTER TABLE {hrm_leave_timing} ADD start_time varchar(11) NOT NULL AFTER date');
+  db_query('ALTER TABLE {hrm_leave_timing} ADD end_time varchar(11) NOT NULL AFTER start_time');
+
+  db_query('ALTER TABLE {hrm_leave_timing} ADD hours decimal(6,2) NOT NULL AFTER end_time');
+  db_query('ALTER TABLE {hrm_leave_timing} ADD days decimal(6,4) NOT NULL AFTER hours');
+
+  db_query('ALTER TABLE {hrm_leave} ADD hours decimal(6,2) NOT NULL AFTER leave_type');
+  db_query('ALTER TABLE {hrm_leave} ADD days decimal(6,4) NOT NULL AFTER hours');
+}
+
+function hrm_data_update_7043() {
+  db_query('ALTER TABLE {hrm_users} ADD device_id varchar (255) AFTER password');
+  db_query('ALTER TABLE {hrm_users} ADD token varchar (255) AFTER password');
+}
+
+function hrm_data_update_7044() {
+  $schema['hrm_leave_entitlement_leaves'] = array(
+    'description' => 'Entitlement leaves',
+    'fields' => array(
+      'eid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Entitlement ID',),
+      'lid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Leave ID',),
+    ),
+    'primary key' => array('eid', 'lid'),
+  );
+
+  db_create_table('hrm_leave_entitlement_leaves', $schema['hrm_leave_entitlement_leaves']);
+}
+
+function hrm_data_update_7045() {
+  db_query('ALTER TABLE {hrm_leave_entitlement_adjustment} ADD justification text NOT NULL AFTER eid');
+  db_query('ALTER TABLE {hrm_leave_entitlement_adjustment} ADD fid int(11) NOT NULL DEFAULT 0 AFTER justification');
+}
+
+function hrm_data_update_7046() {
+  db_drop_field('hrm_leave_entitlement_adjustment', 'changed');
+}
+
+function hrm_data_update_7047() {
+  db_query('ALTER TABLE {hrm_config_leave_type} ADD status int(11) NOT NULL DEFAULT 0 AFTER color_code');
+}
+
+function hrm_data_update_7048() {
+  db_change_field('hrm_asset', 'acquired', 'acquired', array('type' => 'int', 'length' => 11,
+    'null' => TRUE, 'default' => 0));
+  db_change_field('hrm_asset', 'warranty_start', 'warranty_start', array('type' => 'int', 'length' => 11,
+    'null' => TRUE, 'default' => 0));
+  db_change_field('hrm_asset', 'warranty_end', 'warranty_end', array('type' => 'int', 'length' => 11,
+    'null' => TRUE, 'default' => 0));
+}
+
+function hrm_data_update_7049() {
+  db_query('ALTER TABLE {hrm_config_leave_type} ADD gender int(11) NOT NULL DEFAULT 0 AFTER admin_assign');
+  db_add_index('hrm_config_leave_type', 'gender', array('gender'));
+}
+
+function hrm_data_update_7050() {
+  db_query('ALTER TABLE {hrm_leave_entitlement} ADD uid int(11) NOT NULL DEFAULT 0 AFTER used');
+  db_query('ALTER TABLE {hrm_leave_entitlement} ADD created int(11) NOT NULL DEFAULT 0 AFTER uid');
+  db_query('ALTER TABLE {hrm_leave_entitlement} ADD changed int(11) NOT NULL DEFAULT 0 AFTER created');
+
+  db_add_index('hrm_leave_entitlement', 'uid', array('uid'));
+  db_add_index('hrm_leave_entitlement', 'created', array('created'));
+  db_add_index('hrm_leave_entitlement', 'changed', array('changed'));
+}
+
+function hrm_data_update_7051() {
+  db_query('ALTER TABLE {hrm_leave} ADD start_date date  NULL AFTER days');
+  db_query('ALTER TABLE {hrm_leave} ADD end_date date  NULL  AFTER start_date');
+  db_query('ALTER TABLE {hrm_leave_timing} ADD day_date date  NULL  AFTER leave_type');
+
+  db_drop_field('hrm_leave_timing', 'date');
+}
+
+function hrm_data_update_7052() {
+  db_drop_field('hrm_leave_timing', 'start_time');
+  db_drop_field('hrm_leave_timing', 'end_time');
+
+  db_query('ALTER TABLE {hrm_leave_timing} ADD start_time time NOT NULL AFTER day_date');
+  db_query('ALTER TABLE {hrm_leave_timing} ADD end_time time NOT NULL AFTER start_time');
+}
+
+function hrm_data_update_7053() {
+  db_query('ALTER TABLE {hrm_emp} ADD country int(11) NOT NULL DEFAULT 0 AFTER location');
+  db_add_index('hrm_emp', 'country', array('country'));
+}
+
+function hrm_data_update_7054() {
+  db_query('ALTER TABLE {hrm_leave} ADD leave_period int(11) NOT NULL DEFAULT 0 AFTER assigned_to');
+  db_query('ALTER TABLE {hrm_leave} ADD leave_entitlement int(11) NOT NULL DEFAULT 0 AFTER assigned_to');
+
+  db_add_index('hrm_leave', 'leave_period', array('leave_period'));
+  db_add_index('hrm_leave', 'leave_entitlement', array('leave_entitlement'));
+}
+
+function hrm_data_update_7055() {
+  $schema['hrm_org_country'] = array(
+    'description' => 'Countries in the orgnizations',
+    'fields' => array(
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'organization ID',),
+      'cid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'Country ID'),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+    ),
+    'primary key' => array('oid', 'cid'),
+  );
+
+  db_create_table('hrm_org_country', $schema['hrm_org_country']);
+
+  db_query('ALTER TABLE {hrm_users} ADD cid int(11) NULL AFTER password');
+  db_query('ALTER TABLE {hrm_asset} ADD cid int(11) NULL AFTER oid');
+  db_query('ALTER TABLE {hrm_emp} ADD cid int(11) NULL AFTER location');
+  db_drop_field('hrm_emp', 'country');
+}
+
+function hrm_data_update_7056() {
+  db_rename_table('hrm_organization', 'hrm_org');
+}
+
+function hrm_data_update_7057() {
+  db_query('ALTER TABLE {hrm_location} ADD cid int(11) NULL AFTER oid');
+}
+
+function hrm_data_update_7058() {
+  db_rename_table('hrm_org_country', 'hrm_org_branch');
+  db_drop_field('hrm_users', 'cid');
+  db_drop_field('hrm_asset', 'cid');
+  db_drop_field('hrm_emp', 'cid');
+  db_drop_field('hrm_location', 'cid');
+
+  db_query('ALTER TABLE {hrm_users} ADD bid int(11) NULL AFTER oid');
+  db_query('ALTER TABLE {hrm_asset} ADD bid int(11) NULL AFTER oid');
+  db_query('ALTER TABLE {hrm_emp} ADD bid int(11) NULL AFTER oid');
+  db_query('ALTER TABLE {hrm_location} ADD bid int(11) NULL AFTER oid');
+}
+
+function hrm_data_update_7059() {
+  db_drop_table('hrm_org_branch');
+
+  $schema['hrm_org_branch'] = array(
+    'description' => 'branches in the orgnizations',
+    'fields' => array(
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'organization ID',),
+      'bid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'branch ID'),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+    ),
+    'primary key' => array('oid', 'bid'),
+    'indexes' => array(
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  db_create_table('hrm_org_branch', $schema['hrm_org_branch']);
+}
+
+function hrm_data_update_7060() {
+  db_query('ALTER TABLE {hrm_org_branch} ADD name varchar(255) NULL after bid');
+}
+
+function hrm_data_update_7061() {
+  db_query('ALTER TABLE {hrm_org_branch} ADD description text NULL after name');
+}
+
+function hrm_data_update_7062() {
+  db_drop_table('hrm_org_branch');
+
+  $schema['hrm_org_branch'] = array(
+    'description' => 'branches in the orgnizations',
+    'fields' => array(
+      'bid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'branch ID',),
+      'oid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'organization ID',),
+      'cid' => array('type' => 'int', 'length' => 11, 'not null' => TRUE, 'description' => 'country ID'),
+      'uid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'created' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+      'changed' => array('type' => 'int', 'not null' => TRUE, 'length' => 11, 'default' => 0),
+    ),
+    'primary key' => array('bid'),
+    'indexes' => array(
+      'bid' => array('bid'),
+      'oid' => array('oid'),
+      'uid' => array('uid'),
+      'created' => array('created'),
+      'changed' => array('changed'),
+    ),
+  );
+  db_create_table('hrm_org_branch', $schema['hrm_org_branch']);
+}
+
+function hrm_data_update_7063() {
+  db_query('ALTER TABLE {hrm_org_branch} ADD name varchar(255) NULL after bid');
+  db_query('ALTER TABLE {hrm_org_branch} ADD description text NULL after name');
+}
+
+function hrm_data_update_7064() {
+  db_query('ALTER TABLE {hrm_holiday} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7065() {
+  db_drop_field('hrm_holiday', 'country');
+}
+
+function hrm_data_update_7066() {
+  db_drop_field('hrm_config_leave_type', 'country');
+  db_query('ALTER TABLE {hrm_config_leave_type} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7067() {
+  db_drop_field('hrm_config_time_work_week', 'country');
+  db_query('ALTER TABLE {hrm_config_time_work_week} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7068() {
+  db_query('ALTER TABLE {hrm_config_time_work_shift} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7069() {
+  db_rename_table('hrm_org_branch', 'hrm_branch');
+}
+
+function hrm_data_update_7070() {
+  db_query('ALTER TABLE {hrm_announcement} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7071() {
+  db_query('ALTER TABLE {hrm_asset_vendor} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_asset_category} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_asset_brand} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7072() {
+  db_query('ALTER TABLE {hrm_discipline} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7073() {
+  db_query('ALTER TABLE {hrm_config_job_project} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7074() {
+  db_query('ALTER TABLE {hrm_attendance} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7075() {
+  db_query('ALTER TABLE {hrm_perf_appraisal} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_perf_tracker} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_perf_competency_template} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7076() {
+  db_query('ALTER TABLE {hrm_config_job_title} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7077() {
+  db_query('ALTER TABLE {hrm_config_job_employment_status} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_config_job_recruitment_source} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_config_job_reporting_method} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_config_job_termination_reason} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_config_job_structure} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7078() {
+  db_query('ALTER TABLE {hrm_config_pim_document_type} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_config_pim_qualification} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7079() {
+  db_query('ALTER TABLE {hrm_config_payroll_grade} ADD bid int(11) NULL after oid');
+  db_query('ALTER TABLE {hrm_config_payroll_salary_component} ADD bid int(11) NULL after oid');
+}
+
+function hrm_data_update_7080() {
+  db_drop_field('hrm_attendance', 'date');
+  db_drop_field('hrm_attendance', 'in_time');
+  db_drop_field('hrm_attendance', 'out_time');
+  db_drop_field('hrm_attendance', 'in_date');
+  db_drop_field('hrm_attendance', 'out_date');
+
+  db_drop_field('hrm_attendance_details', 'in_time');
+  db_drop_field('hrm_attendance_details', 'out_time');
+  db_drop_field('hrm_attendance_details', 'in_date');
+  db_drop_field('hrm_attendance_details', 'out_date');
+
+  db_query('ALTER TABLE {hrm_attendance} ADD date date NULL after empid');
+  db_query('ALTER TABLE {hrm_attendance} ADD in_time time NULL after date');
+  db_query('ALTER TABLE {hrm_attendance} ADD out_time time NULL after in_status');
+  db_query('ALTER TABLE {hrm_attendance} ADD in_date date NULL after in_time');
+  db_query('ALTER TABLE {hrm_attendance} ADD out_date date NULL after in_date');
+
+  db_query('ALTER TABLE {hrm_attendance_details} ADD in_time time NULL after empid');
+  db_query('ALTER TABLE {hrm_attendance_details} ADD out_time time NULL after in_comment');
+  db_query('ALTER TABLE {hrm_attendance_details} ADD in_date date NULL after in_time');
+  db_query('ALTER TABLE {hrm_attendance_details} ADD out_date date NULL after out_time');
+}
+
+function hrm_data_update_7081() {
+  db_drop_field('hrm_config_leave_type', 'bid');
+  db_drop_field('hrm_config_leave_type', 'emp_apply');
+  db_drop_field('hrm_config_leave_type', 'admin_assign');
+  db_drop_field('hrm_config_leave_type', 'accrue');
+  db_drop_field('hrm_config_leave_type', 'accrue_frequency');
+
+  db_drop_field('hrm_config_leave_type', 'accrue_credit_day');
+  db_drop_field('hrm_config_leave_type', 'carried');
+  db_drop_field('hrm_config_leave_type', 'carried_type');
+  db_drop_field('hrm_config_leave_type', 'carried_max');
+
+  db_drop_field('hrm_config_leave_type', 'dur_half_day');
+  db_drop_field('hrm_config_leave_type', 'approval_method');
+  db_drop_field('hrm_config_leave_type', 'approval_value');
+  db_drop_field('hrm_config_leave_type', 'assign_to_other');
+  db_drop_field('hrm_config_leave_type', 'color_code');
+
+
+}
+
+function hrm_data_update_7082() {
+  db_drop_field('hrm_emp', 'bid');
+  db_drop_field('hrm_emp', 'ssn');
+  db_drop_field('hrm_emp', 'tax');
+  db_drop_field('hrm_emp', 'permanency_date');
+  db_drop_field('hrm_emp', 'location');
+  db_drop_field('hrm_emp', 'work_shift');
+  db_drop_field('hrm_emp', 'recruitment_source');
+  db_drop_field('hrm_emp', 'attendance');
+  db_drop_field('hrm_emp', 'bid');
+  
+    db_drop_field('hrm_emp_reporting', 'method');
+
+
+  db_drop_table('hrm_emp_document');
+  db_drop_table('hrm_emp_education');
+  db_drop_table('hrm_emp_emergency_contact');
+  db_drop_table('hrm_emp_experience');
+  db_drop_table('hrm_emp_job_project');
+  db_drop_table('hrm_emp_job_language');
+  
+    db_drop_table('hrm_emp_license');
+  db_drop_table('hrm_emp_skill');
+  db_drop_table('hrm_emp_timesheet');
+  db_drop_table('hrm_emp_experience');
+  db_drop_table('hrm_perf_appraisal_emp');
+  db_drop_table('hrm_perf_competency_template');
+  db_drop_table('hrm_perf_competency_template_question');
+  db_drop_table('hrm_perf_competency_template_group');
+
+
+}
+
+function hrm_data_update_7083(){
+//    db_query('ALTER TABLE {hrm_users} ADD type int(11) NULL after oid');
+    db_query('ALTER TABLE {hrm_emp} ADD job_title int(11) after gender');
+    db_query('ALTER TABLE {hrm_emp} ADD supervisor_id int(11) after gender');
+
+
+}

@@ -1,0 +1,5 @@
+name = ResponseHRM Data
+description = custom module that all code required to manage data.
+core = 7.x
+
+package = responseHRM

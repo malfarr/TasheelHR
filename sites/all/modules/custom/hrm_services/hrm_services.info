@@ -1,0 +1,7 @@
+name = Response HRM Services
+description = Services module
+core = 7.x
+
+package = responseHRM
+
+

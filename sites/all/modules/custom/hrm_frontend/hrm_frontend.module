@@ -1,0 +1,587 @@
+<?php
+
+/*
+ * Implements hook_menu().
+ */
+
+function hrm_frontend_menu() {
+  //$hrm_frontend_path = drupal_get_path('module', 'hrm_frontend');
+  /* ----------------Profile---------------- */
+  $items['account'] = array(
+    'title' => 'Account',
+    'page callback' => 'hrm_frontend_account_page',
+    'access arguments' => array(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_ACCOUNT_PAGE),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['account/settings'] = array(
+    'title' => 'Account Settings',
+    'page callback' => 'hrm_frontend_account_settings_page',
+    'access arguments' => array(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_SETTINGS_PAGE),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['account/notifications'] = array(
+    'title' => 'Email Notifications',
+    'page callback' => 'hrm_frontend_account_notifications_page',
+    'access arguments' => array(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_NOTIFICATIONS_PAGE),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  /* ----------------Dashboard---------------- */
+  $items['pages/not-found'] = array(
+    'title' => 'Page Not Found',
+    'description' => 'Page not found page',
+    'page callback' => 'hrm_frontend_pages_not_found',
+    'access arguments' => array(HRM_PERM_GLOBAL_ACCESS_PAGES),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['pages/access-denied'] = array(
+    'title' => 'Access Denied',
+    'description' => 'Access Denied page',
+    'page callback' => 'hrm_frontend_pages_access_denied',
+    'access arguments' => array(HRM_PERM_GLOBAL_ACCESS_PAGES),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['pages/privacy-policy'] = array(
+    'title' => 'Privacy Policy',
+    'description' => 'Privacy Policy page',
+    'page callback' => 'hrm_frontend_pages_privacy_policy',
+    'access arguments' => array(HRM_PERM_GLOBAL_ACCESS_PAGES),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+
+  return $items;
+}
+
+/*
+ * Implements hook_theme().
+ */
+
+function hrm_frontend_theme() {
+  $hrm_frontend_path = drupal_get_path('module', 'hrm_frontend');
+  return array(
+    /* --------------- Account --------------- */
+    'page_wrapper_account' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_account',
+      'path' => $hrm_frontend_path . '/templates/account',
+    ),
+    /* --------------- Pages --------------- */
+    'page_wrapper_not_found' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_not-found',
+      'path' => $hrm_frontend_path . '/templates/pages',
+    ),
+    'page_wrapper_access_denied' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_access-denied',
+      'path' => $hrm_frontend_path . '/templates/pages',
+    ),
+    'page_wrapper_privacy_policy' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_privacy-policy',
+      'path' => $hrm_frontend_path . '/templates/pages',
+    ),
+    'page_wrapper_under_construction' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_under-construction',
+      'path' => $hrm_frontend_path . '/templates/pages',
+    ),
+  );
+}
+
+/*
+ * Implements hook_form_alter().
+ */
+
+function hrm_frontend_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_login':
+      $form['#attributes']['id'] = 'form-login';
+      $form['#attributes']['class'][] = 'custom-form-user-login';
+      $form['#attributes']['class'][] = 'form-horizontal';
+      $form['#attributes']['class'][] = 'push';
+
+      unset($form['name']['#title']);
+      $form['name']['#attributes']['placeholder'] = 'Email';
+      unset($form['name']['#description']);
+
+      unset($form['pass']['#title']);
+      $form['pass']['#attributes']['placeholder'] = 'Password';
+      unset($form['pass']['#description']);
+
+      $form['actions']['submit']['#prefix'] = '<div class="form-group form-actions"><div class="text-right">';
+      $form['actions']['submit']['#suffix'] = '
+        </div>
+        <br>
+        <div class="form-group">
+          <div class="col-xs-12 text-center forms-hint">
+            <small>Did you remember your password? ' . l('<small>Forgot password?</small>', 'user/password', array('html' => TRUE)) . '</small>            
+          </div>
+        </div>
+        </div>';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-sm';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-primary';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-block';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-signin';
+      $form['actions']['submit']['#value'] = HRM_FA_ANGEL_RIGHT . ' Sign in';
+
+      break;
+
+    case 'user_pass':
+      $form['#attributes']['id'] = 'form-reminder';
+      $form['#attributes']['class'][] = 'custom-form-user-password';
+      $form['#attributes']['class'][] = 'form-horizontal';
+      $form['#attributes']['class'][] = 'push';
+
+      unset($form['name']['#title']);
+      $form['name']['#attributes']['placeholder'] = 'Email';
+      unset($form['name']['#description']);
+
+      $form['actions']['submit']['#prefix'] = '<div class="form-group form-actions"><div class=" text-right">';
+      $form['actions']['submit']['#suffix'] = '
+        </div>
+        <br>
+          <div class="form-group">
+            <div class="col-xs-12 text-center forms-hint">
+              <small>' . l('<small>Login</small>', 'user/login', array('html' => TRUE)) . '</small>
+            </div>
+          </div>
+        </div>';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-sm';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-primary';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-block';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-reset-pass';
+      $form['actions']['submit']['#value'] = HRM_FA_ANGEL_RIGHT . ' Reset Password';
+
+      break;
+
+    case 'user_pass_reset':
+      $form['#attributes']['class'][] = 'form-horizontal';
+      $form['#attributes']['class'][] = 'push';
+
+      $form['message']['#prefix'] = '<div class="alert alert-block alert-info">';
+      $form['help']['#suffix'] = '</div>';
+
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-success';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-block';
+      $form['actions']['submit']['#value'] = HRM_FA_SIGN_IN . ' Log in';
+
+      //$form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Log in'));          
+      break;
+
+    case 'user_profile_form':
+      $form['#attributes']['class'][] = 'user-profile-edit-form';
+
+      $form['mimemail']['#access'] = 0;
+      //Profile fields only
+      if (arg(0) == 'account') {
+        $form['account']['name']['#access'] = 0;
+        $form['account']['status']['#access'] = 0;
+        $form['account']['roles']['#access'] = 0;
+
+
+        $form['#attributes']['class'][] = 'form-horizontal';
+        $form['#attributes']['class'][] = 'user-account-form';
+
+
+        if (arg(1) == 'settings') {
+          $form['account']['mail']['#access'] = 1;
+          $form['account']['current_pass']['#weight'] = -100;
+
+          $form['account']['#prefix'] = '
+          <div class="block-content tab-content">
+            <div class="tab-pane fade in active" id="tab-profile-personal">
+              <div class="row items-push">
+                <div class="col-sm-6 col-sm-offset-3 form-horizontal">';
+          $form['pass']['#suffix'] = '</div></div></div></div>';
+
+          $form['#submit'][] = 'hrm_frontend_account_settings_form_submit';
+
+          $form['actions']['submit']['#value'] = 'Save Changes';
+          $form['actions']['submit']['#attributes']['class'][] = 'btn-sm';
+
+          $form['account']['pass']['#process'] = array('form_process_password_confirm', 'user_form_process_password_confirm', 'hrm_frontend_form_process_password_confirm');
+        }
+      }
+
+      break;
+
+    default :
+      break;
+  }
+}
+
+/*
+ * Implements hook_block_view_alter().
+ */
+
+function hrm_frontend_block_view_alter(&$data, $block) {
+  switch ($block->delta) {
+    case 'online':
+      if (user_access('access content')) {
+        // Count users active within the defined period.
+        $interval = REQUEST_TIME - variable_get('user_block_seconds_online', 900);
+
+        $authenticated_count = db_query("SELECT COUNT(DISTINCT s.uid) FROM {sessions} s WHERE s.timestamp >= :timestamp AND s.uid > 1", array(':timestamp' => $interval))->fetchField();
+
+        $output = '<p>' . format_plural($authenticated_count, 'There is currently 1 user online.', 'There are currently @count users online.') . '</p>';
+
+        $max_users = variable_get('user_block_max_list_count', 10);
+        if ($authenticated_count && $max_users) {
+          $items = db_query_range('SELECT u.uid, u.name, MAX(s.timestamp) AS max_timestamp FROM {users} u INNER JOIN {sessions} s ON u.uid = s.uid WHERE s.timestamp >= :interval AND s.uid > 0 GROUP BY u.uid, u.name ORDER BY max_timestamp DESC', 0, $max_users, array(':interval' => $interval))->fetchAll();
+          $output .= theme('user_list', array('users' => $items));
+        }
+
+        $data['subject'] = t('Who\'s online othman');
+        $data['content'] = $output;
+      }
+  }
+}
+
+/**
+ * Implementation of expand_password_confirm.
+ */
+function hrm_frontend_form_process_password_confirm(&$element) {
+  $element['pass1']['#title'] = 'New password';
+  $element['pass2']['#title'] = 'Confirm new password';
+  return $element;
+}
+
+/*
+ * ========================================
+ * Account pages
+ * ========================================
+ */
+
+function hrm_frontend_account_page() {
+  $form = drupal_get_form('hrm_frontend_account_form');
+
+  $content = drupal_render($form);
+
+  $variables = array(
+    'display_account' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_ACCOUNT_PAGE),
+    'display_settings' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_SETTINGS_PAGE),
+    'display_notifications' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_NOTIFICATIONS_PAGE),
+    'account_class' => 'active',
+    'settings_class' => '',
+    'notifications_class' => '',
+    'content' => $content,
+    'block_content_class' => array(),
+  );
+  $output = theme('page_wrapper_account', $variables);
+
+  return $output;
+}
+
+function hrm_frontend_account_form($form, &$form_state) {
+  $account = hrm_basic_user_get_info();
+  $form_state['storage']['account'] = $account;
+
+  $form['e_name'] = array(
+    '#title' => 'English Name',
+    '#type' => 'textfield',
+    '#required' => TRUE, '#maxlength' => 255,
+    '#default_value' => $account['e_name'],
+    '#attributes' => array(),
+    '#prefix' => '
+      <div class="block-content tab-content">
+        <div class="tab-pane fade in active" id="tab-profile-personal">
+          <div class="row items-push">
+            <div class="col-sm-6 col-sm-offset-3 form-horizontal">'
+  );
+  $form['a_name'] = array(
+    '#title' => 'Arabic name',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => $account['a_name'],
+    '#attributes' => array()
+  );
+
+  $form['title'] = array(
+    '#title' => 'Title',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => $account['title'],
+    '#attributes' => array()
+  );
+
+  $gender_terms = hrm_basic_lov_get_terms(HRM_LOV_GENDER);
+  $form['gender'] = array(
+    '#title' => 'Gender',
+    '#type' => 'select',
+    '#options' => $gender_terms,
+    '#empty_option' => '',
+    '#required' => TRUE,
+    '#attributes' => array('class' => array('select-chosen')),
+    '#default_value' => $account['gender'],
+    '#attributes' => array('class' => array('select-chosen'))
+  );
+
+  $photo_directory = strtr(HRM_DIR_ENTITY_PHOTO, array('%entity' => HRM_ENTITY_USER, '%entity_id' => $account['uid']));
+  file_prepare_directory($photo_directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+  $form['photo'] = array(
+    '#title' => 'Photo',
+    '#type' => 'managed_file',
+    '#required' => TRUE,
+    '#upload_validators' => array('file_validate_extensions' => array(HRM_FILE_EXT_PICTURE),),
+    '#upload_location' => $photo_directory,
+    '#default_value' => $account['photo'],
+    '#attributes' => array()
+  );
+
+  $form['work_phone'] = array(
+    '#title' => 'Work phone',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => $account['work_phone'],
+    '#attributes' => array()
+  );
+  $form['personal_phone'] = array(
+    '#title' => 'Personal phone',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#default_value' => $account['personal_phone'],
+    '#attributes' => array(),
+    '#suffix' => '</div></div></div></div>'
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Changes'),
+    '#attributes' => array(),
+    '#prefix' => '<div class="form-actions form-wrapper form-group">',
+    '#suffix' => '</div>',
+  );
+
+
+  $form['#attributes']['class'][] = 'user-account-form';
+  $form['#attributes']['class'][] = 'user-profile-edit-form';
+
+
+  return $form;
+}
+
+function hrm_frontend_account_form_submit(&$form, &$form_state) {
+  $account = $form_state['storage']['account'];
+  $uid = $account['uid'];
+  $user_account = user_load($uid);
+
+  $user_fields = array(
+    'e_name' => $form_state['values']['e_name'],
+    'a_name' => $form_state['values']['a_name'],
+    'photo' => $form_state['values']['photo'],
+    'title' => $form_state['values']['title'],
+    'gender' => $form_state['values']['gender'],
+    'work_phone' => $form_state['values']['work_phone'],
+    'personal_phone' => $form_state['values']['personal_phone'],
+    'changed' => time(),
+  );
+
+  db_update('hrm_user')
+      ->fields($user_fields)
+      ->condition('uid', $uid, '=')
+      ->execute();
+
+  if ($form_state['values']['photo'] != $account['photo']) {
+    hrm_basic_file_save_file_data($form_state['values']['photo'], HRM_MODULE_BACKEND, 'user_photo', $uid);
+
+    if ($account['photo']) {
+      hrm_basic_file_delete_file_data($account['photo'], HRM_MODULE_BACKEND);
+    }
+  }
+
+  hrm_services_token_generate_token($uid, $user_account);
+
+  drupal_set_message('Account saved successfully');
+}
+
+function hrm_frontend_account_settings_page() {
+  global $user;
+
+  $account = user_load($user->uid);
+
+  module_load_include('inc', 'user', 'user.pages');
+  $form_state = array();
+  $form_state['build_info']['args'] = array($account);
+  form_load_include($form_state, 'inc', 'user', 'user.pages');
+  $form = drupal_build_form('user_profile_form', $form_state);
+
+  $content = render($form);
+
+  $variables = array(
+    'display_account' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_ACCOUNT_PAGE),
+    'display_settings' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_SETTINGS_PAGE),
+    'display_notifications' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_NOTIFICATIONS_PAGE),
+    'account_class' => '',
+    'settings_class' => 'active',
+    'notifications_class' => '',
+    'content' => $content,
+    'block_content_class' => array('margin-top-20'),
+  );
+  $output = theme('page_wrapper_account', $variables);
+
+  return $output;
+}
+
+function hrm_frontend_account_settings_form_submit(&$form, &$form_state) {
+  global $user;
+
+  $uid = $user->uid;
+  $user_account = user_load($uid);
+
+  db_update('hrm_user')
+      ->fields(array(
+        'username' => $user_account->name,
+        'email' => $user_account->mail,
+        'password' => $user_account->pass,
+        'changed' => time(),
+      ))
+      ->condition('uid', $uid, '=')
+      ->execute();
+
+  hrm_services_token_generate_token($uid, $user_account);
+}
+
+function hrm_frontend_account_notifications_page() {
+  $notifications_form = drupal_get_form('hrm_frontend_account_email_notifications_form');
+  $content = render($notifications_form);
+
+  $variables = array(
+    'display_account' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_ACCOUNT_PAGE),
+    'display_settings' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_SETTINGS_PAGE),
+    'display_notifications' => user_access(HRM_PERM_FRONTEND_ACCOUNT_ACCESS_NOTIFICATIONS_PAGE),
+    'account_class' => '',
+    'settings_class' => '',
+    'notifications_class' => 'active',
+    'content' => $content,
+    'block_content_class' => array('margin-top-20'),
+  );
+  $output = theme('page_wrapper_account', $variables);
+
+  return $output;
+}
+
+function hrm_frontend_account_email_notifications_form() {
+  global $user;
+  $account = hrm_basic_user_get_info($user->uid);
+  $role_permissions = array_keys(hrm_basic_user_get_role_permissions($account['role']));
+  $email_notifications = array();
+
+  $activity_permissions = array(HRM_PERM_AC_MANAGE_SUBMITTED_ME_ACTIVITY, HRM_PERM_AC_MANAGE_SUBMITTED_FO_ACTIVITY, HRM_PERM_AC_MANAGE_SUBMITTED_PM_ACTIVITY);
+  $common_activity_permissions = array_intersect($activity_permissions, $role_permissions);
+  if (!empty($common_activity_permissions)) {
+    $email_notifications[HRM_EMAIL_NOTIF_TYPE_ACTIVITY] = 'Activity notifications';
+  }
+  
+  $cash_assist_permissions = array(HRM_PERM_CA_MANAGE_SUBMITTED_FO, HRM_PERM_CA_MANAGE_SUBMITTED_PM, HRM_PERM_CA_SUBMIT, HRM_PERM_CA_CLOSE, HRM_PERM_CA_REFUND);
+  $common_cash_assist_permissions = array_intersect($cash_assist_permissions, $role_permissions);
+  if (!empty($common_cash_assist_permissions)) {
+    $email_notifications[HRM_EMAIL_NOTIF_TYPE_CASH_ASSIST] = 'Cash Assistance notifications';
+  }
+
+  $training_permissions = array(HRM_PERM_TR_MANAGE_SUBMITTED_FO_TRAINING, HRM_PERM_TR_MANAGE_SUBMITTED_CD_TRAINING);
+  $common_training_permissions = array_intersect($training_permissions, $role_permissions);
+  if (!empty($common_training_permissions)) {
+    $email_notifications[HRM_EMAIL_NOTIF_TYPE_TRAINING] = 'Staff training notifications';
+  }
+
+  if (!empty($email_notifications)) {
+    $default_values = array();
+    if (isset($account['notif']) && !empty($account['notif'])) {
+      foreach ($account['notif'] as $key => $value) {
+        if ($value) {
+          $default_values[] = $key;
+        }
+      }
+    }
+    else {
+      $default_values = array_keys($email_notifications);
+    }
+
+    $form['notifications'] = array(
+      '#type' => 'checkboxes',
+      '#title' => 'Enable/Disable email notifications:',
+      '#options' => $email_notifications,
+      '#default_value' => $default_values,
+      '#prefix' => '
+      <div class="block-content tab-content">
+        <div class="tab-pane fade in active" id="tab-profile-personal">
+          <div class="row items-push">
+            <div class="col-sm-6 col-sm-offset-3 form-horizontal">',
+      '#suffix' => '</div></div></div></div>',
+    );
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Save Changes',
+      '#attributes' => array('class' => array('btn-primary', 'btn-sm')),
+      '#prefix' => '<div class="form-actions form-wrapper form-group">',
+      '#suffix' => '</div>',
+    );
+  }
+  else {
+    $form['notifications'] = array(
+      '#markup' => '
+      <div class="block-content tab-content">
+        <div class="tab-pane fade in active" id="tab-profile-personal">
+          <div class="row items-push">
+            <div class="col-sm-6 col-sm-offset-3 form-horizontal text-center push font-size-125">
+            <p>You do not have permission to manage notifications</p>
+          </div>
+        </div>
+      </div>
+    </div>',
+    );
+  }
+
+  $form['#attributes']['class'][] = 'block-checkboxes';
+  $form['#attributes']['class'][] = 'user-account-form';
+  $form['#attributes']['class'][] = 'user-account-email-notifications-form';
+
+  return $form;
+}
+
+function hrm_frontend_account_email_notifications_form_submit($form, &$form_state) {
+  global $user;
+  $uid = $user->uid;
+
+  db_delete('hrm_user_notif')->condition('uid', $uid, '=')->execute();
+
+  $notif_query = db_insert('hrm_user_notif')
+      ->fields(array('uid', 'type', 'status'));
+  foreach ($form_state['values']['notifications'] as $key => $value) {
+    $notif_query->values(array($uid, $key, $value));
+  }
+  $notif_query->execute();
+
+
+  drupal_set_message('The changes have been saved.');
+  drupal_goto('account/notifications');
+}
+
+/*
+ * ===========================
+ * Pages
+ * ===========================
+ */
+
+//Page not found
+function hrm_frontend_pages_not_found() {
+  return theme('page_wrapper_not_found');
+}
+
+//Access denied
+function hrm_frontend_pages_access_denied() {
+  return theme('page_wrapper_access_denied');
+}
+
+//Privacy Policy
+function hrm_frontend_pages_privacy_policy() {
+  return theme('page_wrapper_privacy_policy');
+}

@@ -1,0 +1,4044 @@
+<?php
+
+/**
+ * @file
+ * myreplyis primary module file.
+ *
+ * Most of the drupal hooks. This contains nothing more than
+ */
+
+/**
+ * Implement hook_init.
+ */
+function hrm_backend_init() {
+  ctools_include('modal');
+  ctools_include('ajax');
+  ctools_add_js('ajax-responder');
+  ctools_modal_add_js();
+
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_photo');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_video');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_document');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_financial_proposal');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_afr');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_history');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_tracker');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_sn');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_conclusion');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_rate');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_timer');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_agenda');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_attendance');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_forms');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_general');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_revision');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/entity/backend_entity_collab');
+
+
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/org/backend_user');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/org/backend_organization');
+
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/admin/backend_holidayt');
+
+  //Project Management Includes
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/config/backend_config_pim');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/config/backend_config_leave');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/config/backend_config_pim');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/config/backend_config_time');
+
+  //Case Management
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/leave/backend_leave');
+  module_load_include('inc', HRM_MODULE_BACKEND, 'includes/pim/backend_cash_pim');
+
+  require_once 'sites/all/libraries/phpexcel/PHPExcel.php';
+  require_once 'sites/all/libraries/phpexcel/PHPExcel/Calculation.php';
+  require_once 'sites/all/libraries/phpexcel/PHPExcel/Cell.php';
+}
+
+/**
+ * Implements hook_menu().
+ */
+function hrm_backend_menu() {
+  $hrm_backend_path = drupal_get_path('module', HRM_MODULE_BACKEND);
+
+  /* ----------------AJAX---------------- */
+  $items['hrm-ajax'] = array(
+    'title' => "",
+    'page callback' => 'hrm_backend_ajax_callback',
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+    'file' => 'hrm_backend.module',
+    'file path' => $hrm_backend_path,
+  );
+  $items['hrm-ajax/nojs'] = array(
+    'title' => 'Custom non-javascript callback',
+    'page callback' => 'hrm_backend_nojs_callback',
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+    'file' => 'hrm_backend.module',
+    'file path' => $hrm_backend_path,
+  );
+  $items['hrm-modal'] = array(
+    'title' => 'Modal',
+    'page callback' => 'hrm_backend_modal',
+    'access arguments' => array(HRM_PERM_MODAL_ACCESS_MODAL),
+    'type' => MENU_NORMAL_ITEM, 'modal' => TRUE,
+  );
+  /* ----------------entity---------------- */
+  //Picture
+  $items['entity/picture/edit/%/%'] = array(
+    'title' => 'Entity pictures edit',
+    'page callback' => 'hrm_backend_entity_picture_edit_entity_pictures',
+    'page arguments' => array(3, 4),
+    'access arguments' => array(HRM_PERM_EN_PHOTO_EDIT),
+    'type' => MENU_NORMAL_ITEM
+  );
+  $items['entity/photo/delete/%'] = array(
+    'title' => 'Delete photo entity',
+    'page callback' => 'hrm_backend_entity_photo_delete_photo',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_EN_PHOTO_DELETE),
+    'type' => MENU_CALLBACK
+  );
+
+//Videos
+  $items['entity/video/add/%/%'] = array(
+    'title' => 'Add video',
+    'page callback' => 'hrm_backend_entity_video_add_video',
+    'page arguments' => array(3, 4),
+    'access arguments' => array(HRM_PERM_EN_VIDEO_ADD),
+    'type' => MENU_NORMAL_ITEM
+  );
+  $items['entity/video/edit/%'] = array(
+    'title' => 'Edit video',
+    'page callback' => 'hrm_backend_entity_video_edit_video',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_EN_VIDEO_EDIT),
+    'type' => MENU_NORMAL_ITEM
+  );
+  $items['entity/video/delete/%'] = array(
+    'title' => 'Delete video entity',
+    'page callback' => 'hrm_backend_entity_video_delete_video',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_EN_VIDEO_DELETE),
+    'type' => MENU_CALLBACK
+  );
+
+  //Documents
+  $items['entity/document/delete/%'] = array(
+    'title' => 'Delete document entity',
+    'page callback' => 'hrm_backend_entity_document_delete_document',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_EN_DOCUMENT_DELETE),
+    'type' => MENU_CALLBACK
+  );
+
+  //AFR
+  $items['entity/afr/close/%/%'] = array(
+    'title' => 'Close Activity Financial Report',
+    'page callback' => 'hrm_backend_entity_afr_close_afr',
+    'page arguments' => array(3, 4),
+    'access arguments' => array(HRM_PERM_EN_AFR_CLOSE_AFR),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['entity/afr/approve/%'] = array(
+    'title' => t("Approve AFR"),
+    'description' => 'Approve submitted AFR.',
+    'page callback' => 'hrm_backend_entity_afr_approve_afr',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_EN_AFR_MANAGE_AFR),
+    'type' => MENU_CALLBACK,
+  );
+
+//Picture
+  $items['entity/tracker/add/%/%'] = array(
+    'title' => 'Tracker form',
+    'page callback' => 'hrm_backend_entity_tracker_form_page',
+    'page arguments' => array(3, 4),
+    'access arguments' => array(HRM_PERM_EN_TRACKER_ADD),
+    'type' => MENU_CALLBACK
+  );
+  $items['entity/tracker/edit/%/%/%'] = array(
+    'title' => 'Tracker form',
+    'page callback' => 'hrm_backend_entity_tracker_form_page',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(HRM_PERM_EN_TRACKER_EDIT),
+    'type' => MENU_CALLBACK
+  );
+  $items['entity/tracker/delete/%/%/%'] = array(
+    'title' => 'Delete tracker item',
+    'page callback' => 'hrm_backend_entity_tracker_delete_tracker_item',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(HRM_PERM_EN_TRACKER_DELETE),
+    'type' => MENU_CALLBACK
+  );
+  $items['entity/autosave'] = array(
+    'title' => 'Auto-Saved Activities',
+    'page callback' => 'hrm_backend_entity_autosave_list_page',
+    'access arguments' => array(HRM_PERM_EN_AUTOSAVE_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/entity/backend_entity_general.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Dashboard---------------- */
+  $items['dashboard'] = array(
+    'title' => 'Dashboard',
+    'page callback' => 'hrm_backend_dashboard_dashboard_page',
+    'access arguments' => array(HRM_PERM_DASHBOARD_ACCESS_DASHBOARD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/dashboard/backend_dashboard.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['dashboard/timeline'] = array(
+    'title' => 'Timeline',
+    'page callback' => 'hrm_backend_timeline_dashboard_timeline_page',
+    'access arguments' => array(HRM_PERM_DASHBOARD_ACCESS_TIMELINE),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/dashboard/backend_timeline.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['dashboard/timeline/load-more'] = array(
+    'title' => 'Timeline load more',
+    'page callback' => 'hrm_backend_timeline_load_more_items',
+    'access arguments' => array(HRM_PERM_DASHBOARD_ACCESS_TIMELINE),
+    'type' => MENU_CALLBACK, 'file' => 'includes/dashboard/backend_timeline.inc', 'file path' => $hrm_backend_path,
+  );
+  /* ======================================
+   * Administration
+   * ====================================== 
+   */
+  /* ----------------Configuration---------------- */
+  $items['configuration/%'] = array(
+    'title' => 'IMPACT Configuration',
+    'page callback' => 'hrm_backend_config_configuration_page',
+    'page arguments' => array(1),
+    'access arguments' => array(HRM_PERM_CONFIG_MANAGE_IMPACT_CONFIGURATION),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/admin/backend_config.inc', 'file path' => $hrm_backend_path,
+  );
+  /* ----------------Offices---------------- */
+  $items['office'] = array(
+    'title' => 'Offices',
+    'page callback' => 'hrm_backend_offices_page',
+    'access arguments' => array(HRM_PERM_OFFICE_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/admin/backend_office.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['office/details/%'] = array(
+    'title' => 'Office details',
+    'page callback' => 'hrm_backend_office_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_OFFICE_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/admin/backend_office.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['office/add'] = array(
+    'title' => 'Add office',
+    'page callback' => 'hrm_backend_office_add_page',
+    'access arguments' => array(HRM_PERM_OFFICE_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/admin/backend_office.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['office/edit/%'] = array(
+    'title' => 'Edit office',
+    'page callback' => 'hrm_backend_office_edit_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_OFFICE_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/admin/backend_office.inc', 'file path' => $hrm_backend_path,
+  );
+  /* ----------------Venues---------------- */
+  $items['venues'] = array(
+    'title' => 'Venues',
+    'page callback' => 'hrm_backend_venue_venues_page',
+    'access arguments' => array(HRM_PERM_VENUE_ACCESS_VENUES),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/admin/backend_venue.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['venue/details/%'] = array(
+    'title' => 'Venue Details',
+    'page callback' => 'hrm_backend_venue_venue_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_VENUE_ACCESS_VENUE_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/admin/backend_venue.inc', 'file path' => $hrm_backend_path,
+  );
+  /* ----------------International Days---------------- */
+  $items['international-days'] = array(
+    'title' => 'International Days Celebration',
+    'page callback' => 'hrm_backend_international_day_international_days_page',
+    'access arguments' => array(HRM_PERM_INTER_DAY_ACCESS_INTER_DAYS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/admin/backend_international_day.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['international-day/delete/%'] = array(
+    'title' => 'Delete international day',
+    'page callback' => 'hrm_backend_international_day_international_day_delete',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_INTER_DAY_DELETE_INTER_DAY),
+    'type' => MENU_CALLBACK, 'file' => 'includes/admin/backend_international_day.inc', 'file path' => $hrm_backend_path,
+  );
+
+//Organization chart
+  $items['org-chart/%'] = array(
+    'title' => t("Organization Chart"),
+    'description' => 'Display organization chart.',
+    'page callback' => 'hrm_backend_entity_org_chart_org_chart_page',
+    'access arguments' => array(HRM_PERM_USER_ACCESS_ORGANIZATION_CHART),
+    'page arguments' => array(1),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/entity/backend_entity_org_chart.inc',
+    'file path' => $hrm_backend_path,
+  );
+  $items['org-chart/%/export'] = array(
+    'title' => t("Organization Chart"),
+    'description' => 'Display organization chart.',
+    'page callback' => 'hrm_backend_entity_org_chart_org_chart_page',
+    'page arguments' => array(1),
+    'access arguments' => array(HRM_PERM_USER_ACCESS_ORGANIZATION_CHART),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/entity/backend_entity_org_chart.inc',
+    'file path' => $hrm_backend_path,
+  );
+
+
+
+  /* ----------------Projects---------------- */
+  $items['projects'] = array(
+    'title' => 'Projects',
+    'page callback' => 'hrm_backend_projects_page',
+    'access arguments' => array(HRM_PERM_PROJECT_ACCESS_PROJECTS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_project.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['project/details/%'] = array(
+    'title' => 'Project details',
+    'page callback' => 'hrm_backend_project_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_PROJECT_ACCESS_PROJECT_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_project.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['project/add'] = array(
+    'title' => 'Add project',
+    'page callback' => 'hrm_backend_project_add_page',
+    'access arguments' => array(HRM_PERM_PROJECT_ADD_PROJECT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_project.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['project/edit/%'] = array(
+    'title' => 'Edit project',
+    'page callback' => 'hrm_backend_project_edit_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_PROJECT_EDIT_PROJECT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_project.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['project/approve/%'] = array(
+    'title' => 'Approve project',
+    'page callback' => 'hrm_backend_project_approve_project',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_PROJECT_APPROVE_PROJECTS),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_project.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['project/activate/%'] = array(
+    'title' => 'Activate project',
+    'page callback' => 'hrm_backend_project_activate_project',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_PROJECT_ACTIVATE_PROJECTS),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_project.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['project/close/%'] = array(
+    'title' => 'Close project',
+    'page callback' => 'hrm_backend_project_close_project',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_PROJECT_CLOSE_PROJECTS),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_project.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['project/delete/%'] = array(
+    'title' => 'Delete project',
+    'page callback' => 'hrm_backend_project_delete_project',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_PROJECT_DELETE_PROJECTS),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_project.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Logframe---------------- */
+  $items['logframe'] = array(
+    'title' => 'Logical Frameworks',
+    'page callback' => 'hrm_backend_logframe_logframes_list_page',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_LOGFRAME_ACCESS_LOGFRAMES),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_logframe.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['logframe/details/%/%'] = array(
+    'title' => 'Logical framework details',
+    'page callback' => 'hrm_backend_logframe_details_page',
+    'page arguments' => array(2, 3),
+    'access arguments' => array(HRM_PERM_LOGFRAME_ACCESS_LOGFRAME_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_logframe.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['logframe/manage/%/%'] = array(
+    'title' => 'Manage logical framework',
+    'page callback' => 'hrm_backend_logframe_manage_logframe_page',
+    'page arguments' => array(2, 3),
+    'access arguments' => array(HRM_PERM_LOGFRAME_MANAGE_LOGFRAME),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_logframe.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['logframe/labels/%/%'] = array(
+    'title' => 'Project logical framework labels',
+    'page callback' => 'hrm_backend_logframe_manage_logframe_labels_page',
+    'page arguments' => array(2, 3),
+    'access arguments' => array(HRM_PERM_LOGFRAME_MANAGE_LOGFRAME),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_logframe.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['logframe/outcome-output/%/%'] = array(
+    'title' => 'Project budget Outcome/Output',
+    'page callback' => 'hrm_backend_logframe_logframe_budget_outcome_output_page',
+    'page arguments' => array(2, 3),
+    'access arguments' => array(HRM_PERM_LOGFRAME_MANAGE_LOGFRAME),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/project/backend_logframe.inc', 'file path' => $hrm_backend_path,
+  );
+
+//Managment menus
+  $items['logframe/approve/%'] = array(
+    'title' => 'Approve logical framework',
+    'page callback' => 'hrm_backend_logframe_approve_logframe',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_LOGFRAME_APPROVE_LOGFRAME),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_logframe.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['logframe/submit/%'] = array(
+    'title' => 'Submit logical framework',
+    'page callback' => 'hrm_backend_logframe_submit_logframe',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_LOGFRAME_SUBMIT_LOGFRAME),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_logframe.inc', 'file path' => $hrm_backend_path,
+  );
+
+  //PMF
+  $items['logframe/pmf/outcome/sync/%'] = array(
+    'title' => 'Sync PMF outcome values',
+    'page callback' => 'hrm_backend_pmf_update_db_outcome_values',
+    'page arguments' => array(4),
+    'access arguments' => array(HRM_PERM_PMF_UPDATE_PMF_OUTCOME_VALUE),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_pmf.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['logframe/pmf/approve/%'] = array(
+    'title' => 'Approve PMF',
+    'page callback' => 'hrm_backend_pmf_approve_pmf',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_PMF_APPROVE_PMF),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_pmf.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['logframe/pmf/manage-annual-breakdown/%'] = array(
+    'title' => 'PMF annual targets breakdown',
+    'page callback' => 'hrm_backend_pmf_manage_pmf_annual_breakdown',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_PMF_MANAGE_PMF),
+    'type' => MENU_CALLBACK, 'file' => 'includes/pm/project/backend_pmf.inc', 'file path' => $hrm_backend_path,
+  );
+  /* ----------------Users---------------- */
+  $items['hrm-users'] = array(
+    'title' => 'Users',
+    'page callback' => 'hrm_backend_user_users_page',
+    'access arguments' => array(HRM_PERM_USER_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_user.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['hrm-users/details/%'] = array(
+    'title' => 'User details',
+    'page callback' => 'hrm_backend_user_user_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_USER_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_user.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['hrm-users/add'] = array(
+    'title' => 'Add user',
+    'page callback' => 'hrm_backend_user_add_page',
+    'access arguments' => array(HRM_PERM_USER_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_user.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['hrm-users/edit/%'] = array(
+    'title' => 'Edit user',
+    'page callback' => 'hrm_backend_user_edit_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_USER_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_user.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['hrm-users/emp-of-quarter'] = array(
+    'title' => 'Employee of quarter',
+    'page callback' => 'hrm_backend_user_emp_of_quarter_page',
+    'access arguments' => array(HRM_PERM_USER_MANAGE_EMPLOYEE_OF_QUARTER),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_user.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['hrm-users/staff-performance'] = array(
+    'title' => 'Staff performance',
+    'page callback' => 'hrm_backend_user_staff_performance',
+    'access arguments' => array(HRM_PERM_USER_ACCESS_STAFF_PERFORMANCE),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_user.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Codes---------------- */
+  $items['finance/chart-of-accounts'] = array(
+    'title' => 'Chart of Accounts',
+    'page callback' => 'hrm_backend_code_chart_of_accounts_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_FINANCE_ACCESS_CHART_OF_ACCOUNTS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/finance/backend_code.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['finance/code/delete/%'] = array(
+    'title' => 'Delete account code',
+    'page callback' => 'hrm_backend_code_delete',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_FINANCE_MANAGE_ACCOUNT_ITEMS),
+    'type' => MENU_CALLBACK, 'file' => 'includes/finance/backend_code.inc', 'file path' => $hrm_backend_path,
+  );
+  //AFR
+  $items['finance/afr/%'] = array(
+    'title' => 'Activity Financial Reports',
+    'page callback' => 'hrm_backend_afr_afrs_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_FINANCE_AFR_ACCESS_AFRS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/finance/backend_code.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['finance/afr/details/%'] = array(
+    'title' => 'Activity Financial Report',
+    'page callback' => 'hrm_backend_afr_afr_details_page',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_FINANCE_AFR_ACCESS_AFR_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/finance/backend_code.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Focal Points---------------- */
+  $items['focal-point/delete/%'] = array(
+    'page callback' => 'hrm_backend_focal_point_delete_focal_point',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_FP_DELETE_FOCAL_POINT),
+    'type' => MENU_CALLBACK, 'file' => 'includes/admin/backend_focal_point.inc', 'file path' => $hrm_backend_path,
+  );
+  /* ---------------- Households---------------- */
+  $items['household'] = array(
+    'title' => 'Households',
+    'page callback' => 'hrm_backend_households_page',
+    'access arguments' => array(HRM_PERM_HH_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/benef/backend_household.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['household/details/%'] = array(
+    'title' => 'Household details',
+    'page callback' => 'hrm_backend_household_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_HH_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/benef/backend_household.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['household/add'] = array(
+    'title' => 'Add household',
+    'page callback' => 'hrm_backend_household_add_page',
+    'access arguments' => array(HRM_PERM_HH_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/benef/backend_household.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['household/edit/%'] = array(
+    'title' => 'Edit household',
+    'page callback' => 'hrm_backend_household_edit_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_HH_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/benef/backend_household.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['household/%/member/add'] = array(
+    'title' => 'Add Member',
+    'page callback' => 'hrm_backend_household_member_add_page',
+    'page arguments' => array(1),
+    'access arguments' => array(HRM_PERM_HH_MEMBER_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/benef/backend_household.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['household/%/member/edit/%'] = array(
+    'title' => 'Add Member',
+    'page callback' => 'hrm_backend_household_member_edit_page',
+    'page arguments' => array(1, 4),
+    'access arguments' => array(HRM_PERM_HH_MEMBER_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/benef/backend_household.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['household/bulk-manage-submitted'] = array(
+    'title' => 'Manage Submitted Households',
+    'page callback' => 'hrm_backend_household_bulk_manage_submitted_page',
+    'access arguments' => array(HRM_PERM_HH_MANAGE),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/benef/backend_household.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Case Management---------------- */
+  //Case Management
+  $items['case'] = array(
+    'title' => 'Cases',
+    'page callback' => 'hrm_backend_case_cases_page',
+    'access arguments' => array(HRM_PERM_CASE_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_case.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['case/add'] = array(
+    'title' => 'Add Case',
+    'page callback' => 'hrm_backend_case_add_case_page',
+    'access arguments' => array(HRM_PERM_CASE_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_case.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['case/edit/%'] = array(
+    'title' => 'Edit Case',
+    'page callback' => 'hrm_backend_case_edit_case_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_CASE_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_case.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['case/details/%'] = array(
+    'title' => 'Case Details',
+    'page callback' => 'hrm_backend_case_case_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_CASE_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_case.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['case/close/%'] = array(
+    'title' => 'Close Case',
+    'page callback' => 'hrm_backend_case_close',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_CASE_CLOSE),
+    'type' => MENU_CALLBACK, 'file' => 'includes/case/backend_case.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['case/details/%/cash-assistance'] = array(
+    'title' => 'Cash Assistance',
+    'page callback' => 'hrm_backend_case_cash',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_CASE_CASH),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_case.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['case/details/%/cash-assistance/add'] = array(
+    'title' => 'Cash Assistance',
+    'page callback' => 'hrm_backend_case_cash_add_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_CASE_CASH_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_case.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['case/details/%/cash-assistance/edit/%'] = array(
+    'title' => 'Cash Assistance',
+    'page callback' => 'hrm_backend_case_cash_edit_page',
+    'page arguments' => array(2, 5),
+    'access arguments' => array(HRM_PERM_CASE_CASH_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_case.inc', 'file path' => $hrm_backend_path,
+  );
+
+  //Protection
+  $items['prot'] = array(
+    'title' => 'Protection Referrals',
+    'page callback' => 'hrm_backend_prot_prots_page',
+    'access arguments' => array(HRM_PERM_PROT_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_prot.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['prot/details/%'] = array(
+    'title' => 'Protection Details',
+    'page callback' => 'hrm_backend_prot_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_PROT_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_prot.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ---------------- Cash assistance ---------------- */
+  $items['cash-assist'] = array(
+    'title' => 'Cash Assistance',
+    'page callback' => 'hrm_backend_cash_assist_page',
+    'access arguments' => array(HRM_PERM_CA_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_cash_assist.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['cash-assist/details/%'] = array(
+    'title' => 'Cash Assistance Details',
+    'page callback' => 'hrm_backend_cash_assist_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_CA_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_cash_assist.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['cash-assist/bulk-update/%'] = array(
+    'title' => 'Cash Assistance Bulk Update',
+    'page callback' => 'hrm_backend_cash_assist_line_bulk_update_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_CA_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/case/backend_cash_assist.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Activities---------------- */
+  $items['activity'] = array(
+    'title' => 'Activities',
+    'page callback' => 'hrm_backend_activity_activities_page',
+    'access arguments' => array(HRM_PERM_AC_ACCESS_ACTIVITIES),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/pm/backend_activity.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['activity/add'] = array(
+    'title' => 'Add activity',
+    'page callback' => 'hrm_backend_activity_add_activity_page',
+    'access arguments' => array(HRM_PERM_AC_ADD_ACTIVITY),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/pm/backend_activity.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['activity/edit/%'] = array(
+    'title' => t("Edit activity"),
+    'description' => 'Activity edit page.',
+    'page callback' => 'hrm_backend_activity_edit_activity_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_AC_EDIT_ACTIVITY),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/pm/backend_activity.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['activity/details/%'] = array(
+    'title' => t("Activity"),
+    'description' => 'Activity details page.',
+    'page callback' => 'hrm_backend_activity_activity_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_AC_ACCESS_ACTIVITY_DETAILS),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/pm/backend_activity.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['activity/close/%'] = array(
+    'title' => t("Close activity"),
+    'description' => 'Close activity.',
+    'page callback' => 'hrm_backend_activity_close_activity',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_AC_CLOSE_ACTIVITY),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/pm/backend_activity.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Training---------------- */
+  $items['training'] = array(
+    'title' => 'Staff Trainings',
+    'page callback' => 'hrm_backend_training_trainings_page',
+    'access arguments' => array(HRM_PERM_TR_ACCESS_TRAININGS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['training/details/%'] = array(
+    'title' => 'Staff training',
+    'page callback' => 'hrm_backend_training_training_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_TR_ACCESS_TRAINING_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['training/add'] = array(
+    'title' => 'Add staff training',
+    'page callback' => 'hrm_backend_training_add_training_page',
+    'access arguments' => array(HRM_PERM_TR_ADD_TRAINING),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['training/edit/%'] = array(
+    'title' => 'Edit staff training',
+    'page callback' => 'hrm_backend_training_edit_training_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_TR_EDIT_TRAINING),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['training/close/%'] = array(
+    'title' => 'Close staff training',
+    'page callback' => 'hrm_backend_training_close_training',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_TR_CLOSE_TRAINING),
+    'type' => MENU_CALLBACK, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+//Trainers
+  $items['trainer'] = array(
+    'title' => 'Trainers',
+    'page callback' => 'hrm_backend_training_trainers_page',
+    'access arguments' => array(HRM_PERM_TR_ACCESS_TRAINERS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['trainer/details/%'] = array(
+    'title' => 'Trainer details',
+    'page callback' => 'hrm_backend_training_trainer_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_TR_ACCESS_TRAINER_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['trainer/add'] = array(
+    'title' => 'Add trainer',
+    'page callback' => 'hrm_backend_training_add_trainer_page',
+    'access arguments' => array(HRM_PERM_TR_ADD_TRAINER),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['trainer/edit/%'] = array(
+    'title' => 'Edit trainer',
+    'page callback' => 'hrm_backend_training_edit_trainer_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_TR_EDIT_TRAINER),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/hr/backend_training.inc', 'file path' => $hrm_backend_path,
+  );
+
+
+  /* ----------------Success Story---------------- */
+  $items['success-story/%'] = array(
+    'title' => 'Success Stories',
+    'page callback' => 'hrm_backend_success_story_success_stories_page',
+    'page arguments' => array(1),
+    'access arguments' => array(HRM_PERM_SS_ACCESS_SUCCESS_STORIES),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/communications/backend_success_story.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['success-story/details/%'] = array(
+    'title' => 'Success Story',
+    'description' => 'Success Story details page.',
+    'page callback' => 'hrm_backend_success_story_success_story_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_SS_ACCESS_SUCCESS_STORY_DETAILS),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/communications/backend_success_story.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['success-story/add'] = array(
+    'title' => 'Add success story',
+    'page callback' => 'hrm_backend_success_story_add_success_story_page',
+    'access arguments' => array(HRM_PERM_SS_ADD_SUCCESS_STORY),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/communications/backend_success_story.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['success-story/edit/%'] = array(
+    'title' => 'Edit success story',
+    'description' => 'Success story edit page.',
+    'page callback' => 'hrm_backend_success_story_edit_success_story_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_SS_EDIT_SUCCESS_STORY),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/communications/backend_success_story.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['success-story/publish/%'] = array(
+    'title' => 'Publish success story',
+    'page callback' => 'hrm_backend_success_story_publish_success_story',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_SS_MANAGE_APPROVED_SUCCESS_STORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/communications/backend_success_story.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['success-story/unpublish/%'] = array(
+    'title' => 'Un-Publish success story',
+    'page callback' => 'hrm_backend_success_story_unpublish_success_story',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_SS_MANAGE_APPROVED_SUCCESS_STORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/communications/backend_success_story.inc', 'file path' => $hrm_backend_path,
+  );
+  /* ----------------- Published Success Stories ----------------- */
+  $items['success-stories'] = array(
+    'title' => 'Success Stories',
+    'page callback' => 'hrm_backend_success_story_success_stories',
+    'access arguments' => array(HRM_PERM_SS_VIEW_PUBLISHED_SUCCESS_STORIES),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/communications/backend_success_story.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['success-stories/%'] = array(
+    'title' => 'Success Story',
+    'page callback' => 'hrm_backend_success_story_success_story',
+    'page arguments' => array(1),
+    'access arguments' => array(HRM_PERM_SS_VIEW_PUBLISHED_SUCCESS_STORIES),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/communications/backend_success_story.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Workspace---------------- */
+//Approval Queue
+  $items['workspace/approval-queue'] = array(
+    'title' => 'Approvals queue',
+    'page callback' => 'hrm_approval_queue_approvals_queue_page',
+    'access arguments' => array(HRM_PERM_WORKSPACE_ACCESS_WORKSPACE_MENU),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/workspace/backend_approval_queue.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['workspace/pending-review'] = array(
+    'title' => 'Pending Feedback and Review Activities',
+    'page callback' => 'hrm_backend_pending_review_page',
+    'access arguments' => array(HRM_PERM_EN_REVIEW_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/workspace/backend_pending_review.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Calendar---------------- */
+  $items['calendar'] = array(
+    'title' => 'My Calendar',
+    'page callback' => 'hrm_backend_calendar_calendar_page',
+    'access arguments' => array(HRM_PERM_WORKSPACE_ACCESS_CALENDAR),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 0,
+    'file' => 'includes/workspace/backend_calendar.inc',
+    'file path' => $hrm_backend_path,
+  );
+
+  /*
+   * Resources
+   */
+  //Documents
+  $items['resources/documents/%'] = array(
+    'title' => 'Documents',
+    'page callback' => 'hrm_backend_resource_documents_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_RESOURCE_DOCUMENTS_ACCESS_DOCUMENTS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/resources/backend_resource.inc', 'file path' => $hrm_backend_path,
+  );
+  //Agenda templates
+  $items['resources/agenda-templates'] = array(
+    'title' => 'Agenda Templates',
+    'page callback' => 'hrm_backend_resource_agenda_templates_page',
+    'access arguments' => array(HRM_PERM_RESOURCE_AGENDA_TEMPLATES_ACCESS_AGENDA_TEMPLATES),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/resources/backend_resource.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['resources/agenda-templates/details/%'] = array(
+    'title' => 'Agenda Template Details',
+    'page callback' => 'hrm_backend_resource_agenda_templates_details_page',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_RESOURCE_AGENDA_TEMPLATES_ACCESS_AGENDA_TEMPLATES),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/resources/backend_resource.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['resources/agenda-templates/add'] = array(
+    'title' => 'Add Agenda Template',
+    'page callback' => 'hrm_backend_resource_agenda_templates_add_page',
+    'access arguments' => array(HRM_PERM_RESOURCE_AGENDA_TEMPLATES_MANAGE_AGENDA_TEMPLATES),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/resources/backend_resource.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['resources/agenda-templates/edit/%'] = array(
+    'title' => 'Edit Agenda Template',
+    'page callback' => 'hrm_backend_resource_agenda_templates_edit_page',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_RESOURCE_AGENDA_TEMPLATES_MANAGE_AGENDA_TEMPLATES),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/resources/backend_resource.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /*
+   * ======================================
+   * CRM Functionalities
+   * ======================================
+   */
+  /* ----------------DONOR---------------- */
+  $items['donor'] = array(
+    'title' => 'Donors',
+    'page callback' => 'hrm_backend_donors_page',
+    'access arguments' => array(HRM_PERM_DONOR_ACCESS_DONORS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_donor.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['donor/details/%'] = array(
+    'title' => 'Donor Details',
+    'page callback' => 'hrm_backend_donor_donor_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_DONOR_ACCESS_DONOR_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_donor.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['donor/add'] = array(
+    'title' => 'Add Donor',
+    'page callback' => 'hrm_backend_donor_add_page',
+    'access arguments' => array(HRM_PERM_DONOR_ADD_DONOR),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_donor.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['donor/edit/%'] = array(
+    'title' => 'Edit Donor',
+    'page callback' => 'hrm_backend_donor_edit_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_DONOR_EDIT_DONOR),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_donor.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Agency---------------- */
+  $items['agency'] = array(
+    'title' => 'Agencies',
+    'page callback' => 'hrm_backend_agencies_page',
+    'access arguments' => array(HRM_PERM_AGENCY_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_agency.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['agency/details/%'] = array(
+    'title' => 'Agency Details',
+    'page callback' => 'hrm_backend_agency_agency_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_AGENCY_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_agency.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['agency/add'] = array(
+    'title' => 'Add Agency',
+    'page callback' => 'hrm_backend_agency_add_page',
+    'access arguments' => array(HRM_PERM_AGENCY_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_agency.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['agency/edit/%'] = array(
+    'title' => 'Edit Agency',
+    'page callback' => 'hrm_backend_agency_edit_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_AGENCY_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_agency.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------Service mapping---------------- */
+  $items['service-mapping'] = array(
+    'title' => 'Services Mapping',
+    'page callback' => 'hrm_backend_service_mapping_page',
+    'access arguments' => array(HRM_PERM_SM_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_service_mapping.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['service-mapping/details/%'] = array(
+    'title' => 'Service mapping details',
+    'page callback' => 'hrm_backend_service_mapping_details_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_SM_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_service_mapping.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['service-mapping/add'] = array(
+    'title' => 'Add Service mapping',
+    'page callback' => 'hrm_backend_service_mapping_add_page',
+    'access arguments' => array(HRM_PERM_SM_ADD),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_service_mapping.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['service-mapping/edit/%'] = array(
+    'title' => 'Edit Service mapping',
+    'page callback' => 'hrm_backend_service_mapping_edit_page',
+    'page arguments' => array(2),
+    'access arguments' => array(HRM_PERM_SM_EDIT),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/crm/backend_service_mapping.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /*
+   * ======================================
+   * Monitoring and Evalution
+   * ======================================
+   */
+  /* ----------------PDM---------------- */
+  $items['me/pdm'] = array(
+    'title' => 'Post Data Monitoring',
+    'page callback' => 'hrm_backend_pdms_page',
+    'access arguments' => array(HRM_PERM_ME_PDM_ACCESS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/me/backend_pdm.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['me/pdm/details/%'] = array(
+    'title' => 'Post Data Monitoring Details',
+    'page callback' => 'hrm_backend_pdm_details_page',
+    'page arguments' => array(3),
+    'access arguments' => array(HRM_PERM_ME_PDM_ACCESS_DETAILS),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/me/backend_pdm.inc', 'file path' => $hrm_backend_path,
+  );
+  $items['me/pdm/generate/%/%'] = array(
+    'title' => 'Generate Post Data Monitoring',
+    'page callback' => 'hrm_backend_pdm_generate_pdm_page',
+    'page arguments' => array(3, 4), //3 --> Project ID 4 --> Cycle number
+    'access arguments' => array(HRM_PERM_ME_PDM_GENERATE),
+    'type' => MENU_NORMAL_ITEM, 'file' => 'includes/me/backend_pdm.inc', 'file path' => $hrm_backend_path,
+  );
+
+  /* ----------------TEST---------------- */
+  $items['test'] = array(
+    'title' => 'Test',
+    'page callback' => 'hrm_basic_test_page',
+    'access arguments' => array(HRM_PERM_DASHBOARD_ACCESS_DASHBOARD),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function hrm_backend_theme() {
+  $hrm_backend_path = drupal_get_path('module', HRM_MODULE_BACKEND);
+  return array(
+    /* ----------------General themes---------------- */
+    'block_sidebar_main_menu' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'block_sidebar-main-menu',
+      'path' => $hrm_backend_path . '/templates/global/block',
+    ),
+    'block_header_user_account' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'block_header-user-account',
+      'path' => $hrm_backend_path . '/templates/global/block',
+    ),
+    'divs_table' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'divs-table',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'color_field' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'color-field',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'page_wrapper' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'page_wrapper_form' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_form',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'page_wrapper_entity_tabs' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_entity-tabs',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'page_wrapper_entity_tabs_links' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_entity-tabs-links',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    /* ----------------Maps---------------- */
+    'map_view_location' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'map_view-location',
+      'path' => $hrm_backend_path . '/templates/global/map',
+    ),
+    'map_view_multiple_locations' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'map_view-multiple-locations',
+      'path' => $hrm_backend_path . '/templates/global/map',
+    ),
+    'map_view_direction' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'map_view-direction',
+      'path' => $hrm_backend_path . '/templates/global/map',
+    ),
+    'map_set_location' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'map_set-location',
+      'path' => $hrm_backend_path . '/templates/global/map',
+    ),
+    'map_draw_polyline' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'map_draw-polyline',
+      'path' => $hrm_backend_path . '/templates/global/map',
+    ),
+    /* ----------------Entity---------------- */
+    'section_entity_details' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-details',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'section_entity_history' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-history',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'section_entity_files' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-files',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'section_entity_step_message' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-step-message',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'section_entity_close_checklist' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-close-checklist',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    //Pictures
+    'section_entity_pictures' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-pictures',
+      'path' => $hrm_backend_path . '/templates/global/picture',
+    ),
+    'page_wrapper_edit_entity_pictures' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_edit-entity-pictures',
+      'path' => $hrm_backend_path . '/templates/global/picture',
+    ),
+    'section_entity_tracker' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-tracker',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    'section_entity_calendar' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-calendar',
+      'path' => $hrm_backend_path . '/templates/global',
+    ),
+    //Collaboration
+    'section_entity_collab' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-collab',
+      'path' => $hrm_backend_path . '/templates/entity/collab',
+    ),
+    'section_entity_collab_post' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-collab-post',
+      'path' => $hrm_backend_path . '/templates/entity/collab',
+    ),
+    'section_entity_videos' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-videos',
+      'path' => $hrm_backend_path . '/templates/global/video',
+    ),
+    'section_entity_videos_add' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-videos-add',
+      'path' => $hrm_backend_path . '/templates/global/video',
+    ),
+    'section_entity_videos_edit' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-videos-edit',
+      'path' => $hrm_backend_path . '/templates/global/video',
+    ),
+    'video_player' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_video-player',
+      'path' => $hrm_backend_path . '/templates/global/video',
+    ),
+    //App reports
+    'section_app_report_intro_text' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_app-report-intro-text',
+      'path' => $hrm_backend_path . '/templates/global/app_reports',
+    ),
+    //PDF entity themes
+    'pdf_entity_pdf' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'pdf_entity-pdf',
+      'path' => $hrm_backend_path . '/templates/global/pdf',
+    ),
+    'section_entity_pdf_header' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_entity-pdf-header',
+      'path' => $hrm_backend_path . '/templates/global/pdf',
+    ),
+    'section_payment_voucher_content_pdf' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_payment-voucher-content-pdf',
+      'path' => $hrm_backend_path . '/templates/global/pdf',
+    ),
+    'section_invoice_form_content_pdf' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_invoice-form-content-pdf',
+      'path' => $hrm_backend_path . '/templates/global/pdf',
+    ),
+    'section_distribution_form_content_pdf' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_distribution-form-content-pdf',
+      'path' => $hrm_backend_path . '/templates/global/pdf',
+    ),
+    'section_consent_form_content_pdf' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_consent-form-content-pdf',
+      'path' => $hrm_backend_path . '/templates/global/pdf',
+    ),
+    //Financial proposal
+    'section_financial_proposal_header' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_financial-proposal-header',
+      'path' => $hrm_backend_path . '/templates/global/financial_proposal',
+    ),
+    'section_financial_proposal_item' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_financial-proposal-item',
+      'path' => $hrm_backend_path . '/templates/global/financial_proposal',
+    ),
+    'section_financial_proposal_footer' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_financial-proposal-footer',
+      'path' => $hrm_backend_path . '/templates/global/financial_proposal',
+    ),
+    //AFR Daily Expense Log
+    'page_wrapper_close_afr' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_close-afr',
+      'path' => $hrm_backend_path . '/templates/global/afr',
+    ),
+    'section_afr_header' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_afr-header',
+      'path' => $hrm_backend_path . '/templates/global/afr',
+    ),
+    'section_afr_line' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_afr-line',
+      'path' => $hrm_backend_path . '/templates/global/afr',
+    ),
+    'section_afr_footer' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_afr-footer',
+      'path' => $hrm_backend_path . '/templates/global/afr',
+    ),
+    //Organization Chart
+    'page_wrapper_org_chart' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_org-chart',
+      'path' => $hrm_backend_path . '/templates/global/org_chart',
+    ),
+    'page_wrapper_org_chart_export' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_org-chart-export',
+      'path' => $hrm_backend_path . '/templates/global/org_chart',
+    ),
+    /* ----------------Charts---------------- */
+    'section_highcharts_line' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_highcharts-line',
+      'path' => $hrm_backend_path . '/templates/highcharts',
+    ),
+    'highcharts_3d_pie' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'highcharts-3d-pie',
+      'path' => $hrm_backend_path . '/templates/highcharts',
+    ),
+    'highcharts_column_drilldown' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'highcharts-column-drilldown',
+      'path' => $hrm_backend_path . '/templates/highcharts',
+    ),
+    /*
+     * =====================================
+     * Dashboard
+     * =====================================
+     */
+    /* ----------------Dashboard---------------- */
+    /* ----------------Timeline---------------- */
+    'page_wrapper_dashboard_timeline' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_dashboard-timeline',
+      'path' => $hrm_backend_path . '/templates/dashboard/timeline',
+    ),
+    'section_timeline' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_timeline',
+      'path' => $hrm_backend_path . '/templates/dashboard/timeline',
+    ),
+    'section_timeline_picture_1' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_picture-1',
+      'path' => $hrm_backend_path . '/templates/dashboard/timeline/pictures',
+    ),
+    'section_timeline_picture_2' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_picture-2',
+      'path' => $hrm_backend_path . '/templates/dashboard/timeline/pictures',
+    ),
+    'section_timeline_picture_3' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_picture-3',
+      'path' => $hrm_backend_path . '/templates/dashboard/timeline/pictures',
+    ),
+    'section_timeline_picture_4' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_picture-4',
+      'path' => $hrm_backend_path . '/templates/dashboard/timeline/pictures',
+    ),
+    'section_timeline_picture_5' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_picture-5',
+      'path' => $hrm_backend_path . '/templates/dashboard/timeline/pictures',
+    ),
+    /*
+     * =====================================
+     * Workspace
+     * =====================================
+     */
+    /*
+     * =====================================
+     * Administration
+     * =====================================
+     */
+    /*
+     * =====================================
+     * Project Managment
+     * =====================================
+     */
+    /* ----------------Projects---------------- */
+    'page_wrapper_projects' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_projects',
+      'path' => $hrm_backend_path . '/templates/pm/project',
+    ),
+    /* ----------------PMF---------------- */
+    'section_pmf_view' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_pmf-view',
+      'path' => $hrm_backend_path . '/templates/pm/project/pmf',
+    ),
+    /* ----------------Plan---------------- */
+    'section_plan_activity_info' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_plan-activity-info',
+      'path' => $hrm_backend_path . '/templates/pm/project/plan',
+    ),
+    /*
+     * =====================================
+     * Beneficiaries
+     * =====================================
+     */
+    /* ----------------Household---------------- */
+    'section_household_assessment_summary' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_household-assessment-summary',
+      'path' => $hrm_backend_path . '/templates/benef/household',
+    ),
+    /*
+     * =====================================
+     * Case Management
+     * =====================================
+     */
+    /* ----------------Case Management---------------- */
+    'section_case_service_followup' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_case-service-followup',
+      'path' => $hrm_backend_path . '/templates/case',
+    ),
+    'section_case_visit' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_case-visit',
+      'path' => $hrm_backend_path . '/templates/case',
+    ),
+    'section_case_call' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_case-call',
+      'path' => $hrm_backend_path . '/templates/case',
+    ),
+    /* ----------------Protection---------------- */
+    //App templates Intro
+    'section_prot_app_intro' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_prot-app-intro',
+      'path' => $hrm_backend_path . '/templates/case/prot',
+    ),
+    /* ----------------Cash Assistance---------------- */
+    'section_cash_assist_details_header' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_cash-assist-details-header',
+      'path' => $hrm_backend_path . '/templates/case/cash_assist',
+    ),
+    /*
+     * =====================================
+     * Communications
+     * =====================================
+     */
+    /* ----------------Success Story---------------- */
+    //Published success stories
+    'page_wrapper_success_stories' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_success-stories',
+      'path' => $hrm_backend_path . '/templates/communications/success_story',
+    ),
+    'page_wrapper_success_story' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_success-story',
+      'path' => $hrm_backend_path . '/templates/communications/success_story',
+    ),
+    /*
+     * =====================================
+     * Human Resources
+     * =====================================
+     */
+    /* ----------------Users---------------- */
+    'page_wrapper_users' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_users',
+      'path' => $hrm_backend_path . '/templates/hr/user',
+    ),
+    'block_sidebar_emp_of_quarter' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'block_sidebar-emp-of-quarter',
+      'path' => $hrm_backend_path . '/templates/hr/user',
+    ),
+    'page_wrapper_staff_performance' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'page_wrapper_staff-performance',
+      'path' => $hrm_backend_path . '/templates/hr/user',
+    ),
+    /*
+     * =====================================
+     * Finance
+     * =====================================
+     */
+    /*
+     * =====================================
+     * Resources
+     * =====================================
+     */
+    /* ---------------- Files ---------------- */
+    'setion_petty_cash_invoice_form_content_pdf' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_petty-cash-invoice-form-content-pdf',
+      'path' => $hrm_backend_path . '/templates/resources/files/petty_cash',
+    ),
+    'setion_petty_cash_payment_voucher_content_pdf' => array(
+      'variable' => array('data' => NULL),
+      'template' => 'section_petty-cash-payment-voucher-content-pdf',
+      'path' => $hrm_backend_path . '/templates/resources/files/petty_cash',
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function hrm_backend_block_info() {
+  //Sidebar blocks
+  $blocks['sidebar_main_menu_block'] = array(
+    'info' => t('Medair backend sidebar main menu block'),
+  );
+  $blocks['sidebar_emp_of_quarter_block'] = array(
+    'info' => t('Medair backend sidebar employee of quarter block'),
+  );
+
+  //Header Blocks
+  $blocks['header_add_entity_block'] = array(
+    'info' => t('Medair backend header add entity block'),
+    'class' => array('add-entity-block'),
+  );
+  $blocks['header_sn_search_block'] = array(
+    'info' => t('Medair backend header serial number search block'),
+    'class' => array('sn-search-form-block'),
+  );
+  $blocks['header_help_block'] = array(
+    'info' => t('Medair backend header help block'),
+    'class' => array('help-block'),
+  );
+  $blocks['header_user_account_block'] = array(
+    'info' => t('Medair backend header user account block'),
+  );
+  //Footer Blocks
+  $blocks['footer_message_block'] = array(
+    'info' => t('Medair backend footer message block'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function hrm_backend_block_view($delta = '') {
+// This example is adapted from node.module.
+  $block = array();
+
+  switch ($delta) {
+    case 'sidebar_main_menu_block':
+      $block['subject'] = t('');
+      $block['content'] = hrm_backend_sidebar_main_menu_block();
+      break;
+    case 'sidebar_emp_of_quarter_block':
+      $block['subject'] = t('');
+      $block['content'] = hrm_backend_sidebar_emp_of_quarter_block();
+      break;
+    case 'header_add_entity_block':
+      $block['subject'] = t('');
+      $block['content'] = hrm_backend_header_add_entity_block();
+      break;
+    case 'header_sn_search_block':
+      $block['subject'] = t('');
+      $block['content'] = hrm_backend_header_sn_search_block();
+      break;
+    case 'header_help_block':
+      $block['subject'] = t('');
+      $block['content'] = hrm_backend_header_help_block();
+      break;
+    case 'header_user_account_block':
+      $block['subject'] = t('');
+      $block['content'] = hrm_backend_header_user_account_block();
+      break;
+    case 'footer_message_block':
+      $block['subject'] = t('');
+      $block['content'] = hrm_backend_footer_message_block();
+      break;
+  }
+  return $block;
+}
+
+/*
+ * Blocks content functions
+ */
+
+/* ----------- Sidebar Blocks ----------- */
+
+function hrm_backend_sidebar_main_menu_block() {
+  $account = hrm_basic_account_get_info();
+  $permissions = hrm_basic_user_get_role_permissions($account['role']);
+  $menu_output = '<ul class="sidebar-nav">';
+        $household_details_active_class = (((arg(0) == 'household')) ? 'active' : '');
+      $case_menue .= '<li>' . l('Households', 'household', array('attributes' => array('class' => array($household_details_active_class)), 'html' => TRUE)) . '</li>';
+   
+
+  /*
+   * Dashboard
+   */
+  if (isset($permissions[HRM_PERM_DASHBOARD_ACCESS_TIMELINE])) {
+    $timeline_active_class = ((arg(0) == 'timeline') ? 'active' : '');
+    $timeline_link_text = HRM_FA_HISTORY . 'Timeline';
+    $menu_output .= '<li>' . l($timeline_link_text, 'dashboard/timeline', array('attributes' => array('class' => array($timeline_active_class)), 'html' => TRUE)) . '</li>';
+  }
+  if (isset($permissions[HRM_PERM_DASHBOARD_ACCESS_DASHBOARD])) {
+    $dashboard_active_class = ((arg(0) == 'dashboard' && arg(1) == 'details') ? 'active' : '');
+    $dashboard_link_text = HRM_FA_TACHOMETER . 'Dashboard';
+    $menu_output .= '<li>' . l($dashboard_link_text, 'dashboard', array('attributes' => array('class' => array($dashboard_active_class)), 'html' => TRUE)) . '</li>';
+  }
+
+  /*
+   * WORKSPACE
+   */
+  if (isset($permissions[HRM_PERM_WORKSPACE_ACCESS_WORKSPACE_MENU])) {
+    $workspace_menue = '';
+    if (isset($permissions[HRM_PERM_WORKSPACE_ACCESS_CALENDAR])) {
+      $workspace_menue .= '<li>' . l('Calendar', 'calendar', array('attributes' => array('class' => array()), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_WORKSPACE_ACCESS_APPROVALS_QUEUE])) {
+      $workspace_menue .= '<li>' . l('Approvals Queue', 'workspace/approval-queue', array('attributes' => array('class' => array()), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_EN_REVIEW_ADD])) {
+      $workspace_menue .= '<li>' . l('Pending Activity Reviews', 'workspace/pending-review', array('html' => TRUE)) . '</li>';
+    }
+
+    if ($workspace_menue != '') {
+      $menu_output .= '
+        <li class="hr-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_TASKS . 'Workspace</a>
+          <ul>';
+      $menu_output .= $workspace_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * ADMINISTRATION
+   */
+  if (isset($permissions[HRM_PERM_ADMIN_ACCESS_ADMINISTRATION_MENU])) {
+    $administration_menue = '';
+    if (isset($permissions[HRM_PERM_CONFIG_MANAGE_IMPACT_CONFIGURATION])) {
+      $configuration_active_class = ((arg(0) == 'configuration') ? 'active' : '');
+      $administration_menue .= '<li>' . l('IMPACT<sup>&reg;</sup> Configuration', 'configuration/general', array('attributes' => array('class' => array($configuration_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_OFFICE_ACCESS])) {
+      $office_active_class = ((arg(0) == 'office' && arg(1) == 'add') || (arg(0) == 'office' && is_numeric(arg(2))) ? 'active' : '');
+      $administration_menue .= '<li>' . l('Offices', 'office', array('attributes' => array('class' => array($office_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_VENUE_ACCESS_VENUES])) {
+      $venue_active_class = ((arg(0) == 'venue') ? 'active' : '');
+      $administration_menue .= '<li>' . l('Venues', 'venues', array('attributes' => array('class' => array($venue_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_INTER_DAY_ACCESS_INTER_DAYS])) {
+      $administration_menue .= '<li>' . l('International Days', 'international-days', array('attributes' => array('class' => array()), 'html' => TRUE)) . '</li>';
+    }
+    if ($administration_menue != '') {
+      $menu_output .= '
+        <li class="admin-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_COGS . 'Administration</a>
+          <ul>';
+      $menu_output .= $administration_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * PROJECT MANAGEMENT
+   */
+  if (isset($permissions[HRM_PERM_PM_ACCESS_PM_MENU])) {
+    $project_menue = '';
+    if (isset($permissions[HRM_PERM_PROJECT_ACCESS_PROJECTS])) {
+      $project_details_active_class = ((arg(0) == 'projects') || (arg(0) == 'project' && (arg(1) == 'details' || arg(1) == 'edit' || arg(1) == 'add')) ? 'active' : '');
+      $project_menue .= '<li>' . l('Projects', 'projects', array('attributes' => array('class' => array($project_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+
+    $logframe_feature_enabled = hrm_administration_features_is_enabled(HRM_VAR_ADMIN_FEATURES_LOGFRAME);
+    if (isset($permissions[HRM_PERM_LOGFRAME_ACCESS_LOGFRAMES]) && $logframe_feature_enabled) {
+      $logframe_active_class = ((arg(0) == 'logframe') ? 'active' : '');
+      $project_menue .= '<li>' . l('Logical Frameworks', 'logframe', array('attributes' => array('class' => array($logframe_active_class)), 'html' => TRUE)) . '</li>';
+    }
+
+    if (isset($permissions[HRM_PERM_AC_ACCESS_ACTIVITIES])) {
+      $arg_1 = array('', 'all', 'draft', 'submitted', 'rejected', 'approved', 'active', 'closed', 'archived', 'canceled', 'details', 'edit', 'add');
+      $activity_details_active_class = ((arg(0) == 'activity') && (in_array(arg(1), $arg_1)) ? 'active' : '');
+      $project_menue .= '<li>' . l('Activities', 'activity', array('attributes' => array('class' => array($activity_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+
+
+    if ($project_menue != '') {
+      $menu_output .= '
+        <li class="pm-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_PROJECT_DIAGRAM . 'Project Management</a>
+          <ul>';
+      $menu_output .= $project_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * Case Management
+   */
+  if (isset($permissions[HRM_PERM_CASE_ACCESS_CASE_MANAGEMENT_MENU])) {
+    $case_menue = '';
+    if (isset($permissions[HRM_PERM_HH_ACCESS])) {
+      $household_details_active_class = (((arg(0) == 'household')) ? 'active' : '');
+      $case_menue .= '<li>' . l('Households', 'household', array('attributes' => array('class' => array($household_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_CASE_ACCESS])) {
+      //$arg_1 = array('', '', 'draft', 'submitted', 'rejected', 'approved', 'active', 'closed', 'archived', 'canceled', 'details', 'edit', 'add');
+      $case_details_active_class = ((arg(0) == 'case') ? 'active' : '');
+      $case_menue .= '<li>' . l('Cases', 'case', array('attributes' => array('class' => array($case_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_PROT_ACCESS])) {
+      $prot_details_active_class = ((arg(0) == 'prot') ? 'active' : '');
+      $case_menue .= '<li>' . l('Protection Referrals', 'prot', array('attributes' => array('class' => array($prot_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_CA_ACCESS])) {
+      $cash_assist_details_active_class = ((arg(0) == 'cash-assist') ? 'active' : '');
+      $case_menue .= '<li>' . l('Cash Assistance', 'cash-assist', array('attributes' => array('class' => array($cash_assist_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+
+    if ($case_menue != '') {
+      $menu_output .= '
+        <li class="bnf-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_TABLE . 'Case Management</a>
+          <ul>';
+      $menu_output .= $case_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * BENEFICIARIES
+   */
+  if (isset($permissions[HRM_PERM_BNF_ACCESS_BNF_MENU])) {
+    $benef_menue = '';
+
+    /*
+    if (isset($permissions[HRM_PERM_HH_ACCESS])) {
+      $household_details_active_class = (((arg(0) == 'household')) ? 'active' : '');
+      $benef_menue .= '<li>' . l('Households', 'household', array('attributes' => array('class' => array($household_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    */
+    if ($benef_menue != '') {
+      $menu_output .= '
+        <li class="bnf-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_CONNECTDEVELOP . 'Beneficiaries</a>
+          <ul>';
+      $menu_output .= $benef_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * CRM
+   */
+  if (hrm_administration_features_is_enabled(HRM_VAR_ADMIN_FEATURES_CRM)) {
+    if (user_access(HRM_PERM_CRM_ACCESS_CRM_MENU)) {
+      $crm_menue = '';
+      if (isset($permissions[HRM_PERM_DONOR_ACCESS_DONORS])) {
+        $donor_details_class = ((arg(0) == 'donor') ? 'active' : '');
+        $crm_menue .= '<li>' . l('Donors', 'donor', array('attributes' => array('class' => array($donor_details_class)), 'html' => TRUE)) . '</li>';
+      }
+      if (isset($permissions[HRM_PERM_AGENCY_ACCESS])) {
+        $agency_details_class = ((arg(0) == 'agency') ? 'active' : '');
+        $crm_menue .= '<li>' . l('Agencies', 'agency', array('attributes' => array('class' => array($agency_details_class)), 'html' => TRUE)) . '</li>';
+      }
+      if (isset($permissions[HRM_PERM_SM_ACCESS])) {
+        $service_mapping_details_class = ((arg(0) == 'service-mapping') ? 'active' : '');
+        $crm_menue .= '<li>' . l('Service Mapping', 'service-mapping', array('attributes' => array('class' => array($service_mapping_details_class)), 'html' => TRUE)) . '</li>';
+      }
+      if ($crm_menue != '') {
+        $menu_output .= '
+        <li class="hr-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_TH . 'CRM</a>
+          <ul>';
+        $menu_output .= $crm_menue;
+        $menu_output .= '</ul></li>';
+      }
+    }
+  }
+
+  /*
+   * Monitoring and Evalution
+   */
+  if (isset($permissions[HRM_PERM_ME_ACCESS_ME_MENU])) {
+    $me_menue = '';
+    if (isset($permissions[HRM_PERM_ME_PDM_ACCESS])) {
+      $pdm_details_class = ((arg(0) == 'me' && arg(1) == 'pdm') ? 'active' : '');
+      $me_menue .= '<li>' . l('Post Data Monitoring', 'me/pdm', array('attributes' => array('class' => array($pdm_details_class)), 'html' => TRUE)) . '</li>';
+    }
+    if ($crm_menue != '') {
+      $menu_output .= '
+        <li class="hr-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_MONITOR_HEART_RATE . 'Monitoring & Eval</a>
+          <ul>';
+      $menu_output .= $me_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+
+  /*
+   * COMMUNICATION
+   */
+  if (isset($permissions[HRM_PERM_COMM_ACCESS_COMM_MENU])) {
+
+    $comm_menue = '';
+    if (isset($permissions[HRM_PERM_SS_ACCESS_SUCCESS_STORIES]) ||
+        isset($permissions[HRM_PERM_SS_VIEW_PUBLISHED_SUCCESS_STORIES])) {
+
+      $success_story_menue = '';
+      if (isset($permissions[HRM_PERM_SS_ACCESS_SUCCESS_STORIES])) {
+        $success_story_details_active_class = ((arg(0) == 'success-story') && ((arg(1) != 'add')) ? 'active' : '');
+        $success_story_menue .= '<li>' . l('Stories Management', 'success-story/all', array('attributes' => array('class' => array($success_story_details_active_class)), 'html' => TRUE)) . '</li>';
+      }
+
+      if (isset($permissions[HRM_PERM_SS_VIEW_PUBLISHED_SUCCESS_STORIES])) {
+        $success_storeies_active_class = ((arg(0) == 'success-stories') ? 'active' : '');
+        $success_story_menue .= '<li>' . l('Published Stories', 'success-stories', array('attributes' => array('class' => array($success_storeies_active_class)), 'html' => TRUE)) . '</li>';
+      }
+
+      if ($success_story_menue != '') {
+        $comm_menue .= '
+          <li class="parent">
+            <a href="#" class="sidebar-nav-submenu">' . HRM_FA_ANGEL_LEFT . 'Success Stories</a>
+            <ul>';
+        $comm_menue .= $success_story_menue;
+        $comm_menue .= '</ul></li>';
+      }
+    }
+
+    if ($comm_menue != '') {
+      $menu_output .= '
+        <li class="comm-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_COMMENTS . 'Communication</a>
+          <ul>';
+      $menu_output .= $comm_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * HUMAN RESOURCES
+   */
+  if (isset($permissions[HRM_PERM_HR_ACCESS_HR_MENU])) {
+    $hr_menue = '';
+    if (isset($permissions[HRM_PERM_USER_ACCESS])) {
+      $user_details_active_class = ((arg(0) == 'hrm-users') && (!in_array(arg(1), array('emp-of-quarter', 'staff-performance'))) ? 'active' : '');
+      $hr_menue .= '<li>' . l('Users Management', 'hrm-users', array('attributes' => array('class' => array($user_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_USER_ACCESS_ORGANIZATION_CHART])) {
+      $hr_menue .= '<li>' . l('Organizational Chart', 'org-chart/' . HRM_ENTITY_USER, array('attributes' => array('class' => array()), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_USER_MANAGE_EMPLOYEE_OF_QUARTER])) {
+      $hr_menue .= '<li>' . l('Employee of Quarter', 'hrm-users/emp-of-quarter', array('html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_USER_ACCESS_STAFF_PERFORMANCE])) {
+      $hr_menue .= '<li>' . l('Staff Performance', 'hrm-users/staff-performance', array('html' => TRUE)) . '</li>';
+    }
+    //Staff Training
+    if (isset($permissions[HRM_PERM_TR_ACCESS_TRAININGS])) {
+      $training_details_active_class = ((arg(0) == 'training') ? 'active' : '');
+      $hr_menue .= '<li>' . l('Staff Trainings', 'training', array('attributes' => array('class' => array($training_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    //Trainers
+    if (isset($permissions[HRM_PERM_TR_ACCESS_TRAINERS])) {
+      $trainer_details_active_class = ((arg(0) == 'trainer') ? 'active' : '');
+      $hr_menue .= '<li>' . l('Trainers', 'trainer', array('attributes' => array('class' => array($trainer_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+
+    if ($hr_menue != '') {
+      $menu_output .= '
+        <li class="hr-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_USERS . 'Human Resources</a>
+          <ul>';
+      $menu_output .= $hr_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * FINANCE
+   */
+  if (isset($permissions[HRM_PERM_FINANCE_ACCESS_FINANCE_MENU])) {
+    $finance_menue = '';
+
+    if (isset($permissions[HRM_PERM_FINANCE_MANAGE_CHART_OF_ACCOUNTS])) {
+      $chart_of_accounts_active_class = ((arg(1) == 'chart-of-accounts') ? 'active' : '');
+      $finance_menue .= '<li>' . l('Chart of Accounts', 'finance/chart-of-accounts/' . HRM_TERM_KEY_COA_TYPE_PROJECT, array('attributes' => array('class' => array($chart_of_accounts_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_FINANCE_AFR_ACCESS_AFRS])) {
+      $afr_active_class = ((arg(0) == 'finance' && arg(1) == 'afr') ? 'active' : '');
+      $finance_menue .= '<li>' . l('Activity Financial Reports', 'finance/afr/0', array('attributes' => array('class' => array($afr_active_class)), 'html' => TRUE)) . '</li>';
+    }
+
+    if ($finance_menue != '') {
+      $menu_output .= '
+  <li class="finance-menu-section parent">
+    <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_CHART_LINE . 'Finance</a>
+    <ul>';
+      $menu_output .= $finance_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * REPORTS
+   */
+  $menu_output .= hrm_reports_get_reports_menu($account, $permissions);
+
+  /*
+   * Resources
+   */
+  if (isset($permissions[HRM_PERM_RESOURCE_MENU])) {
+    $resources_menue = '';
+    if (isset($permissions[HRM_PERM_RESOURCE_DOCUMENTS_ACCESS_DOCUMENTS])) {
+      $documents_details_active_class = ((arg(0) == 'resources' && arg(1) == 'documents') ? 'active' : '');
+      $resources_menue .= '<li>' . l('Documents', 'resources/documents/manuals', array('attributes' => array('class' => array($documents_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if (isset($permissions[HRM_PERM_RESOURCE_AGENDA_TEMPLATES_ACCESS_AGENDA_TEMPLATES])) {
+      $agenda_templates_details_active_class = ((arg(0) == 'resources' && arg(1) == 'agenda-templates') ? 'active' : '');
+      $resources_menue .= '<li>' . l('Agenda Templates', 'resources/agenda-templates', array('attributes' => array('class' => array($agenda_templates_details_active_class)), 'html' => TRUE)) . '</li>';
+    }
+    if ($resources_menue != '') {
+      $menu_output .= '
+        <li class="resource-menu-section parent">
+          <a href="#" class="sidebar-nav-menu">' . HRM_FA_ANGEL_LEFT . HRM_FA_DATABASE . '</i>Resources</a>
+          <ul>';
+      $menu_output .= $resources_menue;
+      $menu_output .= '</ul></li>';
+    }
+  }
+
+  /*
+   * Collect
+   */
+  $collect_feature_enabled = hrm_administration_features_is_enabled(HRM_VAR_ADMIN_FEATURES_COLLECT);
+  if ($collect_feature_enabled) {
+    $collect_menu = hrm_collect_get_main_menu();
+    if ($collect_menu) {
+      $menu_output .= $collect_menu;
+    }
+  }
+
+  $menu_output .= '</ul>';
+
+  return theme('block_sidebar_main_menu', array('menu_content' => $menu_output));
+}
+
+function hrm_backend_sidebar_emp_of_quarter_block() {
+  $current_year = date('Y', time());
+  $curent_month = date('m', time());
+  $current_quarter = floor(($curent_month - 1) / 3) + 1;
+
+  $emp_of_quarter = db_select('hrm_emp_of_quarter', 'emp_of_quarter')
+          ->fields('emp_of_quarter', array('id', 'year', 'quarter', 'emp_uid', 'image_fid', 'text', 'uid', 'created'))
+          ->condition('year', $current_year, '=')
+          ->condition('quarter', $current_quarter, '=')
+          ->execute()->fetch(PDO::FETCH_ASSOC);
+
+
+  if (!empty($emp_of_quarter)) {
+    $image_file = file_load($emp_of_quarter['image_fid']);
+    if ($image_file) {
+      $emp_name = hrm_basic_user_get_name($emp_of_quarter['emp_uid']);
+      $image_caption = $emp_of_quarter['text'];
+
+      return theme('block_sidebar_emp_of_quarter', array(
+        'image' => theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $image_file->uri, 'alt' => $emp_name, 'attributes' => array('class' => array('img-circle')))),
+        'image_url' => file_create_url($image_file->uri),
+        'image_caption' => $image_caption,
+        'emp_name' => $emp_name,
+        'year' => $emp_of_quarter['year'],
+        'quarter' => $emp_of_quarter['quarter']
+          )
+      );
+    }
+  }
+  return '';
+}
+
+/* ----------- Header Blocks ----------- */
+
+function hrm_backend_header_add_entity_block() {
+
+  $account = hrm_basic_account_get_info();
+  $permissions = hrm_basic_user_get_role_permissions($account['role']);
+
+  $content = '';
+  /* ------------------ Administration Section 1 ------------------ */
+  if (TRUE) {
+    $section_1_content = '';
+    if (isset($permissions[HRM_PERM_PROJECT_ADD_PROJECT])) {
+      $section_1_content .= l(HRM_FA_PROJECT_DIAGRAM . 'Project', 'project/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+    if (isset($permissions[HRM_PERM_USER_ADD])) {
+      $section_1_content .= l(HRM_FA_USER . 'User', 'hrm-users/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+    if (isset($permissions[HRM_PERM_OFFICE_ADD])) {
+      $section_1_content .= l(HRM_FA_BUILDING . 'Office', 'office/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+    if (isset($permissions[HRM_PERM_VENUE_ADD_VENUE])) {
+      $section_1_content .= l(HRM_FA_MAP_MARKER . 'Venue', 'hrm-modal', array('query' => array('action' => HRM_MODAL_VENUE_ADD), 'attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+    if (isset($permissions[HRM_PERM_INTER_DAY_ADD_INTER_DAY])) {
+      $section_1_content .= l(HRM_FA_GLOBE . 'International Day', 'hrm-modal', array('query' => array('action' => HRM_MODAL_INTER_DAY_ADD), 'attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+
+    if ($section_1_content != '') {
+      $content .= '<li>' . $section_1_content . '</li>';
+      $content .= '<li class="divider"></li>';
+    }
+  }
+
+  /* ------------------ CRM Section 2 ------------------ */
+  if (hrm_administration_features_is_enabled(HRM_VAR_ADMIN_FEATURES_CRM)) {
+    $section_2_content = '';
+
+    if (isset($permissions[HRM_PERM_DONOR_ADD_DONOR])) {
+      $section_2_content .= l(HRM_FA_DONOR . 'Donor', 'donor/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+    if (isset($permissions[HRM_PERM_AGENCY_ADD])) {
+      $section_2_content .= l(HRM_FA_BUILDING . 'Agency', 'agency/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+    if (isset($permissions[HRM_PERM_SM_ADD])) {
+      $section_2_content .= l(HRM_FA_SERVICE_MAPPING . 'Service Mapping', 'service-mapping/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+
+    if ($section_2_content != '') {
+      $content .= '<li>' . $section_2_content . '</li>';
+      $content .= '<li class="divider"></li>';
+    }
+  }
+
+
+  /* ------------------ Beneficiaries Section 3 ------------------ */
+  if (TRUE) {
+    $section_3_content = '';
+    if (isset($permissions[HRM_PERM_HH_ADD])) {
+      $section_3_content .= l(HRM_FA_SHOPPING_BASKET . 'Household', 'household/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+
+    if ($section_3_content != '') {
+      $content .= '<li>' . $section_3_content . '</li>';
+      $content .= '<li class="divider"></li>';
+    }
+  }
+
+  /* ------------------ Case Management Section 3 ------------------ */
+  if (TRUE) {
+    $section_3_content = '';
+    if (isset($permissions[HRM_PERM_CASE_ADD])) {
+      $section_3_content .= l(HRM_FA_TABLE . 'Case', 'case/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+
+    if ($section_3_content != '') {
+      $content .= '<li>' . $section_3_content . '</li>';
+      $content .= '<li class="divider"></li>';
+    }
+  }
+
+//Section 3
+  $section_3_content = '';
+//Activity 
+  if (isset($permissions[HRM_PERM_AC_ADD_ACTIVITY])) {
+    $section_3_content .= l(HRM_FA_BULLHORN . 'Activity', 'activity/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+  }
+  //Training 
+  if (isset($permissions[HRM_PERM_TR_ADD_TRAINING])) {
+    $section_3_content .= l(HRM_FA_GRADUATION_CAP . 'Staff Training', 'training/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+  }
+  if (isset($permissions[HRM_PERM_TR_ADD_TRAINER])) {
+    $section_3_content .= l(HRM_FA_USER_ALT . 'Trainer', 'trainer/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+  }
+
+  if ($section_3_content != '') {
+    $content .= '<li>' . $section_3_content . '</li>';
+    $content .= '<li class="divider"></li>';
+  }
+
+//Section 4
+  $section_4_content = '';
+//Success Story 
+  if (isset($permissions[HRM_PERM_SS_ADD_SUCCESS_STORY])) {
+    $section_4_content .= l(HRM_FA_CROWN . 'Success Story', 'success-story/add', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+  }
+  if ($section_4_content != '') {
+    $content .= '<li>' . $section_4_content . '</li>';
+  }
+
+  //Response Collect
+  if (hrm_administration_features_is_enabled(HRM_VAR_ADMIN_FEATURES_COLLECT)) {
+    //Section 5
+    $section_5_content = '';
+    //Survey
+    if (isset($permissions[HRM_PERM_COLLECT_ADD_SURVEY])) {
+      $section_5_content .= l(HRM_FA_MOBILE . 'Survey', 'collect/survey/build/0/info', array('attributes' => array('class' => array('animation-slideDown')), 'html' => TRUE));
+    }
+    if ($section_5_content != '') {
+      $content .= '<li>' . $section_5_content . '</li>';
+      $content .= '<li class="divider"></li>';
+    }
+  }
+
+  //Logistics
+  if (hrm_administration_features_is_enabled(HRM_VAR_ADMIN_FEATURES_LOGISTICS)) {
+    //Section 6
+    $section_6_content = '';
+
+    if ($section_6_content != '') {
+      $content .= '<li>' . $section_6_content . '</li>';
+      $content .= '<li class="divider"></li>';
+    }
+  }
+
+
+
+  $output = '';
+  if ($content != '') {
+    $output .= '<div class="header-add-wrapper">';
+    $output .= '<ul class="nav navbar-nav-custom">';
+    $output .= '<li class="dropdown">';
+    $output .= '<a href="javascript:void(0)" class="dropdown-toggle header-add-btn trans-color trans-all-04s" data-toggle="dropdown">' . HRM_FA_PLUS . '</a>';
+    $output .= '<ul class="dropdown-menu dropdown-custom dropdown-menu-right">';
+    $output .= '<li class="dropdown-header text-center btn-fa">' . strtr(HRM_FA_PLUS, array('extra_class' => 'text-success')) . 'Add</li>';
+    $output .= $content;
+    $output .= '</ul>';
+    $output .= '</li>';
+    $output .= '</ul>';
+    $output .= '</div>';
+  }
+
+  if (isset($permissions[HRM_PERM_EN_AUTOSAVE_ACCESS])) {
+    $autosave_filters = array();
+    if (isset($permissions[HRM_PERM_EN_AUTOSAVE_ACCESS_ASSIGNED_PROJECTS])) {
+      $autosave_filters[] = array('field' => 'project', 'value' => $account['projects'], 'operator' => 'IN');
+    }
+    if (isset($permissions[HRM_PERM_EN_AUTOSAVE_ACCESS_ASSIGNED_OFFICES])) {
+      $autosave_filters[] = array('field' => 'office', 'value' => $account['offices'], 'operator' => 'IN');
+    }
+    if (isset($permissions[HRM_PERM_EN_AUTOSAVE_ACCESS_ASSIGNED_PROJECTS_OFFICES])) {
+      $autosave_filters[] = array('field' => 'project', 'value' => $account['projects'], 'operator' => 'IN');
+      $autosave_filters[] = array('field' => 'office', 'value' => $account['offices'], 'operator' => 'IN');
+    }
+    if (isset($permissions[HRM_PERM_EN_AUTOSAVE_ACCESS_OWN])) {
+      $autosave_filters[] = array('field' => 'uid', 'value' => $account['uid'], 'operator' => '=');
+    }
+
+    $query = db_select('hrm_entity_autosave');
+    $query->addExpression('COUNT(*)', 'autosave_count');
+    foreach ($autosave_filters as $filter) {
+      $query->condition($filter['field'], $filter['value'], $filter['operator']);
+    }
+    $autosave_count = $query->execute()->fetchField(0);
+
+    $autosave_link_text = HRM_FA_SAVE;
+    if ($autosave_count) {
+      $autosave_link_text .= '<span class="label label-warning label-indicator header-notification-number">' . $autosave_count . '</span>';
+    }
+    $autosave_content = '<div class="header-autosave-wrapper">';
+    $autosave_content .= l($autosave_link_text, 'entity/autosave', array('attributes' => array('class' => array('trans-all-04s')), 'html' => TRUE));
+    $autosave_content .= '</div>';
+
+    $output .= $autosave_content;
+  }
+  return $output;
+}
+
+function hrm_backend_header_user_account_block() {
+  $account_info = hrm_basic_account_get_info();
+
+  return theme('block_header_user_account', array(
+    'uid' => $account_info['uid'],
+    'name' => $account_info['name'],
+    'title' => $account_info['title'],
+    'photo' => theme('image_style', array('style_name' => HRM_IMAGE_STYLE_150_150, 'path' => $account_info['photo_uri'], 'alt' => $account_info['name'], 'title' => $account_info['name'], 'attributes' => array('class' => array('img-circle', 'img-opacity')))),
+      )
+  );
+}
+
+/* ----------- Footer Blocks ----------- */
+
+function hrm_backend_footer_message_block() {
+  $response_logo = '';
+  $response_logo_data = variable_get(HRM_VAR_ADMIN_INTERFACE_FOOTER_RESPONSE_LOGO, 0);
+  if (!empty($response_logo_data) && isset($response_logo_data['uri'])) {
+    $response_logo = theme('image', array('path' => $response_logo_data['uri']));
+  }
+
+  $release = variable_get(HRM_VAR_ADMIN_IMPACT_RELEASE, '');
+
+  $changelog_html_id = hrm_basic_changelog_get_html_id();
+  $response_link = l('Response Information Management Technology ' . $response_logo, 'http://response-tech.com/', array('attributes' => array('class' => array('response-footer-link'), 'target' => '_blank'), 'html' => TRUE));
+
+  $footer_message = '<div>';
+  $footer_message .= 'Powered by ' . $response_link . '&#169; ' . date('Y') . ' ';
+  $footer_message .= '<strong>IMPACT</strong><sup>&#174;</sup> All Rights Reserved. ';
+  $footer_message .= 'RELEASE <strong>' . $release . '</strong>';
+  $footer_message .= ($changelog_html_id ? ' <a href="#" class="changelog-view-btn strong">Changelog</a>' : '');
+  $footer_message .= '</div>';
+  return $footer_message;
+}
+
+/*
+ * Forms validation
+ */
+
+function element_validate_number_comma($element, &$form_state) {
+  $value = str_replace(',', '', $element['#value']);
+
+  if ($value != '' && !is_numeric($value)) {
+    form_error($element, t('%name must be a number.', array('%name' => $element['#title'])));
+  }
+}
+
+/*
+ * Serial Number serach block
+ */
+
+function hrm_backend_header_sn_search_block() {
+  $output = drupal_get_form('hrm_backend_sn_search_form');
+  return $output;
+}
+
+function hrm_backend_sn_search_form($form, &$form_state) {
+  $form['sn'] = array(
+    '#type' => 'textfield',
+    '#title' => 'SN',
+    '#title_display' => 'invisible',
+    '#attributes' => array('class' => array('sn-search-input'), 'placeholder' => 'Search by Serial Number', 'autocomplete' => 'off'),
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Search'));
+
+  $form['#attributes']['class'][] = 'sn-search-form';
+
+  return $form;
+}
+
+function hrm_backend_sn_search_form_submit(&$form, &$form_state) {
+  $sn = $form_state['values']['sn'];
+
+  if (!empty($sn)) {
+    $data = db_select('hrm_entity_sn_mapping', 'entity_sn_mapping')
+            ->fields('entity_sn_mapping', array('id', 'sn', 'entity', 'entity_id', 'created'))
+            ->condition('sn', $sn, '=')
+            ->execute()->fetch(PDO::FETCH_ASSOC);
+    if (!empty($data)) {
+      $form_state['input'] = array();
+      $form_state['rebuild'] = TRUE;
+
+      $entity_path = hrm_basic_entity_get_entity_details_path($data['entity'], $data['entity_id']);
+      drupal_goto($entity_path);
+    }
+  }
+
+  $form_state['input'] = array();
+  $form_state['rebuild'] = TRUE;
+
+  drupal_set_message('Invalid or not found serial number', 'error');
+  drupal_goto(current_path());
+}
+
+/*
+ * Help Block
+ */
+
+function hrm_backend_header_help_block() {
+  $output = '<div class="header-help-wrapper">';
+  $output .= '<a href="javascript:void(0)" class="header-help-btn trans-color">' . HRM_FA_QUESTION_CIRCLE . '</i></a>';
+  $output .= '</div>';
+  return $output;
+}
+
+/*
+ * General functions
+ */
+
+function hrm_backend_filter_form_reset(&$form, &$form_state) {
+  $path = current_path();
+
+  drupal_goto($path);
+}
+
+/**
+ * callback function for all ajax requestes
+ */
+function hrm_backend_ajax_filter_form_submit($contents, $filters_counter) {
+  $commands = array();
+
+  $commands[] = ajax_command_invoke('.custom-dropdown', 'addClass', array('filters-enabled'));
+  if ($filters_counter) {
+    $commands[] = ajax_command_invoke('.custom-dropdown .label-indicator', 'removeClass', array('hidden'));
+  }
+  else {
+    $commands[] = ajax_command_invoke('.custom-dropdown .label-indicator', 'addClass', array('hidden'));
+  }
+
+  $commands[] = ajax_command_invoke('.custom-dropdown', 'removeClass', array('open'));
+  $commands[] = ajax_command_invoke('.custom-dropdown .custom-dropdown-btn .custom-dropdown-btn-icon', 'removeClass', array('fa-angle-up'));
+  $commands[] = ajax_command_invoke('.custom-dropdown .custom-dropdown-btn .custom-dropdown-btn-icon', 'addClass', array('fa-angle-down'));
+  $commands[] = ajax_command_html('.custom-dropdown .label-indicator', $filters_counter);
+
+  if (!empty($contents)) {
+    foreach ($contents as $content) {
+      $commands[] = ajax_command_html($content['selector'], $content['html']);
+    }
+  }
+
+  print ajax_render($commands);
+  exit;
+}
+
+function hrm_backend_ajax_filter_form_reset(&$form, &$form_state) {
+  $path = $_SERVER['HTTP_REFERER'];
+
+  $commands = array();
+  $commands[] = ctools_ajax_command_redirect($path);
+  print ajax_render($commands);
+  exit;
+}
+
+function hrm_backend_ajax_form_callback(&$form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+  return $form;
+}
+
+function hrm_backend_ajax_callback($type = "ajax", $action) {
+  $args = func_get_args();
+  $action = $args[1];
+
+  if (empty($action)) {
+    exit();
+  }
+  if ($type == "ajax") {
+    switch ($action) {
+      case HRM_AJAX_EN_REVIEW_ADD:
+        $entity = $args[2];
+        $entity_id = $args[3];
+        $review_form = drupal_get_form('hrm_backend_entity_review_form', $entity, $entity_id);
+        $review_form_output = drupal_render($review_form);
+        $close_review_form_link = l(HRM_FA_TIMES . 'Close Review Form', 'hrm-ajax/nojs/' . HRM_AJAX_EN_REVIEW_CLOSE . '/' . $entity . '/' . $entity_id, array('attributes' => array('id' => 'entity-review-close-btn', 'class' => array('btn', 'btn-sm', 'btn-danger', 'use-ajax')), 'html' => TRUE));
+        $commands = array();
+        $commands[] = ajax_command_replace('#entity-review-add-btn', $close_review_form_link);
+        $commands[] = ajax_command_html('#entity-review-form-wrapper .entity-review-form-container .introduction', '<p class="padding-10"><b>Objective of the Checklist</b>: This checklist is to be used by all staff when rating project activities. It should also be used by FFs when implementing and closing activities, so that they aware of minimum standards.</p>');
+        $commands[] = ajax_command_html('#entity-review-form-wrapper .entity-review-form-container .form', $review_form_output);
+        $commands[] = ajax_command_invoke('#entity-review-form-wrapper', 'slideDown');
+        print ajax_render($commands);
+        exit;
+        break;
+      case HRM_AJAX_EN_REVIEW_CLOSE:
+        $entity = $args[2];
+        $entity_id = $args[3];
+        $add_review_form_link = l(HRM_FA_PLUS . 'Submit Review', 'hrm-ajax/nojs/' . HRM_AJAX_EN_REVIEW_ADD . '/' . $entity . '/' . $entity_id, array('attributes' => array('id' => 'entity-review-add-btn', 'class' => array('btn', 'btn-sm', 'btn-success', 'use-ajax')), 'html' => TRUE));
+        $commands = array();
+        $commands[] = ajax_command_invoke('#entity-review-form-wrapper', 'slideUp');
+        $commands[] = ajax_command_replace('#entity-review-close-btn', $add_review_form_link);
+        //$commands[] = ajax_command_html('#entity-review-form-wrapper .entity-review-form-container .form', '');
+        //$commands[] = ajax_command_html('#entity-review-form-wrapper .entity-review-form-container .introduction', '');
+
+        print ajax_render($commands);
+        exit;
+        break;
+
+      case "jquery-validate":
+        hrm_backend_jquery_validate();
+        break;
+      case "entity-add-tracker":
+        $entity = $args[2];
+        $entity_id = $args[3];
+        $add_tracker_form = drupal_get_form('hrm_backend_entity_tracker_form', $entity, $entity_id, 0);
+        $add_tracker_form_output = drupal_render($add_tracker_form);
+        $commands = array();
+        $commands[] = ajax_command_html('#tracker-form-wrapper', $add_tracker_form_output);
+        $commands[] = ajax_command_html('#add-tracker-controls-wrapper', '');
+        print ajax_render($commands);
+        exit;
+      case "entity-edit-tracker":
+        $entity = $args[2];
+        $entity_id = $args[3];
+        $tid = $args[4];
+        $add_tracker_form = drupal_get_form('hrm_backend_entity_tracker_form', $entity, $entity_id, $tid);
+        $add_tracker_form_output = drupal_render($add_tracker_form);
+        $commands = array();
+        $commands[] = ajax_command_html('#tracker-form-wrapper', $add_tracker_form_output);
+        $commands[] = ajax_command_html('#add-tracker-controls-wrapper', '');
+        print ajax_render($commands);
+        exit;
+      case "entity-close-tracker":
+        $entity = $args[2];
+        $entity_id = $args[3];
+        $add_tracker_controls_output = l('New', 'hrm-ajax/nojs/entity-add-tracker/' . $entity . '/' . $entity_id, array('attributes' => array('class' => array('btn', 'btn-sm', 'btn-success', 'use-ajax'))));
+        $commands = array();
+        $commands[] = ajax_command_html('#tracker-form-wrapper', '');
+        $commands[] = ajax_command_html('#add-tracker-controls-wrapper', $add_tracker_controls_output);
+        print ajax_render($commands);
+        exit;
+      default:
+        break;
+    }
+    exit();
+  }
+  else {
+    return "Ajax Error";
+  }
+}
+
+function hrm_backend_nojs_callback($action) {
+  $args = func_get_args();
+
+  switch ($action) {
+    case "delete-focal-point":
+      $entity = $args[1];
+      $entity_id = $args[2];
+      $fpid = $args[3];
+      hrm_backend_focal_point_ajax_delete($entity, $entity_id, $fpid, 'nojs');
+      break;
+    case "test":
+      return drupal_json_output('othman');
+
+      break;
+    default:
+      drupal_goto($_SERVER['HTTP_REFERER']);
+      break;
+  }
+}
+
+function hrm_backend_modal_access_denied() {
+  drupal_set_title(t('Access denied'));
+
+  $commands = ctools_automodal_page_render('You are not authorized to access this page.');
+
+  print ajax_render($commands);
+  exit();
+}
+
+function hrm_backend_modal_not_found() {
+  drupal_set_title(t('Not found'));
+
+  $commands = ctools_automodal_page_render('Requsted content not found.');
+
+  print ajax_render($commands);
+  exit();
+}
+
+function hrm_backend_jquery_validate() {
+  $type = filter_input(INPUT_POST, 'type', FILTER_SANITIZE_STRING);
+  switch ($type) {
+    case 'email-check':
+      $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_STRING);
+      $uid = filter_input(INPUT_POST, 'uid', FILTER_SANITIZE_STRING);
+      $email_exist = db_query("SELECT COUNT(*) FROM {users} WHERE LOWER(mail) = '" . strtolower($email) . "' AND uid NOT IN (" . $uid . ")")->fetchField(0);
+      if ($email_exist) {
+        echo "false";
+      }
+      else {
+        echo "true";
+      }
+      break;
+    case 'project-code-check':
+      $code = filter_input(INPUT_POST, 'code', FILTER_SANITIZE_STRING);
+      $pid = filter_input(INPUT_POST, 'pid', FILTER_SANITIZE_STRING);
+      $unique = hrm_basic_code_project_code_is_unique($code, $pid);
+      if ($unique) {
+        echo "true";
+      }
+      else {
+        echo "false";
+      }
+      break;
+    case 'donor-code-check':
+      $code = filter_input(INPUT_POST, 'code', FILTER_SANITIZE_STRING);
+      $did = filter_input(INPUT_POST, 'did', FILTER_SANITIZE_STRING);
+      $unique = hrm_basic_code_donor_code_is_unique($code, $did);
+      if ($unique) {
+        echo "true";
+      }
+      else {
+        echo "false";
+      }
+      break;
+    case 'activity-code-check':
+      $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_STRING);
+      $code = filter_input(INPUT_POST, 'code', FILTER_SANITIZE_STRING);
+      $unique = hrm_basic_code_activity_code_is_unique($code, $id);
+      if ($unique) {
+        echo "true";
+      }
+      else {
+        echo "false";
+      }
+      break;
+    case 'account-code-check':
+      $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_STRING);
+      $code = filter_input(INPUT_POST, 'code', FILTER_SANITIZE_STRING);
+      $unique = hrm_basic_code_account_code_is_unique($code, $id);
+      if ($unique) {
+        echo "true";
+      }
+      else {
+        echo "false";
+      }
+      break;
+  }
+}
+
+function hrm_backend_modal_nojs() {
+  $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
+  switch ($action) {
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_ADD:
+      $logframe_id = filter_input(INPUT_GET, 'logframe_id', FILTER_SANITIZE_STRING);
+      $project_id = db_select('hrm_logframe', 'hrm_logframe')
+              ->fields('hrm_logframe', array('project'))
+              ->condition('lfid', $logframe_id, '=')
+              ->execute()->fetchField(0);
+      drupal_goto('logframe/details/' . $logframe_id . '/' . $project_id, array('query' => array('tab' => HRM_TAB_PMF)));
+      break;
+  }
+}
+
+/**
+ * Calbback for modals menu item
+ */
+function hrm_backend_modal() {
+  $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
+  $output = '';
+
+  switch ($action) {
+    case HRM_MODAL_DESCRIPTION:
+      $title = filter_input(INPUT_GET, 'title', FILTER_DEFAULT);
+      $content = filter_input(INPUT_GET, 'content', FILTER_DEFAULT);
+      drupal_set_title($title, PASS_THROUGH);
+      $output = check_markup($content, 'full_html');
+      break;
+
+    /*
+     * ==================================
+     * Entity Callbacks
+     * ==================================
+     */
+    /* ---------------Pictures--------------- */
+    case HRM_MODAL_EN_PHOTO_ADD:
+      if (!user_access(HRM_PERM_EN_PHOTO_ADD)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $data = array();
+      if (filter_input(INPUT_GET, 'data')) {
+        $data = unserialize(filter_input(INPUT_GET, 'data'));
+      }
+
+      $output = drupal_get_form("hrm_backend_entity_photo_add_photos_form", $entity, $entity_id, $data);
+      break;
+    case HRM_MODAL_EN_PHOTO_EDIT:
+      if (!user_access(HRM_PERM_EN_PHOTO_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $photo_id = filter_input(INPUT_GET, 'photo_id', FILTER_SANITIZE_STRING);
+      if (!$photo_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form("hrm_backend_entity_photo_edit_photo_form", $photo_id);
+      break;
+
+    /* ---------------Documents--------------- */
+    case HRM_MODAL_EN_DOCUMENTS_ADD:
+      if (!user_access(HRM_PERM_EN_DOCUMENT_ADD)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $data = array();
+      if (filter_input(INPUT_GET, 'data')) {
+        $data = unserialize(filter_input(INPUT_GET, 'data'));
+      }
+
+      $output = drupal_get_form("hrm_backend_entity_document_add_documents_form", $entity, $entity_id, $data);
+      break;
+    case HRM_MODAL_EN_DOCUMENTS_EDIT:
+      if (!user_access(HRM_PERM_EN_DOCUMENT_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $document_id = filter_input(INPUT_GET, 'document_id', FILTER_SANITIZE_STRING);
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+
+      $data = array();
+      if (filter_input(INPUT_GET, 'data')) {
+        $data = unserialize(filter_input(INPUT_GET, 'data'));
+      }
+
+      $output = drupal_get_form("hrm_backend_entity_document_edit_document_form", $document_id, $entity, $entity_id, $data);
+      break;
+    case HRM_MODAL_EN_DOCUMENTS_EDIT_INLINE:
+      if (!user_access(HRM_PERM_EN_DOCUMENT_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+      $document_id = filter_input(INPUT_GET, 'document_id', FILTER_SANITIZE_STRING);
+
+      $output = drupal_get_form('hrm_backend_entity_document_edit_inline_document_form', $document_id);
+      break;
+    case HRM_MODAL_EN_DOCUMENTS_DELETE_INLINE:
+      if (!user_access(HRM_PERM_EN_DOCUMENT_DELETE)) {
+        hrm_backend_modal_access_denied();
+      }
+      $document_id = filter_input(INPUT_GET, 'document_id', FILTER_SANITIZE_STRING);
+
+      $output = drupal_get_form('hrm_backend_entity_document_delete_inline_document_form', $document_id);
+      break;
+    /* ---------------Entity Management--------------- */
+    case HRM_MODAL_EN_APPROVE_FORM:
+
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $status = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      $log_action = filter_input(INPUT_GET, 'log', FILTER_SANITIZE_STRING);
+      $tab = filter_input(INPUT_GET, 'tab', FILTER_SANITIZE_STRING);
+
+
+      if (!$entity || !$entity_id || !$status || !$action_perm || !$log_action) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+      if (!$tab) {
+        $tab = '';
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_forms_approve_form', $entity, $entity_id, $status, $action_perm, $log_action, $tab);
+      break;
+    case HRM_MODAL_EN_REJECT_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $status = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      $log_action = filter_input(INPUT_GET, 'log', FILTER_SANITIZE_STRING);
+      $tab = filter_input(INPUT_GET, 'tab', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$status || !$action_perm || !$log_action) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+      if (!$tab) {
+        $tab = '';
+      }
+      $output = drupal_get_form('hrm_backend_entity_forms_reject_form', $entity, $entity_id, $status, $action_perm, $log_action, $tab);
+
+      break;
+    case HRM_MODAL_EN_OPEN_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$action_perm) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_forms_open_form', $entity, $entity_id, $action_perm);
+      break;
+    case HRM_MODAL_EN_CLOSE_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      $comments_required = filter_input(INPUT_GET, 'cr', FILTER_SANITIZE_STRING);
+      $comments_label = filter_input(INPUT_GET, 'cl', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$action_perm) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      if (!$comments_required) {
+        $comments_required = FALSE;
+      }
+      if (!$comments_label) {
+        $comments_label = 'Comments';
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_forms_close_form', $entity, $entity_id, $action_perm, $comments_required, $comments_label);
+      break;
+    case HRM_MODAL_EN_ACTIVATE_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$action_perm) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_forms_activate_form', $entity, $entity_id, $action_perm);
+      break;
+    case HRM_MODAL_EN_BLOCK_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$action_perm) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+      $output = drupal_get_form('hrm_backend_entity_forms_block_form', $entity, $entity_id, $action_perm);
+      break;
+    case HRM_MODAL_EN_CANCEL_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$action_perm) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_forms_cancel_form', $entity, $entity_id, $action_perm);
+
+      break;
+    case HRM_MODAL_EN_REJECTION_JUSTIFICATION:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $status = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$status) {
+        hrm_backend_modal_not_found();
+      }
+
+      $title = 'Rejection <strong>Justification</strong>';
+      drupal_set_title($title, PASS_THROUGH);
+      $output = hrm_backend_entity_forms_rejection_justification($entity, $entity_id, $status);
+      break;
+    case HRM_MODAL_EN_CONCLUSUIN_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$action_perm) {
+        hrm_backend_modal_not_found();
+      }
+
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_conclusion_form', $entity, $entity_id, $action_perm);
+
+      break;
+    case HRM_MODAL_EN_RATE_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      if (!$entity || !$entity_id || !$action_perm) {
+        hrm_backend_modal_not_found();
+      }
+
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+      $output = drupal_get_form('hrm_backend_entity_rate_form', $entity, $entity_id);
+
+      break;
+
+    /* ---------------AFR--------------- */
+    case HRM_MODAL_EN_AFR_REJECT:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $afr_id = filter_input(INPUT_GET, 'afr_id', FILTER_SANITIZE_STRING);
+
+      if (!$entity || !$entity_id || !$afr_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $manage_afr_permission = hrm_backend_entity_afr_permission($entity, $entity_id, HRM_PERM_EN_AFR_MANAGE_AFR);
+      if ($manage_afr_permission) {
+        $output = drupal_get_form("hrm_backend_entity_afr_reject_afr_form", $entity, $entity_id, $afr_id);
+      }
+      else {
+        hrm_backend_modal_access_denied();
+      }
+      break;
+    case HRM_MODAL_EN_AFR_UPLOAD_REMAINING_RECEIPT:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $afr_id = filter_input(INPUT_GET, 'afr_id', FILTER_SANITIZE_STRING);
+
+
+      if (!$entity || !$entity_id || !$afr_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $close_afr_permission = hrm_backend_entity_afr_permission($entity, $entity_id, HRM_PERM_EN_AFR_CLOSE_AFR);
+      if ($close_afr_permission) {
+        $output = drupal_get_form('hrm_backend_entity_afr_remaining_receipt_form', $entity, $entity_id, $afr_id);
+      }
+      else {
+        hrm_backend_modal_access_denied();
+      }
+      break;
+    case HRM_MODAL_EN_AFR_TAGS:
+      $afr_item_id = filter_input(INPUT_GET, 'afr_item_id', FILTER_SANITIZE_STRING);
+
+      if (!$afr_item_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_afr_item_tags_form', $afr_item_id);
+
+      break;
+    case HRM_MODAL_EN_AFR_COMPLETE:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $afr_id = filter_input(INPUT_GET, 'afr_id', FILTER_SANITIZE_STRING);
+
+      if (!$entity || !$entity_id || !$afr_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      if (!user_access(HRM_PERM_EN_AFR_COMPLETE_AFR)) {
+        hrm_backend_modal_access_denied();
+      }
+      $output = drupal_get_form('hrm_backend_entity_afr_complete_afr_form', $entity, $entity_id, $afr_id);
+
+      break;
+
+    /* ---------------Attendance--------------- */
+    case HRM_MODAL_EN_ATTENDANCE_FORM:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $action_perm = filter_input(INPUT_GET, 'a-p', FILTER_SANITIZE_STRING);
+      $day_index = filter_input(INPUT_GET, 'day_index', FILTER_SANITIZE_STRING);
+      $day_timestamp = filter_input(INPUT_GET, 'day_timestamp', FILTER_SANITIZE_STRING);
+
+      if (!$entity || !$entity_id || !$action_perm || !is_numeric($day_index) || !$day_timestamp) {
+        hrm_backend_modal_not_found();
+      }
+
+      if (!user_access($action_perm)) {
+        hrm_backend_modal_access_denied();
+      }
+      $output = drupal_get_form('hrm_backend_entity_attendance_form', $entity, $entity_id, $action_perm, $day_index, $day_timestamp);
+
+      break;
+
+    /* ---------------Activity Timers--------------- */
+    case HRM_MODAL_EN_IMPLEMENTATION_MAP:
+      $tid = filter_input(INPUT_GET, 'tid', FILTER_SANITIZE_STRING);
+      if (!$tid) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = hrm_backend_entity_timer_display_implementation_map($tid);
+
+      break;
+
+    /* ---------------Cheque--------------- */
+    case HRM_MODAL_EN_CHEQUE_FOEM:
+      if (!user_access(HRM_PERM_FINANCE_CHEQUE_UPLOAD_FILE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $fid = filter_input(INPUT_GET, 'fid', FILTER_SANITIZE_STRING);
+
+      if (!$entity || !$entity_id) {
+        hrm_backend_modal_not_found();
+      }
+      $title = 'Upload <strong> Cheque File</strong>';
+      if ($fid) {
+        $title = 'Edit <strong> Cheque File</strong>';
+      }
+      drupal_set_title($title, PASS_THROUGH);
+      $output = drupal_get_form("hrm_backend_entity_financial_proposal_cheque_form", $entity, $entity_id, $fid);
+      break;
+
+    /* ---------------Linking--------------- */
+    case HRM_MODAL_EN_LINKING:
+
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+      $linked_entity = filter_input(INPUT_GET, 'linked_entity', FILTER_SANITIZE_STRING);
+
+      if (!$entity || !$entity_id || !$linked_entity) {
+        hrm_backend_modal_not_found();
+      }
+
+      if ($linked_entity == HRM_ENTITY_SURVEY) {
+        if (!user_access(HRM_PERM_EN_SURVEY_LINKING_MANAGE)) {
+          hrm_backend_modal_access_denied();
+        }
+
+        $title = 'Surveys <strong>Linking</strong>';
+        drupal_set_title($title, PASS_THROUGH);
+        $output = drupal_get_form('hrm_backend_entity_general_survey_linking_form', $entity, $entity_id);
+      }
+      break;
+
+    /* ---------------Linking--------------- */
+    case HRM_MODAL_EN_MANAGE_STAFF:
+
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+
+      if (!$entity || !$entity_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      if (!user_access(HRM_PERM_EN_STAFF_MANAGE_ENTITY)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $title = 'Manage <strong> Staff</strong>';
+      drupal_set_title($title, PASS_THROUGH);
+      $output = drupal_get_form('hrm_backend_entity_forms_staff_manage_staff_form', $entity, $entity_id);
+      break;
+
+    /* ---------------Revision--------------- */
+    case HRM_MODAL_EN_REVISION_VIEW:
+      $revision_id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+
+      if (!$revision_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = hrm_backend_entity_revision_display_revision_details($revision_id);
+      break;
+    case HRM_MODAL_EN_REVISION_REVERT:
+      $revision_id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+      if (!$revision_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_revision_revert_form', $revision_id);
+
+      break;
+
+    /* ---------------Collaborations--------------- */
+    case HRM_MODAL_EN_COLLAB_EDIT_POST:
+      if (!user_access(HRM_PERM_EN_COLLAB_EDIT_POST)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+      if (!$cid || !$pid) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_collab_post_edit_form', $cid, $pid);
+
+      break;
+    case HRM_MODAL_EN_COLLAB_DELETE_POST:
+      if (!user_access(HRM_PERM_EN_COLLAB_DELETE_POST)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+      if (!$cid || !$pid) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_collab_post_delete_form', $cid, $pid);
+
+      break;
+
+    /* ---------------Autosave--------------- */
+    case HRM_MODAL_EN_AUTOSAVE_DELETE_FORM:
+      if (!user_access(HRM_PERM_EN_AUTOSAVE_DELETE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+      if (!$id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_entity_autosave_entry_delete_form', $id);
+
+      break;
+
+    /* ---------------Display Map--------------- */
+    case HRM_MODAL_EN_MAP_APP_REPORT_MAP:
+      $tid = filter_input(INPUT_GET, 'tid', FILTER_SANITIZE_STRING);
+      $refid = filter_input(INPUT_GET, 'refid', FILTER_SANITIZE_STRING);
+      if (!$tid || !$refid) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = hrm_backend_entity_map_app_report_map($tid, $refid);
+
+      break;
+
+    /*
+     * ==================================
+     * Workspace
+     * ==================================
+     */
+
+    /*
+     * ==================================
+     * Administration
+     * ==================================
+     */
+    /* ---------------Office Callbacks--------------- */
+    case HRM_MODAL_OFFICE_DISTRICT_FORM:
+      if (!user_access(HRM_PERM_OFFICE_DISTRICT_MANAGE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $oid = filter_input(INPUT_GET, 'oid', FILTER_SANITIZE_STRING);
+      if (!$oid) {
+        hrm_backend_modal_not_found();
+      }
+
+      $did = filter_input(INPUT_GET, 'did', FILTER_SANITIZE_STRING);
+      if (!$did) {
+        $did = 0;
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/admin/backend_office');
+      $output = drupal_get_form('hrm_backend_office_district_form', $oid, $did);
+      break;
+
+    /* ---------------Focal points--------------- */
+    case HRM_MODAL_FOCAL_POINT_INFO:
+      $fpid = filter_input(INPUT_GET, 'fpid', FILTER_SANITIZE_STRING);
+
+      $output = hrm_backend_focal_point_display_focal_point_details($fpid);
+      break;
+    case HRM_MODAL_FOCAL_POINT_ADD:
+      $entity = filter_input(INPUT_GET, 'entity', FILTER_SANITIZE_STRING);
+      $entity_id = filter_input(INPUT_GET, 'entity_id', FILTER_SANITIZE_STRING);
+
+      $output = drupal_get_form('hrm_backend_focal_point_add_focal_point_form', $entity, $entity_id);
+      break;
+    case HRM_MODAL_FOCAL_POINT_EDIT:
+      $fpid = filter_input(INPUT_GET, 'fpid', FILTER_SANITIZE_STRING);
+
+      $output = drupal_get_form("hrm_backend_focal_point_edit_focal_point_form", $fpid);
+      break;
+
+    /* ---------------Venue Callbacks--------------- */
+    case HRM_MODAL_VENUE_ADD:
+      if (!user_access(HRM_PERM_VENUE_ADD_VENUE)) {
+        hrm_backend_modal_access_denied();
+      }
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/admin/backend_venue');
+      $partner = filter_input(INPUT_GET, 'partner', FILTER_SANITIZE_STRING);
+      if (!$partner) {
+        $partner = 0;
+      }
+      $output = drupal_get_form('hrm_backend_venue_add_venue_form', $partner);
+      break;
+    case HRM_MODAL_VENUE_EDIT:
+      $vid = filter_input(INPUT_GET, 'vid', FILTER_SANITIZE_STRING);
+      if (!$vid) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access(HRM_PERM_VENUE_EDIT_VENUE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/admin/backend_venue');
+      $output = drupal_get_form('hrm_backend_venue_edit_venue_form', $vid);
+      break;
+
+    /* ---------------International Day Callbacks--------------- */
+    case HRM_MODAL_INTER_DAY_INFO:
+      $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+      if (!$id) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access(HRM_PERM_INTER_DAY_ACCESS_INTER_DAYS)) {
+        hrm_backend_modal_access_denied();
+      }
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/admin/backend_international_day');
+      $output = hrm_backend_international_day_modal_international_day_info($id);
+      break;
+    case HRM_MODAL_INTER_DAY_ADD:
+      if (!user_access(HRM_PERM_INTER_DAY_ADD_INTER_DAY)) {
+        hrm_backend_modal_access_denied();
+      }
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/admin/backend_international_day');
+      $output = drupal_get_form("hrm_backend_international_day_add_international_day_form");
+      break;
+    case HRM_MODAL_INTER_DAY_EDIT:
+      $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+      if (!$id) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access(HRM_PERM_INTER_DAY_EDIT_INTER_DAY)) {
+        hrm_backend_modal_access_denied();
+      }
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/admin/backend_international_day');
+      $output = drupal_get_form("hrm_backend_international_day_edit_international_day_form", $id);
+      break;
+
+    /*
+     * ==================================
+     * Project Callbacks
+     * ==================================
+     */
+    case HRM_MODAL_PROJECT_BRANDING_FORM:
+      if (!user_access(HRM_PERM_PR_BRANDING_MANAGE_PROJECT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+      if (!$pid) {
+
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_project_branding_form', $pid);
+      break;
+    /* ---------------LogFrame--------------- */
+    case HRM_MODAL_PROJECT_LOGFRAME_ITEM_EDIT:
+      if (!user_access(HRM_PERM_LOGFRAME_MANAGE_LOGFRAME)) {
+        hrm_backend_modal_access_denied();
+      }
+      $logframe_item_id = filter_input(INPUT_GET, 'logframe_item_id', FILTER_SANITIZE_STRING);
+      if (!$logframe_item_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $logframe_id = db_query('SELECT lfid FROM {hrm_logframe_item} WHERE id = :id', array(':id' => $logframe_item_id))->fetchField(0);
+      if (!$logframe_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form("hrm_backend_logframe_edit_item_form", $logframe_id, $logframe_item_id);
+      break;
+    case HRM_MODAL_PROJECT_LOGFRAME_VIEW_REVISION:
+      if (!user_access(HRM_PERM_LOGFRAME_ACCESS_REVISIONS)) {
+        hrm_backend_modal_access_denied();
+      }
+      $revision_id = filter_input(INPUT_GET, 'revision_id', FILTER_SANITIZE_STRING);
+      if (!$revision_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = hrm_backend_logframe_revision_display_revision_details($revision_id);
+      break;
+    case HRM_MODAL_PROJECT_LOGFRAME_REVERT_REVISION:
+      if (!user_access(HRM_PERM_LOGFRAME_REVERT_REVISIONS)) {
+        hrm_backend_modal_access_denied();
+      }
+      $revision_id = filter_input(INPUT_GET, 'revision_id', FILTER_SANITIZE_STRING);
+      if (!$revision_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form("hrm_backend_logframe_revision_revert_revision_form", $revision_id);
+      break;
+    case HRM_MODAL_PROJECT_LOGFRAME_REJECT:
+      if (!user_access(HRM_PERM_LOGFRAME_REJECT_LOGFRAME)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      if (filter_input(INPUT_GET, 'lfid', FILTER_SANITIZE_STRING)) {
+        $lfid = filter_input(INPUT_GET, 'lfid', FILTER_SANITIZE_STRING);
+        $output = drupal_get_form('hrm_backend_logframe_reject_logframe_form', $lfid);
+      }
+      else {
+        hrm_backend_modal_not_found();
+      }
+      break;
+    case HRM_MODAL_PROJECT_LOGFRAME_REJECT_JUSTIFICATION:
+      $lfid = filter_input(INPUT_GET, 'lfid', FILTER_SANITIZE_STRING);
+      if ($lfid) {
+        $output = hrm_backend_logframe_reject_logframe_justification($lfid);
+      }
+      else {
+        hrm_backend_modal_not_found();
+      }
+
+      break;
+
+    /* ---------------PMF--------------- */
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_ADD:
+      if (!user_access(HRM_PERM_PMF_MANAGE_PMF)) {
+        hrm_backend_modal_access_denied();
+      }
+      $pmfid = filter_input(INPUT_GET, 'pmfid', FILTER_SANITIZE_STRING);
+      $logframe_id = filter_input(INPUT_GET, 'logframe_id', FILTER_SANITIZE_STRING);
+      $logframe_item_id = filter_input(INPUT_GET, 'logframe_item_id', FILTER_SANITIZE_STRING);
+
+      if (!$pmfid || !$logframe_id || !$logframe_item_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_pmf_indicator_form', $pmfid, $logframe_id, $logframe_item_id, 0);
+      break;
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_INFO:
+      if (!user_access(HRM_PERM_PMF_ACCESS_PMF)) {
+        hrm_backend_modal_access_denied();
+      }
+      $indicator_id = filter_input(INPUT_GET, 'indicator_id', FILTER_SANITIZE_STRING);
+
+      if (!$indicator_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = hrm_backend_pmf_display_pmf_indicator_info($indicator_id);
+      break;
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_EDIT:
+      if (!user_access(HRM_PERM_PMF_MANAGE_PMF)) {
+        hrm_backend_modal_access_denied();
+      }
+      $indicator_id = filter_input(INPUT_GET, 'indicator_id', FILTER_SANITIZE_STRING);
+      $pmfid = filter_input(INPUT_GET, 'pmfid', FILTER_SANITIZE_STRING);
+      $logframe_id = filter_input(INPUT_GET, 'logframe_id', FILTER_SANITIZE_STRING);
+      $logframe_item_id = filter_input(INPUT_GET, 'logframe_item_id', FILTER_SANITIZE_STRING);
+
+      if (!$indicator_id || !$pmfid || !$logframe_id || !$logframe_item_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_pmf_indicator_form', $pmfid, $logframe_id, $logframe_item_id, $indicator_id);
+      break;
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_DELETE:
+      if (!user_access(HRM_PERM_PMF_MANAGE_PMF)) {
+        hrm_backend_modal_access_denied();
+      }
+      $indicator_id = filter_input(INPUT_GET, 'indicator_id', FILTER_SANITIZE_STRING);
+
+      if (!$indicator_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form("hrm_backend_pmf_delete_indicator_form", $indicator_id);
+      break;
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_LOCK:
+      if (!user_access(HRM_PERM_PMF_MANAGE_PMF) || !user_access(HRM_PERM_PMF_INDICATOR_LOCK_UNLOCK)) {
+        hrm_backend_modal_access_denied();
+      }
+      $indicator_id = filter_input(INPUT_GET, 'indicator_id', FILTER_SANITIZE_STRING);
+
+      if (!$indicator_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_pmf_lock_indicator_form', $indicator_id);
+      break;
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_UNLOCK:
+      if (!user_access(HRM_PERM_PMF_MANAGE_PMF) || !user_access(HRM_PERM_PMF_INDICATOR_LOCK_UNLOCK)) {
+        hrm_backend_modal_access_denied();
+      }
+      $indicator_id = filter_input(INPUT_GET, 'indicator_id', FILTER_SANITIZE_STRING);
+
+      if (!$indicator_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_pmf_unlock_indicator_form', $indicator_id);
+      break;
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_OUTCOME:
+      if (!user_access(HRM_PERM_PMF_MANAGE_PMF_OUTCOME)) {
+        hrm_backend_modal_access_denied();
+      }
+      $indicator_id = filter_input(INPUT_GET, 'indicator_id', FILTER_SANITIZE_STRING);
+      $year = filter_input(INPUT_GET, 'year', FILTER_SANITIZE_STRING);
+
+      if (!$indicator_id || !($year >= 0)) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form("hrm_backend_pmf_indicator_outcome_form", $indicator_id, $year);
+      break;
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_UPDATE_VALUE:
+      if (!user_access(HRM_PERM_PMF_UPDATE_PMF_OUTCOME_VALUE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $outcome_id = filter_input(INPUT_GET, 'outcome_id', FILTER_SANITIZE_STRING);
+
+      if (!$outcome_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form("hrm_backend_pmf_indicator_outcome_update_value_form", $outcome_id);
+      break;
+    case HRM_MODAL_PROJECT_PMF_INDICATOR_VIEW_REVISIONS:
+      if (!user_access(HRM_PERM_PMF_UPDATE_PMF_OUTCOME_VALUE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $indicator_id = filter_input(INPUT_GET, 'indicator_id', FILTER_SANITIZE_STRING);
+      $outcome_id = filter_input(INPUT_GET, 'outcome_id', FILTER_SANITIZE_STRING);
+
+      if (!$outcome_id || !$indicator_id) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = hrm_basic_pmf_outcome_display_revisions($indicator_id, $outcome_id);
+      break;
+
+
+    /* ---------------Activity Callbacks--------------- */
+    case HRM_MODAL_AC_ATTENDANCE_SHEET_FORM:
+      $aid = filter_input(INPUT_GET, 'aid', FILTER_SANITIZE_STRING);
+      if (!$aid) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access(HRM_PERM_AC_MANAGE_ATTENDANCE_ACTIVITY)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/pm/backend_activity');
+      $output = drupal_get_form('hrm_backend_activity_attendance_sheet_form', $aid);
+      break;
+
+    /*
+     * ==================================
+     * Beneficiaries
+     * ==================================
+     */
+    /* ---------------Household--------------- */
+    case HRM_MODAL_HH_TRANSFER_FORM:
+      if (!user_access(HRM_PERM_HH_TRANSFER)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $hid = filter_input(INPUT_GET, 'hid', FILTER_SANITIZE_STRING);
+      if (!$hid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_household');
+      $output = drupal_get_form('hrm_backend_household_transfer_household_form', $hid);
+      break;
+    case HRM_MODAL_HH_SUBMIT_FORM:
+      if (!user_access(HRM_PERM_HH_SUBMIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $hid = filter_input(INPUT_GET, 'hid', FILTER_SANITIZE_STRING);
+      if (!$hid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_household');
+      $output = drupal_get_form('hrm_backend_household_submit_household_form', $hid);
+      break;
+    case HRM_MODAL_HH_DELETE_FORM:
+      if (!user_access(HRM_PERM_HH_DELETE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $hid = filter_input(INPUT_GET, 'hid', FILTER_SANITIZE_STRING);
+      if (!$hid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_household');
+      $output = drupal_get_form('hrm_backend_household_delete_household_form', $hid);
+      break;
+    //members
+    case HRM_MODAL_HH_MEMBER_INFO:
+      if (!user_access(HRM_PERM_HH_MEMBER_ACCESS)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $hid = filter_input(INPUT_GET, 'hid', FILTER_SANITIZE_STRING);
+      $mid = filter_input(INPUT_GET, 'mid', FILTER_SANITIZE_STRING);
+      if (!$hid || !$mid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_household');
+      $output = hrm_backend_household_display_member_info($hid, $mid);
+
+      break;
+    case HRM_MODAL_HH_MEMBER_BLOCK_FORM:
+      if (!user_access(HRM_PERM_HH_MEMBER_BLOCK)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $hid = filter_input(INPUT_GET, 'hid', FILTER_SANITIZE_STRING);
+      $mid = filter_input(INPUT_GET, 'mid', FILTER_SANITIZE_STRING);
+      if (!$hid || !$mid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_household');
+      $output = drupal_get_form('hrm_backend_household_member_block_form', $hid, $mid);
+      break;
+    case HRM_MODAL_HH_MEMBER_ACTIVATE_FORM:
+      if (!user_access(HRM_PERM_HH_MEMBER_ACTIVATE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $hid = filter_input(INPUT_GET, 'hid', FILTER_SANITIZE_STRING);
+      $mid = filter_input(INPUT_GET, 'mid', FILTER_SANITIZE_STRING);
+      if (!$hid || !$mid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_household');
+      $output = drupal_get_form('hrm_backend_household_member_activate_form', $hid, $mid);
+      break;
+    case HRM_MODAL_HH_MEMBER_DELETE_FORM:
+      if (!user_access(HRM_PERM_HH_MEMBER_DELETE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $hid = filter_input(INPUT_GET, 'hid', FILTER_SANITIZE_STRING);
+      $mid = filter_input(INPUT_GET, 'mid', FILTER_SANITIZE_STRING);
+      if (!$hid || !$mid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_household');
+      $output = drupal_get_form('hrm_backend_household_member_delete_form', $hid, $mid);
+      break;
+
+
+    /* ---------------Individuals Callbacks--------------- */
+    case HRM_MODAL_INDIVIDUAL_BLOCK:
+      if (!user_access(HRM_PERM_INDV_BLOCK)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $iid = filter_input(INPUT_GET, 'iid', FILTER_SANITIZE_STRING);
+      if (!$iid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_individual');
+      $output = drupal_get_form('hrm_backend_individual_block_individual_form', $iid);
+      break;
+    case HRM_MODAL_INDIVIDUAL_ACTIVATE:
+      if (!user_access(HRM_PERM_INDV_ACTIVATE)) {
+        hrm_backend_modal_access_denied();
+      }
+      $iid = filter_input(INPUT_GET, 'iid', FILTER_SANITIZE_STRING);
+      if (!$iid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_individual');
+      $output = drupal_get_form('hrm_backend_individual_activate_individual_form', $iid);
+      break;
+    case HRM_MODAL_INDIVIDUAL_TRANSFER:
+      if (!user_access(HRM_PERM_INDV_TRANSFER)) {
+        hrm_backend_modal_access_denied();
+      }
+      $iid = filter_input(INPUT_GET, 'iid', FILTER_SANITIZE_STRING);
+      if (!$iid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_individual');
+      $output = drupal_get_form('hrm_backend_individual_transfer_individual_form', $iid);
+
+      break;
+    case HRM_MODAL_INDIVIDUAL_DELETE:
+      if (!user_access(HRM_PERM_INDV_DELETE)) {
+        hrm_backend_modal_access_denied();
+      }
+      $iid = filter_input(INPUT_GET, 'iid', FILTER_SANITIZE_STRING);
+      if (!$iid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/benef/backend_individual');
+      $output = drupal_get_form('hrm_backend_individual_delete_individual_form', $iid);
+
+      break;
+
+    /*
+     * ==================================
+     * Case Management
+     * ==================================
+     */
+    case HRM_MODAL_CASE_ASSESSMENT_ASSIGN_FORM:
+      if (!user_access(HRM_PERM_CASE_ASSIGN_ASSESSMENT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_assign_in_dpth_assessment_form', $cid);
+      break;
+    case HRM_MODAL_CASE_ASSESSMENT_COMPLETE_FORM:
+      if (!user_access(HRM_PERM_CASE_UPDATE_ASSESSMENT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $aid = filter_input(INPUT_GET, 'aid', FILTER_SANITIZE_STRING);
+      if (!$cid || !$aid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_complete_in_dpth_assessment_form', $cid, $aid);
+      break;
+
+    case HRM_MODAL_CASE_SUBMIT_FORM:
+      if (!user_access(HRM_PERM_CASE_SUBMIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_submit_case_form', $cid);
+      break;
+    case HRM_MODAL_CASE_ACTIVATE_FORM:
+      if (!user_access(HRM_PERM_CASE_ACTIVATE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_activate_case_form', $cid);
+      break;
+    case HRM_MODAL_CASE_TRANSFER_FORM:
+      if (!user_access(HRM_PERM_CASE_TRANSFER)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_transfer_case_form', $cid);
+      break;
+    case HRM_MODAL_CASE_CLOSE_FORM:
+      if (!user_access(HRM_PERM_CASE_CLOSE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_close_case_form', $cid);
+      break;
+    case HRM_MODAL_CASE_ARCHIVE_FORM:
+      if (!user_access(HRM_PERM_CASE_ARCHIVE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_archive_case_form', $cid);
+      break;
+    //Case Services
+    case HRM_MODAL_CASE_SERVICE_ADD_FORM:
+      if (!user_access(HRM_PERM_CASE_SERVICE_ADD)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_service_form', $cid, 0);
+      break;
+    case HRM_MODAL_CASE_SERVICE_EDIT_FORM:
+      if (!user_access(HRM_PERM_CASE_SERVICE_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      if (!$cid || !$sid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_service_form', $cid, $sid);
+      break;
+    case HRM_MODAL_CASE_SERVICE_DELETE_FORM:
+      if (!user_access(HRM_PERM_CASE_SERVICE_DELETE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      if (!$cid || !$sid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_service_delete_form', $cid, $sid);
+      break;
+    case HRM_MODAL_CASE_SERVICE_UPDATE_STATUS_FORM:
+
+      if (!user_access(HRM_PERM_CASE_SERVICE_UPDATE_STATUS)) {
+        hrm_backend_modal_access_denied();
+      }
+
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      if (!$cid || !$sid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_service_update_status_form', $cid, $sid);
+      break;
+
+    //Service Followup
+    case HRM_MODAL_CASE_SERVICE_FOLLOWUP_ADD_FORM:
+      if (!user_access(HRM_PERM_CASE_SERVICE_ADD)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      if (!$cid || !$sid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_service_followup_add_form', $cid, $sid);
+      break;
+    case HRM_MODAL_CASE_SERVICE_FOLLOWUP_EDIT_FORM:
+      if (!user_access(HRM_PERM_CASE_SERVICE_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+      if (!$cid || !$sid || !$id) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_service_followup_edit_form', $cid, $sid, $id);
+      break;
+    case HRM_MODAL_CASE_SERVICE_FOLLOWUP_DELETE_FORM:
+      if (!user_access(HRM_PERM_CASE_SERVICE_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+      if (!$cid || !$sid || !$id) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_service_followup_delete_form', $cid, $sid, $id);
+      break;
+
+    //Cash Assistance
+    case HRM_MODAL_CASE_CASH_FORM:
+      if (!user_access(HRM_PERM_CASE_MANAGE_CASH)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_cash_form', $cid);
+      break;
+    case HRM_MODAL_CASE_CASH_EXCLUDE_FORM:
+      if (!user_access(HRM_PERM_CASE_CASH_MANAGE_EXC_INC)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+//      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_cash_exclude_form', $cid);
+      break;
+    case HRM_MODAL_CASE_CASH_INCLUDE_FORM:
+      if (!user_access(HRM_PERM_CASE_CASH_MANAGE_EXC_INC)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+//      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_cash_include_form', $cid);
+      break;
+
+    //Visits
+    case HRM_MODAL_CASE_VISIT_ASSIGN_FORM:
+      if (!user_access(HRM_PERM_CASE_MANAGE_VISIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_assign_visit_form', $cid);
+      break;
+    //Calls
+    case HRM_MODAL_CASE_CALL_ADD_FORM:
+      if (!user_access(HRM_PERM_CASE_MANAGE_CALL)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $cid = filter_input(INPUT_GET, 'cid', FILTER_SANITIZE_STRING);
+      if (!$cid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_case_call_form', $cid);
+      break;
+
+    /* ---------------Cash Assistance--------------- */
+    case HRM_MODAL_CASH_ASSIST_SUBMIT_FORM:
+      if (!user_access(HRM_PERM_CA_SUBMIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $caid = filter_input(INPUT_GET, 'caid', FILTER_SANITIZE_STRING);
+      if (!$caid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_cash_assist_submit_form', $caid);
+      break;
+    case HRM_MODAL_CASH_ASSIST_CLOSE_FORM:
+      if (!user_access(HRM_PERM_CA_CLOSE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $caid = filter_input(INPUT_GET, 'caid', FILTER_SANITIZE_STRING);
+      if (!$caid) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_cash_assist_close_form', $caid);
+      break;
+    case HRM_MODAL_CASH_ASSIST_LINE_EXCLUDE_FORM:
+      if (!user_access(HRM_PERM_CA_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $caid = filter_input(INPUT_GET, 'caid', FILTER_SANITIZE_STRING);
+      $lid = filter_input(INPUT_GET, 'lid', FILTER_SANITIZE_STRING);
+
+      if (!$caid || !$lid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_cash_assist_line_exclude_form', $caid, $lid);
+      break;
+    case HRM_MODAL_CASH_ASSIST_LINE_INCLUDE_FORM:
+      if (!user_access(HRM_PERM_CA_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $caid = filter_input(INPUT_GET, 'caid', FILTER_SANITIZE_STRING);
+      $lid = filter_input(INPUT_GET, 'lid', FILTER_SANITIZE_STRING);
+
+      if (!$caid || !$lid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_cash_assist_line_include_form', $caid, $lid);
+      break;
+    case HRM_MODAL_CASH_ASSIST_LINE_UPDATE_AMOUNT_FORM:
+      if (!user_access(HRM_PERM_CA_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $caid = filter_input(INPUT_GET, 'caid', FILTER_SANITIZE_STRING);
+      $lid = filter_input(INPUT_GET, 'lid', FILTER_SANITIZE_STRING);
+
+      if (!$caid || !$lid) {
+        hrm_backend_modal_not_found();
+      }
+
+
+      $output = drupal_get_form('hrm_backend_cash_assist_line_update_amount_form', $caid, $lid);
+      break;
+    case HRM_MODAL_CASH_ASSIST_LINE_UPDATE_PAYMENT_FORM:
+      if (!user_access(HRM_PERM_CA_EDIT)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $caid = filter_input(INPUT_GET, 'caid', FILTER_SANITIZE_STRING);
+      $lid = filter_input(INPUT_GET, 'lid', FILTER_SANITIZE_STRING);
+
+      if (!$caid || !$lid) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_cash_assist_line_update_payment_form', $caid, $lid);
+      break;
+    case HRM_MODAL_CASH_ASSIST_LINE_REFUND_FORM:
+      if (!user_access(HRM_PERM_CA_REFUND)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $caid = filter_input(INPUT_GET, 'caid', FILTER_SANITIZE_STRING);
+      $lid = filter_input(INPUT_GET, 'lid', FILTER_SANITIZE_STRING);
+
+      if (!$caid || !$lid) {
+        hrm_backend_modal_not_found();
+      }
+
+      $output = drupal_get_form('hrm_backend_cash_assist_line_refund_form', $caid, $lid);
+      break;
+
+    /* ---------------Protections--------------- */
+    case HRM_MODAL_PROT_REFERRAL_FORM:      
+      if (!user_access(HRM_PERM_PROT_REFERRAL_ADD) && !user_access(HRM_PERM_PROT_REFERRAL_EDIT)) {
+        hrm_backend_modal_access_denied();        
+      }
+
+      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+      $rid = filter_input(INPUT_GET, 'rid', FILTER_SANITIZE_STRING);
+      if (!$pid) {
+        hrm_backend_modal_not_found();
+      }
+      
+      if(!$rid){
+        $rid = 0;
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/case/backend_prot');
+      $output = drupal_get_form('hrm_backend_prot_referral_form', $pid, $rid);
+      break;
+    case HRM_MODAL_PROT_REFERRAL_UPDATE_STATUS_FORM:      
+      if (!user_access(HRM_PERM_PROT_REFERRAL_UPDATE_STATUS)) {
+        hrm_backend_modal_access_denied();        
+      }
+
+      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+      $rid = filter_input(INPUT_GET, 'rid', FILTER_SANITIZE_STRING);
+      if (!$pid || !$rid) {
+        hrm_backend_modal_not_found();
+      }
+      
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/case/backend_prot');
+      $output = drupal_get_form('hrm_backend_prot_referral_update_status_form', $pid, $rid);
+      break;
+      
+    /*
+     * ==================================
+     * HR
+     * ==================================
+     */
+    /* ---------------Users--------------- */
+    case HRM_MODAL_USER_ACTIVATE:
+
+      $uid = filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING);
+      if (!$uid) {
+        hrm_backend_modal_not_found();
+      }
+
+      if (!user_access(HRM_PERM_USER_ACTIVATE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/hr/backend_user');
+      $output = drupal_get_form('hrm_backend_user_activate_form', $uid);
+      break;
+
+    case HRM_MODAL_USER_BLOCK:
+
+      $uid = filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING);
+      if (!$uid) {
+        hrm_backend_modal_not_found();
+      }
+
+      if (!user_access(HRM_PERM_USER_BLOCK)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/hr/backend_user');
+      $output = drupal_get_form('hrm_backend_user_block_form', $uid);
+      break;
+
+    case HRM_MODAL_USER_EMP_OF_QUARTER:
+
+      $year = filter_input(INPUT_GET, 'year', FILTER_SANITIZE_STRING);
+      $quarter = filter_input(INPUT_GET, 'quarter', FILTER_SANITIZE_STRING);
+      if (!$year || !$quarter) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/hr/backend_user');
+      $output = drupal_get_form('hrm_backend_user_emp_of_quarter_form', $year, $quarter);
+      break;
+
+    /*
+     * ==================================
+     * FINANCE
+     * ==================================
+     */
+    /* ---------------Chart of accounts codes Callbacks--------------- */
+    case HRM_MODAL_COA_PROJECT_CODE:
+      if (!user_access(HRM_PERM_FINANCE_MANAGE_CHART_OF_ACCOUNTS)) {
+        hrm_backend_modal_access_denied();
+      }
+      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+      if (!$pid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/finance/backend_code');
+      $output = drupal_get_form('hrm_backend_code_project_code_form', $pid);
+      break;
+    case HRM_MODAL_COA_DONOR_CODE:
+      if (!user_access(HRM_PERM_FINANCE_MANAGE_CHART_OF_ACCOUNTS)) {
+        hrm_backend_modal_access_denied();
+      }
+      $did = filter_input(INPUT_GET, 'did', FILTER_SANITIZE_STRING);
+      if (!$did) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/finance/backend_code');
+      $output = drupal_get_form('hrm_backend_code_donor_code_form', $did);
+      break;
+    case HRM_MODAL_COA_ACTIVITY_CODE:
+      if (!user_access(HRM_PERM_FINANCE_MANAGE_ACTIVITY_CODES)) {
+        hrm_backend_modal_access_denied();
+      }
+      $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/finance/backend_code');
+
+      if ($id) {
+        $output = drupal_get_form('hrm_backend_code_activity_code_form', $id);
+      }
+      else {
+        $output = drupal_get_form('hrm_backend_code_activity_code_form');
+      }
+      break;
+    case HRM_MODAL_COA_ACCOUNT_CODE:
+      if (!user_access(HRM_PERM_FINANCE_MANAGE_ACCOUNT_ITEMS)) {
+        hrm_backend_modal_access_denied();
+      }
+      $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/finance/backend_code');
+
+      if ($id) {
+        $output = drupal_get_form('hrm_backend_code_account_code_form', $id);
+      }
+      else {
+        $output = drupal_get_form('hrm_backend_code_account_code_form');
+      }
+      break;
+
+    /*
+     * ==================================
+     * Monitoring and Evaluation
+     * ==================================
+     */
+    /* --------------- PDM --------------- */
+    case HRM_MODAL_ME_PDM_ACTIVATE_FORM:
+      if (!user_access(HRM_PERM_ME_PDM_ACTIVATE)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      $pid = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING);
+      if (!$pid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', HRM_MODULE_BACKEND, 'includes/me/backend_pdm');
+      $output = drupal_get_form('hrm_backend_pdm_activate_pdm_form', $pid);
+      break;
+
+    /*
+     * ==================================
+     * Communications
+     * ==================================
+     */
+    /*
+     * ==================================
+     * Logistics
+     * ==================================
+     */
+    /*
+     * ==================================
+     * Resources
+     * ==================================
+     */
+    /*
+     * ==================================
+     * Forms Modue
+     * ==================================
+     */
+    /* ---------------Entity--------------- */
+    //Entity
+    case HRM_MODAL_FRORMS_ENTITY_REVIEW_QUESTION_FORM:
+      if (!user_access(HRM_PERM_FORMS_ENTITY_REVIEW_MANAGE)) {
+        hrm_backend_modal_access_denied();
+      }
+      $qid = filter_input(INPUT_GET, 'qid', FILTER_SANITIZE_STRING);
+      if (!$qid) {
+        $qid = 0;
+      }
+
+      module_load_include('inc', HRM_MODULE_FORMS, 'includes/forms_entity');
+      $output = drupal_get_form('hrm_forms_entity_review_question_form', $qid);
+      break;
+    /*
+     * ==================================
+     * Collect module
+     * ==================================
+     */
+    /* ---------------Survey--------------- */
+    case HRM_MODAL_COLLECT_SURVEY_QUESTION_FORM:
+      if (!user_access(HRM_PERM_COLLECT_EDIT_SURVEY)) {
+        hrm_backend_modal_access_denied();
+      }
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      if (!$sid) {
+        hrm_backend_modal_not_found();
+      }
+      $qid = filter_input(INPUT_GET, 'qid', FILTER_SANITIZE_STRING);
+      if (!$qid) {
+        $qid = 0;
+      }
+
+      module_load_include('inc', 'hrm_collect', 'includes/collect_survey');
+      $output = drupal_get_form('hrm_collect_survey_build_survey_question_form', $sid, $qid);
+      break;
+    case HRM_MODAL_COLLECT_SURVEY_REJECT_FORM:
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      if (!$sid) {
+        hrm_backend_modal_not_found();
+      }
+      if (!user_access(HRM_PERM_COLLECT_MANAGE_SUBMITTED_SURVEY)) {
+        hrm_backend_modal_access_denied();
+      }
+
+      module_load_include('inc', 'hrm_collect', 'includes/collect_survey');
+      $output = drupal_get_form("hrm_collect_survey_reject_survey_form", $sid);
+
+      break;
+    case HRM_MODAL_COLLECT_SURVEY_REJECT_JUSTIFICATION:
+      $sid = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
+      if (!$sid) {
+        hrm_backend_modal_not_found();
+      }
+
+      module_load_include('inc', 'hrm_collect', 'includes/collect_survey');
+      $output = hrm_collect_survey_reject_survey_justification($sid);
+      break;
+    case HRM_MODAL_COLLECT_SURVEY_LOCATION_QUESTION_DISPLAY:
+      $content = filter_input(INPUT_GET, 'content', FILTER_SANITIZE_STRING);
+      $coordinates = filter_input(INPUT_GET, 'coordinates', FILTER_SANITIZE_STRING);
+      $output = theme('map_view_location', array('center' => $coordinates, 'marker' => $coordinates, 'content' => hrm_basic_string_format_js_text($content)));
+
+      break;
+  }
+  return $output;
+}

@@ -1,0 +1,248 @@
+function hrm_backend_leave_assign_leave_form_validate(&$form, &$form_state) {
+
+  if (isset($form_state['triggering_element']['#value']) && $form_state['triggering_element']['#value'] == 'Assign Leave') {
+    if (!isset($form_state['values']['duration']) || empty($form_state['values']['duration'])) {
+      form_set_error('duration', 'Duration field is required');
+    }
+
+    $account = $form_state['build_info']['args'][0];
+    $oid = $account['oid'];
+    $empid = $form_state['values']['employee'];
+    $employee = $form_state['storage']['employees'][$empid];
+    $location = $employee['location'];
+
+    $start_date = hrm_basic_datetime_convert($form_state['values']['start_date'], HRM_DATE_SIMPLE, $form_state['storage']['date_format']);
+    $end_date = hrm_basic_datetime_convert($form_state['values']['end_date'], HRM_DATE_SIMPLE, $form_state['storage']['date_format']);
+
+    if ($start_date == $end_date) {
+      if (!hrm_basic_day_is_working_day($oid, $location, $start_date)) {
+        form_set_error('start_date', 'Selected date is not a working day***');
+      }
+    }
+    else {
+      $leave_working_days = array();
+
+      $flag = TRUE;
+      $date = $start_date;
+      while ($flag) {
+        if ($date == $end_date) {
+          $flag = FALSE;
+        }
+        if (hrm_basic_day_is_working_day($oid, $location, $date)) {
+          $leave_working_days[] = $date;
+        }
+        $next_day_timestamp = strtotime($date . "+1 days");
+        $date = date(HRM_DATE_SIMPLE, $next_day_timestamp);
+      }
+
+      if (empty($leave_working_days)) {
+        form_set_error('from', 'Selected dates are not working days***');
+      }
+    }
+
+    $leave_type_id = $form_state['values']['leave_type'];
+    $leave_type = $form_state['storage']['leave_types'][$leave_type_id];
+
+    $entitlements_filters = array(
+      array('field' => 'empid', 'value' => $form_state['values']['employee'], 'operator' => '='),
+      array('field' => 'leave_type', 'value' => $form_state['values']['leave_type'], 'operator' => '=')
+    );
+    $entitlements = hrm_basic_leave_get_leave_entitlements($entitlements_filters, TRUE);
+
+    if (empty($entitlements)) {
+      form_set_error('', 'There Is No Entitltmens for this Employee***');
+    }
+    else {
+
+      if (!$leave_type['beyond_balance']) {
+
+        $location = $employee['location'];
+
+        $work_shift = hrm_basic_workshift_get_employee_workshift($empid, $employee);
+        $duration = $form_state['values']['duration'];
+
+        $days = 0;
+
+        if ($start_date == $end_date) {
+          switch ($duration) {
+            case HRM_LEAVE_DURATION_FULL_DAY:
+              if ($entitlements['days'] < 1) {
+                form_set_error('duration', 'SORRY! You Dont Have Enough Leave Entitlements***');
+              }
+              break;
+            case HRM_LEAVE_DURATION_HALF_DAY:
+
+              $work_shift_start_timestamp = strtotime($start_date . ' ' . $work_shift['from_time']);
+              $work_shift_end_timestamp = strtotime($start_date . ' ' . $work_shift['to_time']);
+
+              $work_shift_duration_timestamp = $work_shift_end_timestamp - $work_shift_start_timestamp;
+              $work_shift_duration_half_day_timestamp = $work_shift_duration_timestamp / 2;
+
+              $work_shift_houres = hrm_basic_time_timestamp_to_time($work_shift_duration_half_day_timestamp);
+
+              if ($entitlements['days'] < $work_shift_houres) {
+                form_set_error('duration', 'SORRY! You Dont Have Enough Leave Entitlements***');
+              }
+              break;
+            case HRM_LEAVE_DURATION_TIME:
+
+              $leave_start_timestamp = strtotime($start_date . ' ' . $form_state['values']['duration_time_from']);
+              $leave_end_timestamp = strtotime($start_date . ' ' . $form_state['values']['duration_time_to']);
+              $leave_duration_timestamp = $leave_end_timestamp - $leave_start_timestamp;
+
+              $work_shift_start_timestamp = strtotime($start_date . ' ' . $work_shift['from_time']);
+              $work_shift_end_timestamp = strtotime($start_date . ' ' . $work_shift['to_time']);
+              $work_shift_duration_timestamp = $work_shift_end_timestamp - $work_shift_start_timestamp;
+
+              $days = $leave_duration_timestamp / $work_shift_duration_timestamp;
+              if ($entitlements['days'] < $days) {
+                form_set_error('duration', 'SORRY! You Dont Have Enough Leave Entitlements***');
+              }
+
+              break;
+          }
+        }
+        else {
+          $from_date = $start_date;
+          $to_date = $end_date;
+
+          $total_hours = 0;
+          $total_days = 0;
+
+          $work_shift_start_timestamp = strtotime($start_date . ' ' . $work_shift['from_time']);
+          $work_shift_end_timestamp = strtotime($start_date . ' ' . $work_shift['to_time']);
+          $work_shift_duration_timestamp = $work_shift_end_timestamp - $work_shift_start_timestamp;
+
+          $work_shift_duration_half_day_timestamp = $work_shift_duration_timestamp / 2;
+          $work_shift_hours_array = explode(':', $work_shift['duration']);
+
+          $work_shift_hours_minutes = $work_shift_hours_array[1];
+          $work_shift_minutes = $work_shift_hours_minutes / 60;
+          $work_shift_hours_float = $work_shift_hours_array[0] + $work_shift_minutes;
+
+          $temp_from_time = $work_shift['from_time'];
+          $temp_to_time = $work_shift['to_time'];
+
+          $temp_duration = $work_shift['duration'];
+          $temp_hours = $work_shift_hours_float;
+          $temp_days = 1.00;
+
+
+          if ($duration == HRM_LEAVE_DURATION_HALF_DAY) {
+
+            $half_day_start_timestamp = 0;
+            $half_day_end_timestamp = 0;
+
+            if ($form_state['values']['duration_half_day'] == HRM_LEAVE_HALF_DAY_MORNING) {
+              $half_day_start_timestamp = $work_shift_start_timestamp;
+              $half_day_end_timestamp = $work_shift_start_timestamp + $work_shift_duration_half_day_timestamp;
+            }
+            elseif ($form_state['values']['duration_half_day'] == HRM_LEAVE_HALF_DAY_AFTERNOON) {
+              $half_day_start_timestamp = $work_shift_start_timestamp + $work_shift_duration_half_day_timestamp;
+              $half_day_end_timestamp = $work_shift_end_timestamp;
+            }
+            $start_date = date(HRM_DATE_SIMPLE_TIME_12, $half_day_start_timestamp);
+            $end_date = date(HRM_DATE_SIMPLE_TIME_12, $half_day_end_timestamp);
+
+            $hours = 0.50;
+
+            $temp_from_time = date(HRM_DATE_TIME_12, $half_day_start_timestamp);
+            $temp_to_time = date(HRM_DATE_TIME_12, $half_day_end_timestamp);
+
+            $temp_duration = hrm_basic_time_timestamp_to_time($work_shift_duration_half_day_timestamp);
+
+            $temp_hours_array = explode(':', $temp_duration);
+            $temp_hours_minutes = $temp_hours_array[1];
+            $temp_minutes = $temp_hours_minutes / 60;
+            $temp_hours_float = $temp_hours_array[0] + $temp_minutes;
+
+            $temp_hours = $temp_hours_float;
+
+            $temp_days = 0.50;
+          }
+          elseif ($duration == HRM_LEAVE_DURATION_TIME) {
+
+            $temp_leave_start_timestamp = strtotime($start_date . ' ' . $form_state['values']['duration_time_from']);
+            $temp_leave_end_timestamp = strtotime($start_date . ' ' . $form_state['values']['duration_time_to']);
+            $temp_leave_duration_timestamp = $temp_leave_end_timestamp - $temp_leave_start_timestamp;
+
+            $temp_work_shift_start_timestamp = strtotime($start_date . ' ' . $work_shift['from_time']);
+            $temp_work_shift_end_timestamp = strtotime($start_date . ' ' . $work_shift['to_time']);
+            $temp_work_shift_duration_timestamp = $temp_work_shift_end_timestamp - $temp_work_shift_start_timestamp;
+
+            $hours = hrm_basic_time_timestamp_to_time($temp_leave_duration_timestamp);
+            $days = $temp_leave_duration_timestamp / $work_shift_duration_timestamp;
+
+            $temp_from_time = $form_state['values']['duration_time_from'];
+            $temp_to_time = $form_state['values']['duration_time_to'];
+            $temp_duration = hrm_basic_time_timestamp_to_time($temp_leave_duration_timestamp);
+
+            $temp_hours_array = explode(':', $temp_duration);
+            $temp_hours_minutes = $temp_hours_array[1];
+            $temp_minutes = $temp_hours_minutes / 60;
+            $temp_hours_float = $temp_hours_array[0] + $temp_minutes;
+
+            $temp_hours = $temp_hours_float;
+            $temp_days = $temp_leave_duration_timestamp / $temp_work_shift_duration_timestamp;
+          }
+
+
+          $just_work_days = FALSE;
+          $all_year_days_included = FALSE;
+          $just_weekend_included = FALSE;
+          $just_holidays_included = FALSE;
+
+          if (!$leave_type['holidays_bd'] && !$leave_type['weekend_bd']) {
+            $just_work_days = TRUE;
+          }
+          else if ($leave_type['holidays_bd'] && $leave_type['weekend_bd']) {
+            $all_year_days_included = TRUE;
+          }
+          else if ($leave_type['holidays_bd'] && !$leave_type['weekend_bd']) {
+            $just_holidays_included = TRUE;
+          }
+          else if (!$leave_type['holidays_bd'] && $leave_type['weekend_bd']) {
+            $just_weekend_included = TRUE;
+          }
+          $flag = TRUE;
+
+          $date = $from_date;
+          while ($flag) {
+            if ($date == $to_date) {
+              $flag = FALSE;
+            }
+
+            if ($just_work_days) {
+              if (hrm_basic_day_is_working_day($oid, $location, $date)) {
+                $total_days += $temp_days;
+                $total_hours += $temp_hours;
+              }
+            }
+            else if ($all_year_days_included) {
+              $total_days += $temp_days;
+              $total_hours += $temp_hours;
+            }
+            else if ($just_holidays_included) {
+              if (hrm_basic_day_status($oid, $location, $date) != HRM_DAY_STATUS_WEEKEND) {
+                $total_days += $temp_days;
+                $total_hours += $temp_hours;
+              }
+            }
+            else if ($just_weekend_included) {
+              if (hrm_basic_day_status($oid, $location, $date) != HRM_DAY_STATUS_HOLIDAY) {
+                $total_days += $temp_days;
+                $total_hours += $temp_hours;
+              }
+            }
+
+            $next_day_timestamp = strtotime($date . "+1 days");
+            $date = date(HRM_DATE_SIMPLE, $next_day_timestamp);
+          }
+          if ($entitlements['days'] < $total_days) {
+            form_set_error('duration', 'SORRY! You Dont Have Enough Leave Entitlements***');
+          }
+        }
+      }
+    }
+  }
+}

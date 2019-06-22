@@ -1,0 +1,483 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Apr 4, 2015, 12:39:06 AM
+    Author     : oadarbeh
+*/
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body{
+  font-family: "sans-serif,Arial";
+  color: #221e1f;
+}
+
+table{
+  /*background-color: #fdb812;*/
+  border-collapse: collapse;
+  border-spacing: 0;
+  border-radius: 3em;   
+  border: 1px solid #221e1f;
+}
+table th{
+  /*color: #fff;*/
+  border-right: 1px solid #221e1f;
+  border-top: 1px solid #221e1f;
+  border-left: 1px solid #221e1f;
+  border-bottom: 2px solid #221e1f;
+  font-weight: normal;
+  padding: 5px;
+  background-color: #f9fafc;
+}
+table td{
+  border: 1px solid #221e1f;
+  padding: 5px;
+}
+table tr.odd td{
+  background-color: #f4f7fb;
+}
+table tr.even td{
+  background-color: #fff;
+}
+table tr td.themed-color-white {
+  color: #fff !important;
+}
+table tr td.themed-background-light-blue {
+  background-color: #6ad2eb !important;
+}
+
+table.table-no-border{
+  border: none;
+}
+table.table-no-border td{
+  border: none;
+}
+table.table-no-border th{
+  border: none;
+}
+
+table tr.table-tr-border td{
+  border: 1px solid !important;
+}
+table.raw-table tr th{
+  background-color: #fff !important;
+}
+table.raw-table tr.odd td{
+  background-color: #fff !important;
+}
+table.raw-table tr.even td{
+  background-color: #fff !important;
+}
+
+.height-150{
+  height: 150px;
+}
+.height-100{
+  height: 100px;
+}
+
+table tr.table-row-separator{
+  border: none;
+  background: #fff !important;
+}
+table tr.table-row-separator td{
+  border: none;
+  background: #fff !important;
+  height: 5px;
+}
+
+hr {
+  float: left;
+  border-bottom: 1px solid #ef8f15;
+  border-top: 1px solid #ef8f15;
+  width: 100%;
+}
+.col-1,
+.col-2,
+.col-3,
+.col-4,
+.col-5,
+.col-6,
+.col-7,
+.col-8,
+.col-9,
+.col-10,
+.col-11,
+.col-12{
+  float: left;
+}
+.col-1{width: 8.33333333%;}
+.col-2{width: 16.66666666%;}
+.col-3{width: 25%;}
+.col-4{width: 33.33333333%;}
+.col-5{width: 41.66666666%;}
+.col-6{width: 50%;}
+.col-7{width: 58.33333333%;}
+.col-8{width: 66.66666666%;}
+.col-9{width: 75%;}
+.col-10{width: 83.33333333%}
+.col-11{width: 91.66666666%;}
+.col-12{width: 100%;}
+
+.col-1-right,
+.col-2-right,
+.col-3-right,
+.col-4-right,
+.col-5-right,
+.col-6-right,
+.col-7-right,
+.col-8-right,
+.col-9-right,
+.col-10-right,
+.col-11-right,
+.col-12-right{
+  float: right;
+}
+
+.col-1-right{width: 8.33333333%;}
+.col-2-right{width: 16.66666667%;}
+.col-3-right{width: 25%;}
+.col-4-right{width: 33.33333333%;}
+.col-5-right{width: 41.66666667%;}
+.col-6-right{width: 50%;}
+.col-7-right{width: 58.33333333%;}
+.col-8-right{width: 66.66666667%;}
+.col-9-right{width: 75%;}
+.col-10-right{width: 83.33333333%}
+.col-11-right{width: 91.66666667%;}
+.col-12-right{width: 100%;}
+
+.table-col-12{width: 100%;}
+
+.float-right{
+  float: right;
+  width: auto;
+
+}
+.float-left{
+  float: left;
+  width: auto;
+}
+
+.text-center{text-align: center;}   
+.text-left{text-align: left;}
+.row-label{font-weight: bold;}
+
+.header-row{  
+  font-family: bodonibook;
+  font-size: 15pt;
+  margin-bottom: 15px;
+}
+.subheader-row{
+  font-family: bodonibook;
+  font-size: 15pt;
+  margin-bottom: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #fdb812;
+}
+.title-row{
+  font-family: bodonibook;
+  font-size: 16pt;
+  margin-bottom: 16px;
+}
+.row{  
+  margin-bottom: 10px;
+}
+.table-row{
+  margin-bottom: 20px;
+}
+.list-row{
+  margin-bottom: 20px;
+}
+
+.max-width-20-px{
+  width: 20px;
+}
+.max-width-400{
+  max-width: 400px;
+}
+
+.extra-line-hight{
+  line-height: 200%;
+}
+.max-height-800{
+  max-height: 800px;
+}
+max-height-500{
+  max-height: 500px;
+}
+.page-title{
+  font-size: 20px;
+}
+.page-sub-title{
+  font-size: 16px;
+}
+.font-size-85{
+  font-size: 85%;
+}
+.font-size-75{
+  font-size: 75%;
+}
+.width-per-100{
+  width: 100%;
+}
+.width-per-50{
+  width: 50%;
+}
+.width-per-40{
+  width: 40%;
+}
+.width-per-10{
+  width: 10%;
+}
+
+.answer-cell{
+  width: 53px;  
+}
+
+.text-right{
+  text-align: right;
+}
+.text-center{
+  text-align: center;
+}
+.text-small{
+  font-size: 75%;
+}
+
+table.pam-question-result thead tr th, table.pam-question-result tbody tr td{
+  border: none;
+}
+table.pam-question-result thead tr th.question-text-header{
+  width: 40%;
+  padding: 5px;
+  vertical-align: top;
+}
+table.pam-question-result thead tr th.question-answer-header{
+  text-align: left;
+  font-weight: normal;
+  vertical-align: top;
+  padding: 5px;
+  color: #1bbae1;
+}
+table.pam-question-result tbody tr td.question-text{
+  width: 40%;
+  padding: 5px;
+  vertical-align: top;
+}
+table.pam-question-result tbody tr td.question-answer{
+  text-align: left;
+  font-weight: normal;
+  vertical-align: top;
+  padding: 5px;
+}
+
+.pam-question-details{
+  border: 1px solid #000;
+}
+.pam-question-details-label{
+  padding: 5px;
+
+}
+.pam-question-details-value{
+  padding: 5px;
+}
+
+.document-serial{
+  text-align: right;  
+  font-size: 10px;
+  color: #757575;  
+}
+.med-black-color{color:#000000;}
+.med-yellow-color{color:#faa61a;}
+.color-gray{
+  color: #CCCCCC;  
+}
+.color-white{
+  color: #FFFFFF;  
+}
+.color-green{
+  color: #27ae60;  
+}
+.color-black{
+  color: #000000 !important;
+}
+.margin-top-10{margin-top: 10px;}
+.themed-color-primary-color{ color: #ec1c23;}
+
+.img-32,
+.img-widget-32 img{
+  width: 32px !important;
+  height: 32px !important;
+}
+.img-48,
+.img-widget-48 img{
+  width: 48px;
+  height: 48px;
+}
+.img-circle,
+.img-widget-circle{border-radius:50%}
+
+.strong{
+  font-weight: 600;
+}
+.bold{
+  font-weight: bold;
+}
+.box-border{
+  border: 1px solid #221e1f;
+}
+table td.no-border, 
+table tr.no-border{
+  border: none;
+}
+
+.padding-15{
+  padding: 15px;
+}
+.padding-15-0{
+  padding: 15px 0;
+}
+.padding-5{
+  padding: 5px !important;
+}
+.padding-5-10{
+  padding: 5px 10px;
+}
+.padding-10-0{
+  padding: 10px 0;
+}
+.padding-15-0{
+  padding: 15px 0;
+}
+
+.margin-5{
+  margin: 5px;
+}
+.margin-bottom-5{
+  margin-bottom: 5px;
+}
+.margin-bottom-20{
+  margin-bottom: 20px;
+}
+.margin-0-20{
+  margin: 0 20px;
+}
+
+.padding-top-20{
+  padding-top: 20px;
+}
+
+.font-normal{
+  font-weight: normal;
+}
+.font-italic{
+  font-style: italic;
+}
+.font-size-125{
+  font-size: 125%;
+}
+.highlight-yellow,
+table tr td.highlight-yellow{
+  background: #ffff00 !important;
+}
+/*
+ * ====================================
+ * Tracker PDF
+ * ====================================
+ */
+.pdf-tracker-wrapper{
+  width: 100%;
+  padding: 25px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 4px;
+  background: #e9f0f5;
+  box-shadow: 0 3px 0 #d7e4ed;
+  margin-bottom: 20px;
+}
+.pdf-tracker-wrapper-odd{
+  background: #f5f5f5;
+  box-shadow: 0 3px 0 #dddddd;
+}
+.pdf-tracker-wrapper .pdf-tracker-header{
+  float: left;
+  width: 100%;
+
+}
+
+.pdf-tracker-wrapper .pdf-tracker-header .pdf-tracker-user-image{
+  float: left;
+  width: 80px;
+}
+.pdf-tracker-wrapper .pdf-tracker-header .pdf-tracker-user-name-date{
+  float: left;
+  width: 500px;
+}
+
+/*
+ * ====================================
+ * blockquote
+ * ====================================
+ */
+blockquote {
+  background-color: #e0eaf1;
+  padding: 15px;
+  width: 100%;
+  margin: 0;
+}
+
+blockquote footer, blockquote small, blockquote .small {
+  display: block;
+  font-size: 80%;
+  line-height: 1.42857143;
+  color: #777;
+}
+blockquote footer:before, blockquote small:before, blockquote .small:before {
+  content: '\2014 \00A0';
+}
+
+.je-container{
+  padding-right: 10px;
+  padding-left: 30px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-left: 30px;
+  margin-right: 30px;
+  font-size: 24pt;
+  float: left;
+  display: block;
+  background: #ffff00 !important;
+}
+
+/*
+ * ====================================
+ * Colors
+ * ====================================
+ */
+.themed-color-red { color: #d2232a !important; }
+.themed-color-yellow { color: #faa61a !important; }
+.themed-color-black { color: #000 !important; }
+.themed-color-green { color: #27ae60 !important; }
+.themed-color-blue { color: #4986e7 !important; }
+.themed-color-purple { color: #cd74e6 !important; }
+.themed-color-brown { color: #ac725e !important; }
+.themed-color-light-blue { color: #1bbae1 !important; }
+.themed-color-dark-blue { color: #212E3B !important; }
+.themed-color-gray { color: #808080 !important; }
+.themed-color-orange { color: #e67e22 !important; }
+
+.themed-color-med-orange{ color: #ef8f15 !important;}
